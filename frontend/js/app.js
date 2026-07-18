@@ -50,19 +50,25 @@ function navigateToDataset() {
 async function fetchDatasetStatus() {
     const apiIndicator = document.getElementById("api-status");
     try {
-        const response = await fetch(API_STATUS_URL);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const [datasetRes, repositoryRes] = await Promise.all([
+            fetch(API_STATUS_URL),
+            fetch("/api/repository/status")
+        ]);
+
+        if (!datasetRes.ok || !repositoryRes.ok) {
+            throw new Error("HTTP error fetching platform status");
         }
-        const data = await response.json();
+
+        const datasetData = await datasetRes.json();
+        const repositoryData = await repositoryRes.json();
         
         // Update connection status UI
         apiIndicator.className = "status-indicator connected";
         apiIndicator.querySelector(".status-text").textContent = "Connected to API";
         
-        // Render data status details
-        currentReport = data;
-        renderDashboard(data);
+        currentReport = datasetData;
+        renderDashboard(datasetData);
+        renderRepository(repositoryData);
         
     } catch (error) {
         console.error("API Connection Error:", error);
@@ -84,13 +90,20 @@ async function reloadData() {
     text.textContent = "Reloading Workbook...";
 
     try {
-        const response = await fetch(API_RELOAD_URL, { method: "POST" });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const reloadRes = await fetch(API_RELOAD_URL, { method: "POST" });
+        if (!reloadRes.ok) {
+            throw new Error(`HTTP error! status: ${reloadRes.status}`);
         }
-        const data = await response.json();
+        const data = await reloadRes.json();
         currentReport = data;
         renderDashboard(data);
+
+        // Fetch repository status concurrently
+        const repositoryRes = await fetch("/api/repository/status");
+        if (repositoryRes.ok) {
+            const repositoryData = await repositoryRes.json();
+            renderRepository(repositoryData);
+        }
         
         // Brief visual delay for smooth transition
         setTimeout(() => {
@@ -381,6 +394,75 @@ function renderOfflineState() {
         </tr>
     `;
     document.getElementById("validation-details-card").style.display = "none";
+
+    // Reset repository status UI
+    document.getElementById("repo-health-badge").className = "badge danger";
+    document.getElementById("repo-health-badge").textContent = "Offline";
+    document.getElementById("repo-status-text").textContent = "Connection Lost";
+    document.getElementById("repo-status-text").className = "detail-value text-danger";
+    document.getElementById("repo-health-text").textContent = "OFFLINE";
+    document.getElementById("repo-health-text").className = "detail-value text-danger";
+    document.getElementById("repo-last-sync").textContent = "-";
+
+    updateStateFlag("flag-dataset", false);
+    updateStateFlag("flag-validation", false);
+    updateStateFlag("flag-repo", false);
+    updateStateFlag("flag-app", false);
+}
+
+// Render Repository metadata and State Manager flags
+function renderRepository(repoData) {
+    const state = repoData.state;
+    const healthBadge = document.getElementById("repo-health-badge");
+    const statusText = document.getElementById("repo-status-text");
+    const lastSync = document.getElementById("repo-last-sync");
+    const healthText = document.getElementById("repo-health-text");
+
+    // Set badge classes
+    if (state.repository_health === "HEALTHY") {
+        healthBadge.className = "badge success";
+        healthBadge.textContent = "Healthy";
+        statusText.textContent = "Ready / Operational";
+        statusText.className = "detail-value text-success";
+        healthText.textContent = "HEALTHY";
+        healthText.className = "detail-value text-success";
+    } else if (state.repository_health === "WARNING") {
+        healthBadge.className = "badge warning";
+        healthBadge.textContent = "Warning";
+        statusText.textContent = "Warnings Present";
+        statusText.className = "detail-value text-warning";
+        healthText.textContent = "WARNING";
+        healthText.className = "detail-value text-warning";
+    } else {
+        healthBadge.className = "badge danger";
+        healthBadge.textContent = "Degraded";
+        statusText.textContent = "Not Loaded / Offline";
+        statusText.className = "detail-value text-danger";
+        healthText.textContent = "DEGRADED";
+        healthText.className = "detail-value text-danger";
+    }
+
+    lastSync.textContent = formatDate(state.last_load_time);
+
+    // Update state flags lists
+    updateStateFlag("flag-dataset", state.dataset_loaded);
+    updateStateFlag("flag-validation", state.validation_passed);
+    updateStateFlag("flag-repo", state.repository_ready);
+    updateStateFlag("flag-app", state.application_ready);
+}
+
+function updateStateFlag(elementId, isReady) {
+    const item = document.getElementById(elementId);
+    if (!item) return;
+
+    const icon = item.querySelector(".flag-icon i");
+    if (isReady) {
+        item.className = "state-flag-item ready";
+        icon.className = "fa-solid fa-circle-check";
+    } else {
+        item.className = "state-flag-item not-ready";
+        icon.className = "fa-solid fa-circle-xmark";
+    }
 }
 
 // Format Datetime stamps helper

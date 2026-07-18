@@ -669,3 +669,84 @@ body {
 .modal-body {
     padding: 1.5rem;
 }
+
+/* Repository Status Details */
+.repo-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.repo-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.repo-detail-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.detail-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    font-family: var(--font-code);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* State Flags Grid/List */
+.state-flags-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.state-flag-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+}
+
+.state-flag-item .flag-icon {
+    font-size: 16px;
+}
+
+.state-flag-item.ready .flag-icon {
+    color: var(--success-color);
+}
+
+.state-flag-item.ready {
+    border-color: rgba(16, 185, 129, 0.2);
+    background-color: rgba(16, 185, 129, 0.02);
+}
+
+.state-flag-item.not-ready .flag-icon {
+    color: var(--danger-color);
+}
+
+.state-flag-item.not-ready {
+    border-color: rgba(239, 68, 68, 0.2);
+    background-color: rgba(239, 68, 68, 0.02);
+}
+
+.state-flag-item.warning .flag-icon {
+    color: var(--warning-color);
+}
+
+.state-flag-item.warning {
+    border-color: rgba(245, 158, 11, 0.2);
+    background-color: rgba(245, 158, 11, 0.02);
+}
+

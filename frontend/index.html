@@ -168,6 +168,60 @@
                         </div>
                     </div>
 
+                    <!-- Repository Status Row -->
+                    <div class="grid-layout cols-2" id="repo-status-grid" style="margin-top: 1.5rem;">
+                        <!-- Repository Overview -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Data Repository Context</h3>
+                                <span class="badge danger" id="repo-health-badge">Degraded</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="repo-details-list">
+                                    <div class="repo-detail-item">
+                                        <span class="detail-label">Repository Status:</span>
+                                        <span class="detail-value text-danger" id="repo-status-text">Not Loaded</span>
+                                    </div>
+                                    <div class="repo-detail-item">
+                                        <span class="detail-label">Last Synced Time:</span>
+                                        <span class="detail-value" id="repo-last-sync">-</span>
+                                    </div>
+                                    <div class="repo-detail-item">
+                                        <span class="detail-label">Repository Health:</span>
+                                        <span class="detail-value text-danger" id="repo-health-text">DEGRADED</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- State Manager Flags -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Application Lifecycle States</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="state-flags-list">
+                                    <div class="state-flag-item not-ready" id="flag-dataset">
+                                        <span class="flag-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+                                        <span class="flag-name">Dataset Loaded</span>
+                                    </div>
+                                    <div class="state-flag-item not-ready" id="flag-validation">
+                                        <span class="flag-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+                                        <span class="flag-name">Validation Passed</span>
+                                    </div>
+                                    <div class="state-flag-item not-ready" id="flag-repo">
+                                        <span class="flag-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+                                        <span class="flag-name">Repository Ready</span>
+                                    </div>
+                                    <div class="state-flag-item not-ready" id="flag-app">
+                                        <span class="flag-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+                                        <span class="flag-name">Application Ready</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- File Details and Action Bar -->
                     <div class="action-bar-card">
                         <div class="file-path-details">
