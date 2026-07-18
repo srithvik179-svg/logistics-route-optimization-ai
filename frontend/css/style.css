@@ -951,6 +951,73 @@ body {
     margin-left: 0.25rem;
 }
 
+/* Performer list styling */
+.performer-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.performer-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 12px;
+}
+
+.performer-list li .perf-name {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.performer-list li .perf-val {
+    color: var(--text-muted);
+}
+
+/* Comparison side-by-side card styles */
+.comparison-entity-card {
+    background-color: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1.25rem;
+}
+
+.comparison-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.comp-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding-bottom: 0.5rem;
+}
+
+.comp-stat-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.comp-stat-row span {
+    color: var(--text-muted);
+}
+
+.comp-stat-row strong {
+    color: var(--text-color);
+}
+
+
 
 
 

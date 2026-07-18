@@ -16,6 +16,7 @@ from backend.utils.logger import logger
 from backend.services.dataset_loader import DatasetLoader
 from backend.services.explorer_service import ExplorerService
 from backend.services.analytics_service import AnalyticsService
+from backend.services.bi_service import BIService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -117,6 +118,20 @@ def get_pipeline_report():
     except Exception as e:
         logger.error(f"Error fetching pipeline report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch pipeline report: {str(e)}")
+
+# BI Dashboard, Compare & Export Models
+class BIDashboardRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class BICompareRequest(BaseModel):
+    entity_type: str
+    entity_a: str
+    entity_b: str
+    filters: Dict[str, Any]
+
+class BIExportRequest(BaseModel):
+    filters: Dict[str, Any]
+    report_type: str
 
 # Explorer API Models & Endpoints
 class QueryFilter(BaseModel):
@@ -291,6 +306,43 @@ def get_executive_dashboard():
         return payload
     except Exception as e:
         logger.error(f"Analytics API Error: Failed loading dashboard metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bi/dashboard")
+def get_bi_dashboard(payload: BIDashboardRequest):
+    """Returns dynamically filtered executive dashboard metrics."""
+    try:
+        data = BIService.get_dashboard_payload(payload.filters)
+        logger.info("Filter Applied event logged via API.")
+        return data
+    except Exception as e:
+        logger.error(f"BI API Error: Failed retrieving dashboard metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bi/compare")
+def compare_bi_entities(payload: BICompareRequest):
+    """Computes side-by-side comparison matrix for two logistics entities."""
+    try:
+        data = BIService.compare_entities(payload.entity_type, payload.entity_a, payload.entity_b, payload.filters)
+        return data
+    except Exception as e:
+        logger.error(f"BI API Error: Failed comparing entities: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bi/export")
+def export_bi_report(payload: BIExportRequest):
+    """Generates downloadable CSV reports for transactions or KPI summary."""
+    try:
+        csv_data = BIService.generate_csv_report(payload.filters, payload.report_type)
+        logger.info("Export Created event logged via API.")
+        from fastapi.responses import Response
+        return Response(
+            content=csv_data,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={payload.report_type}_report.csv"}
+        )
+    except Exception as e:
+        logger.error(f"BI API Error: Failed exporting CSV report: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files

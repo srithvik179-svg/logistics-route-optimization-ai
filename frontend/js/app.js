@@ -1123,8 +1123,39 @@ function resetExplorerSummary() {
 }
 
 // ==========================================
-// EXECUTIVE ANALYTICS DASHBOARD CONTROLLER
+// EXECUTIVE ANALYTICS DASHBOARD & BI CONTROLLER
 // ==========================================
+
+const API_BI_DASHBOARD = "/api/bi/dashboard";
+const API_BI_COMPARE = "/api/bi/compare";
+const API_BI_EXPORT = "/api/bi/export";
+
+let biState = {
+    filters: {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        partner: "",
+        part_category: "",
+        priority: "",
+        flow_type: ""
+    },
+    transactions: [], // Full list of filtered transactions
+    filteredTransactions: [], // Filtered + searched transactions
+    tablePage: 1,
+    tablePageSize: 10,
+    tableSortBy: "Transaction_ID",
+    tableSortOrder: "asc",
+    tableSearch: "",
+    dropdownsPopulated: false
+};
+
+// Drilldown-specific modal state
+let drilldownState = {
+    transactions: [],
+    title: ""
+};
 
 async function loadExecutiveDashboard() {
     console.log("Dashboard Loaded event logged.");
@@ -1132,21 +1163,30 @@ async function loadExecutiveDashboard() {
     // Set loading placeholders
     const views = ["dashboard-kpi-grid-1", "dashboard-kpi-grid-2"];
     views.forEach(v => {
-        document.querySelectorAll(`#${v} .metric-value`).forEach(val => {
-            val.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size: 14px;"></i>';
-        });
+        const grid = document.getElementById(v);
+        if (grid) {
+            grid.querySelectorAll(".metric-value").forEach(val => {
+                val.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size: 14px;"></i>';
+            });
+        }
     });
 
     try {
-        const res = await fetch(API_DASHBOARD_URL);
-        if (!res.ok) throw new Error("Failed fetching executive dashboard payload");
+        // Fetch BI payload via POST
+        const res = await fetch(API_BI_DASHBOARD, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ filters: biState.filters })
+        });
+        if (!res.ok) throw new Error("Failed fetching BI dashboard payload");
         const data = await res.json();
         
         console.log("Metrics Calculated and Summary Generated event logged.");
         
-        // 1. Populate KPI Cards
+        // 1. Populate KPI Cards & wire drilldown click listeners
         renderDashboardKPIs(data.kpis);
-        
+        wireKPIDrilldownClicks();
+
         // 2. Populate Summary Strip
         renderDashboardSummary(data.summary_info);
         
@@ -1155,18 +1195,31 @@ async function loadExecutiveDashboard() {
         
         // 4. Render Plotly Charts
         renderDashboardCharts(data);
-        
         console.log("Charts Generated event logged.");
-        
+
+        // 5. Populate rankings lists (top/bottom performers)
+        renderDashboardPerformers(data.performers);
+
+        // 6. Store transactions and populate interactive table
+        biState.transactions = data.transactions || [];
+        applyBITableSearchAndSort();
+
+        // 7. Populate filter panel dropdown values dynamically once
+        if (!biState.dropdownsPopulated) {
+            populateFilterPanelDropdowns(data.distributions);
+        }
+
     } catch (err) {
         console.error("loadExecutiveDashboard Error:", err);
-        // Show placeholders
         views.forEach(v => {
-            document.querySelectorAll(`#${v} .metric-value`).forEach(val => {
-                val.textContent = "Error";
-            });
+            const grid = document.getElementById(v);
+            if (grid) {
+                grid.querySelectorAll(".metric-value").forEach(val => {
+                    val.textContent = "Error";
+                });
+            }
         });
-        alert("Failed loading analytics dashboard. Verify backend service is operational.");
+        alert("Failed loading BI dashboard. Verify backend service is operational.");
     }
 }
 
@@ -1202,9 +1255,9 @@ function renderDashboardSummary(info) {
 }
 
 function renderDashboardTables(dists) {
-    // Helper to render simple count/cost table rows
     const populateSummaryTable = (elementId, dataList, categoryKey) => {
         const tbody = document.getElementById(elementId);
+        if (!tbody) return;
         tbody.innerHTML = "";
         
         if (!dataList || dataList.length === 0) {
@@ -1236,6 +1289,40 @@ function renderDashboardTables(dists) {
     populateSummaryTable("tbl-tpr-locations", dists.tpr_locations, "Coverage_Region");
 }
 
+function renderDashboardPerformers(perf) {
+    const populateList = (elementId, list, nameKey, valKey, suffix = "") => {
+        const ul = document.getElementById(elementId);
+        if (!ul) return;
+        ul.innerHTML = "";
+        
+        if (!list || list.length === 0) {
+            ul.innerHTML = '<li class="text-center text-muted">No data</li>';
+            return;
+        }
+        
+        list.slice(0, 5).forEach((item, index) => {
+            const li = document.createElement("li");
+            const val = item[valKey];
+            const formattedVal = typeof val === "number" ? val.toLocaleString() : val;
+            li.innerHTML = `
+                <div>
+                    <span style="color: var(--text-muted); font-size: 10px; margin-right: 4px;">#${index+1}</span>
+                    <span class="perf-name">${item[nameKey]}</span>
+                </div>
+                <span class="perf-val">${formattedVal}${suffix}</span>
+            `;
+            ul.appendChild(li);
+        });
+    };
+
+    populateList("rank-top-partners", perf.top_partners, "Logistics_Partner", "shipments", " Shipments");
+    populateList("rank-top-hubs", perf.top_hubs, "Hub_ID", "shipments", " Vol");
+    populateList("rank-top-tprs", perf.top_tprs, "rc_name", "Rating", " ★");
+    populateList("rank-bottom-hubs", perf.bottom_hubs, "Hub_ID", "shipments", " Vol");
+    populateList("rank-bottom-tprs", perf.bottom_tprs, "rc_name", "Rating", " ★");
+    populateList("rank-top-parts", perf.top_parts, "Part_Name", "volume", " Units");
+}
+
 function renderDashboardCharts(data) {
     const defaultLayoutProps = {
         paper_bgcolor: 'rgba(0,0,0,0)',
@@ -1249,8 +1336,8 @@ function renderDashboardCharts(data) {
     
     const colors = ['#00a8cc', '#8624e1', '#f59e0b', '#10b981', '#ef4444'];
 
-    // 1. Time Series Chart (Shipments & Costs over time)
-    const ts = data.time_series || [];
+    // 1. Time Series Chart
+    const ts = data.trends?.daily || [];
     const dates = ts.map(x => x.Order_Date_Str);
     const costs = ts.map(x => x.cost);
     const shipments = ts.map(x => x.shipments);
@@ -1286,7 +1373,12 @@ function renderDashboardCharts(data) {
             gridcolor: 'rgba(0,0,0,0)'
         }
     };
-    Plotly.newPlot('chart-time-series', [traceVol, traceCost], tsLayout, { responsive: true, displayModeBar: false });
+    
+    const divTS = document.getElementById("chart-time-series");
+    if (divTS) {
+        Plotly.newPlot('chart-time-series', [traceVol, traceCost], tsLayout, { responsive: true, displayModeBar: false });
+        divTS.on('plotly_click', (evt) => handleChartNodeClick("Time_Series", evt));
+    }
 
     // 2. Flow Type Distribution (Pie Chart)
     const ft = data.distributions.flow_types || [];
@@ -1308,9 +1400,13 @@ function renderDashboardCharts(data) {
         legend: { orientation: 'h', x: 0, y: -0.1, font: { size: 9 } },
         margin: { t: 20, b: 40, l: 20, r: 20 }
     };
-    Plotly.newPlot('chart-flow-type', [flowTrace], flowLayout, { responsive: true, displayModeBar: false });
+    const divFT = document.getElementById("chart-flow-type");
+    if (divFT) {
+        Plotly.newPlot('chart-flow-type', [flowTrace], flowLayout, { responsive: true, displayModeBar: false });
+        divFT.on('plotly_click', (evt) => handleChartNodeClick("Flow_Type", evt));
+    }
 
-    // 3. SLA & Priority Distributions (Grouped/Stacked Bar chart)
+    // 3. SLA & Priority Distributions
     const prio = data.distributions.priorities || [];
     const prioLabels = prio.map(x => x.Priority);
     const prioValues = prio.map(x => x.count);
@@ -1322,7 +1418,11 @@ function renderDashboardCharts(data) {
         name: 'Priority Count',
         marker: { color: colors.slice(0, prioLabels.length) }
     };
-    Plotly.newPlot('chart-sla-prio', [prioTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
+    const divSLA = document.getElementById("chart-sla-prio");
+    if (divSLA) {
+        Plotly.newPlot('chart-sla-prio', [prioTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
+        divSLA.on('plotly_click', (evt) => handleChartNodeClick("Priority", evt));
+    }
 
     // 4. Part Category Distribution (Horizontal Bar)
     const pc = data.distributions.part_categories || [];
@@ -1340,10 +1440,13 @@ function renderDashboardCharts(data) {
         ...defaultLayoutProps,
         margin: { t: 20, b: 30, l: 80, r: 20 }
     };
-    Plotly.newPlot('chart-part-cat', [catTrace], catLayout, { responsive: true, displayModeBar: false });
+    const divPC = document.getElementById("chart-part-cat");
+    if (divPC) {
+        Plotly.newPlot('chart-part-cat', [catTrace], catLayout, { responsive: true, displayModeBar: false });
+        divPC.on('plotly_click', (evt) => handleChartNodeClick("Part_Category", evt));
+    }
 
-    // 5. Logistics Cost Distribution (Histogram box type)
-    // Pull list of raw transaction costs
+    // 5. Logistics Cost Distribution
     const txCosts = data.distributions.partners.map(x => x.cost);
     const costTrace = {
         y: txCosts,
@@ -1356,7 +1459,7 @@ function renderDashboardCharts(data) {
     };
     Plotly.newPlot('chart-cost-dist', [costTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
 
-    // 6. Hub Types & Service Coverage (Bar chart)
+    // 6. Hub Types & Service Coverage
     const ht = data.distributions.hub_types || [];
     const hubLabels = ht.map(x => x.Hub_Type);
     const hubValues = ht.map(x => x.count);
@@ -1370,5 +1473,457 @@ function renderDashboardCharts(data) {
     };
     Plotly.newPlot('chart-hub-tpr', [hubTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
 }
+
+// ==========================================
+// BI FILTER PANEL FUNCTIONS
+// ==========================================
+
+function toggleFilterPanel() {
+    const panel = document.getElementById("bi-filter-panel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
+function populateFilterPanelDropdowns(dists) {
+    const fillDropdown = (elementId, list, key) => {
+        const select = document.getElementById(elementId);
+        if (!select) return;
+        
+        // Save first option
+        const firstOpt = select.options[0];
+        select.innerHTML = "";
+        select.appendChild(firstOpt);
+        
+        list.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item[key];
+            opt.textContent = item[key];
+            select.appendChild(opt);
+        });
+    };
+
+    fillDropdown("filter-partner", dists.partners, "Logistics_Partner");
+    fillDropdown("filter-category", dists.part_categories, "Category");
+    
+    // Fill hubs dropdown options from hub summary types or static names mapping
+    const hubsList = [
+        { name: "HUB-A" }, { name: "HUB-B" }, { name: "HUB-C" }, { name: "HUB-D" }, { name: "HUB-E" }
+    ];
+    fillDropdown("filter-hub", hubsList, "name");
+
+    const rcsList = [
+        { name: "TPR-001" }, { name: "TPR-002" }, { name: "TPR-003" }
+    ];
+    fillDropdown("filter-rc", rcsList, "name");
+
+    biState.dropdownsPopulated = true;
+    populateComparisonDropdowns();
+}
+
+function clearBIFilters() {
+    biState.filters = {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        partner: "",
+        part_category: "",
+        priority: "",
+        flow_type: ""
+    };
+    
+    document.getElementById("filter-start-date").value = "";
+    document.getElementById("filter-end-date").value = "";
+    document.getElementById("filter-hub").value = "";
+    document.getElementById("filter-rc").value = "";
+    document.getElementById("filter-partner").value = "";
+    document.getElementById("filter-category").value = "";
+    document.getElementById("filter-priority").value = "";
+    document.getElementById("filter-flow-type").value = "";
+    
+    loadExecutiveDashboard();
+}
+
+function applyBIFilters() {
+    logger.info("Filter Applied event logged.");
+    
+    biState.filters.start_date = document.getElementById("filter-start-date").value;
+    biState.filters.end_date = document.getElementById("filter-end-date").value;
+    biState.filters.hub = document.getElementById("filter-hub").value;
+    biState.filters.repair_center = document.getElementById("filter-rc").value;
+    biState.filters.partner = document.getElementById("filter-partner").value;
+    biState.filters.part_category = document.getElementById("filter-category").value;
+    biState.filters.priority = document.getElementById("filter-priority").value;
+    biState.filters.flow_type = document.getElementById("filter-flow-type").value;
+    
+    biState.tablePage = 1;
+    loadExecutiveDashboard();
+}
+
+// ==========================================
+// DRILL-DOWN ANALYTICS FUNCTIONS
+// ==========================================
+
+function wireKPIDrilldownClicks() {
+    const shipmentsCard = document.getElementById("kpi-shipments");
+    if (shipmentsCard) {
+        shipmentsCard.style.cursor = "pointer";
+        shipmentsCard.onclick = () => openKPIDrilldown("All Transactions", biState.transactions);
+    }
+}
+
+function handleChartNodeClick(chartType, evt) {
+    if (!evt || !evt.points || evt.points.length === 0) return;
+    const pt = evt.points[0];
+    const categoryVal = pt.label || pt.x || pt.y;
+    
+    let drilldownList = [];
+    if (chartType === "Flow_Type") {
+        logger.info("Drill-down Opened event logged.");
+        drilldownList = biState.transactions.filter(x => {
+            const dest = x.Destination_Hub.toUpperCase();
+            if (categoryVal === "Outbound to TPR") return dest.startsWith("TPR");
+            if (categoryVal === "Hub-to-Hub Transfer") return dest.startsWith("HUB");
+            return !dest.startsWith("TPR") && !dest.startsWith("HUB");
+        });
+    } else if (chartType === "Priority") {
+        logger.info("Drill-down Opened event logged.");
+        drilldownList = biState.transactions.filter(x => {
+            const dist = x.Route_Distance || 0;
+            const cost = x.Shipment_Cost || 0;
+            let p = "Low Priority";
+            if (dist > 300 || cost > 300) p = "High Priority";
+            else if (dist > 100 || cost > 100) p = "Medium Priority";
+            return p === categoryVal;
+        });
+    } else if (chartType === "Part_Category") {
+        logger.info("Drill-down Opened event logged.");
+        // Categories joining requires mapping or filter
+        drilldownList = biState.transactions; // fallback
+    } else {
+        drilldownList = biState.transactions;
+    }
+    
+    openKPIDrilldown(`Drill-down: ${categoryVal}`, drilldownList);
+}
+
+function openKPIDrilldown(title, list) {
+    logger.info("Drill-down Opened event logged.");
+    drilldownState.title = title;
+    drilldownState.transactions = list;
+    
+    document.getElementById("drilldown-modal-title").textContent = title;
+    document.getElementById("drilldown-records-summary").textContent = `Found ${list.length} transactions contributing to this summary.`;
+    
+    const tbody = document.getElementById("drilldown-table-body");
+    tbody.innerHTML = "";
+    
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">No contributing records.</td></tr>';
+    } else {
+        list.forEach(tx => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${tx.Transaction_ID}</strong></td>
+                <td>${formatDate(tx.Order_Date)}</td>
+                <td>${formatDate(tx.Delivery_Date)}</td>
+                <td>${tx.Origin_Hub}</td>
+                <td>${tx.Destination_Hub}</td>
+                <td>${tx.Part_Number}</td>
+                <td>${tx.Quantity}</td>
+                <td><span class="badge ${tx.SLA_Status === 'MET' ? 'success' : 'danger'}">${tx.SLA_Status}</span></td>
+                <td>$${tx.Shipment_Cost.toFixed(2)}</td>
+                <td>${tx.Route_Distance.toFixed(1)} miles</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    
+    document.getElementById("drilldown-modal").style.display = "flex";
+}
+
+function closeDrilldownModal() {
+    document.getElementById("drilldown-modal").style.display = "none";
+}
+
+// ==========================================
+// COMPARISON ANALYTICS FUNCTIONS
+// ==========================================
+
+const entityOptionsMap = {
+    hub: ["HUB-A", "HUB-B", "HUB-C", "HUB-D", "HUB-E"],
+    rc: ["TPR-001", "TPR-002", "TPR-003"],
+    partner: ["Swift LogiCo", "Apex Freight", "LoneStar Delivery"],
+    priority: ["High Priority", "Medium Priority", "Low Priority"],
+    flow_type: ["Hub-to-Hub Transfer", "Outbound to TPR", "Standard Delivery"]
+};
+
+function populateComparisonDropdowns() {
+    onCompareTypeChange();
+}
+
+function onCompareTypeChange() {
+    const type = document.getElementById("compare-entity-type").value;
+    const options = entityOptionsMap[type] || [];
+    
+    const selectA = document.getElementById("compare-entity-a");
+    const selectB = document.getElementById("compare-entity-b");
+    
+    selectA.innerHTML = "";
+    selectB.innerHTML = "";
+    
+    options.forEach((opt, idx) => {
+        const optionA = document.createElement("option");
+        optionA.value = opt;
+        optionA.textContent = opt;
+        selectA.appendChild(optionA);
+        
+        const optionB = document.createElement("option");
+        optionB.value = opt;
+        optionB.textContent = opt;
+        if (idx === 1 || options.length === 1) {
+            optionB.selected = true;
+        }
+        selectB.appendChild(optionB);
+    });
+}
+
+async function runEntityComparison() {
+    logger.info("Comparison Generated event logged.");
+    
+    const type = document.getElementById("compare-entity-type").value;
+    const a = document.getElementById("compare-entity-a").value;
+    const b = document.getElementById("compare-entity-b").value;
+    
+    try {
+        const res = await fetch(API_BI_COMPARE, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                entity_type: type,
+                entity_a: a,
+                entity_b: b,
+                filters: biState.filters
+            })
+        });
+        if (!res.ok) throw new Error("Failed fetching comparison metrics");
+        const data = await res.json();
+        
+        // Render comparisons
+        const renderEntityStats = (cardId, name, stats) => {
+            const card = document.getElementById(cardId);
+            card.querySelector(".entity-title").textContent = name;
+            card.querySelector(".val-shipments").textContent = stats.count;
+            card.querySelector(".val-cost").textContent = `$${stats.cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            card.querySelector(".val-avg-cost").textContent = `$${stats.avg_cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            card.querySelector(".val-sla-rate").textContent = `${stats.sla_rate.toFixed(1)}%`;
+            card.querySelector(".val-transit").textContent = `${stats.avg_transit.toFixed(1)} Days`;
+        };
+        
+        renderEntityStats("compare-card-a", a, data.entity_a);
+        renderEntityStats("compare-card-b", b, data.entity_b);
+        
+        document.getElementById("comparison-results-body").style.display = "block";
+        
+    } catch (err) {
+        console.error("runEntityComparison Error:", err);
+        alert("Failed loading comparison metrics.");
+    }
+}
+
+// ==========================================
+// INTERACTIVE DATA TABLE FUNCTIONS
+// ==========================================
+
+function debounceBISearch() {
+    clearTimeout(biState.searchTimeout);
+    biState.searchTimeout = setTimeout(() => {
+        biState.tableSearch = document.getElementById("bi-table-search").value.trim().toLowerCase();
+        biState.tablePage = 1;
+        applyBITableSearchAndSort();
+    }, 300);
+}
+
+function sortBITable(column) {
+    if (biState.tableSortBy === column) {
+        biState.tableSortOrder = biState.tableSortOrder === "asc" ? "desc" : "asc";
+    } else {
+        biState.tableSortBy = column;
+        biState.tableSortOrder = "asc";
+    }
+    applyBITableSearchAndSort();
+}
+
+function applyBITableSearchAndSort() {
+    let list = [...biState.transactions];
+    
+    // 1. Apply Search
+    if (biState.tableSearch) {
+        list = list.filter(item => {
+            return (
+                item.Transaction_ID.toLowerCase().includes(biState.tableSearch) ||
+                item.Origin_Hub.toLowerCase().includes(biState.tableSearch) ||
+                item.Destination_Hub.toLowerCase().includes(biState.tableSearch) ||
+                item.Part_Number.toLowerCase().includes(biState.tableSearch) ||
+                item.SLA_Status.toLowerCase().includes(biState.tableSearch)
+            );
+        });
+    }
+    
+    // 2. Apply Sort
+    const col = biState.tableSortBy;
+    const ord = biState.tableSortOrder === "asc" ? 1 : -1;
+    list.sort((x, y) => {
+        let valX = x[col];
+        let valY = y[col];
+        
+        if (typeof valX === "string") valX = valX.toLowerCase();
+        if (typeof valY === "string") valY = valY.toLowerCase();
+        
+        if (valX < valY) return -1 * ord;
+        if (valX > valY) return 1 * ord;
+        return 0;
+    });
+    
+    biState.filteredTransactions = list;
+    renderBITable();
+}
+
+function renderBITable() {
+    const tbody = document.getElementById("bi-table-body");
+    tbody.innerHTML = "";
+    
+    const startIdx = (biState.tablePage - 1) * biState.tablePageSize;
+    const endIdx = startIdx + biState.tablePageSize;
+    const pageRecords = biState.filteredTransactions.slice(startIdx, endIdx);
+    
+    if (pageRecords.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding: 3rem 0;">No matching records found.</td></tr>';
+        document.getElementById("bi-table-pagination-summary").textContent = "Showing 0-0 of 0 records";
+        document.getElementById("btn-bi-prev").disabled = true;
+        document.getElementById("btn-bi-next").disabled = true;
+        return;
+    }
+    
+    pageRecords.forEach(tx => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>${tx.Transaction_ID}</strong></td>
+            <td>${formatDate(tx.Order_Date)}</td>
+            <td>${formatDate(tx.Delivery_Date)}</td>
+            <td>${tx.Origin_Hub}</td>
+            <td>${tx.Destination_Hub}</td>
+            <td>${tx.Part_Number}</td>
+            <td>${tx.Quantity}</td>
+            <td><span class="badge ${tx.SLA_Status === 'MET' ? 'success' : 'danger'}">${tx.SLA_Status}</span></td>
+            <td>$${tx.Shipment_Cost.toFixed(2)}</td>
+            <td>${tx.Route_Distance.toFixed(1)} miles</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    const tot = biState.filteredTransactions.length;
+    document.getElementById("bi-table-pagination-summary").textContent = `Showing ${startIdx + 1}-${Math.min(endIdx, tot)} of ${tot} records`;
+    document.getElementById("btn-bi-prev").disabled = biState.tablePage === 1;
+    document.getElementById("btn-bi-next").disabled = endIdx >= tot;
+}
+
+function changeBIPage(delta) {
+    biState.tablePage += delta;
+    renderBITable();
+}
+
+// ==========================================
+// EXPORT & REPORT DOWNLOAD FUNCTIONS
+// ==========================================
+
+async function exportKPIs() {
+    logger.info("Export Created event logged.");
+    
+    try {
+        const res = await fetch(API_BI_EXPORT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                filters: biState.filters,
+                report_type: "kpis"
+            })
+        });
+        if (!res.ok) throw new Error("Failed exporting KPIs summary report");
+        const blob = await res.blob();
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "kpi_summary_report.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (err) {
+        console.error("exportKPIs Error:", err);
+        alert("Failed exporting KPI summary report.");
+    }
+}
+
+async function exportFilteredCSV() {
+    logger.info("Export Created event logged.");
+    
+    try {
+        const res = await fetch(API_BI_EXPORT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                filters: biState.filters,
+                report_type: "transactions"
+            })
+        });
+        if (!res.ok) throw new Error("Failed exporting filtered transaction records");
+        const blob = await res.blob();
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "filtered_transactions_report.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (err) {
+        console.error("exportFilteredCSV Error:", err);
+        alert("Failed exporting filtered CSV report.");
+    }
+}
+
+function exportDrilldownCSV() {
+    logger.info("Export Created event logged.");
+    if (drilldownState.transactions.length === 0) return;
+    
+    const headers = ["Transaction_ID", "Order_Date", "Delivery_Date", "Origin_Hub", "Destination_Hub", "Part_Number", "Quantity", "SLA_Status", "Shipment_Cost", "Route_Distance"];
+    let csvContent = headers.join(",") + "\n";
+    
+    drilldownState.transactions.forEach(tx => {
+        const row = [
+            tx.Transaction_ID,
+            tx.Order_Date,
+            tx.Delivery_Date,
+            tx.Origin_Hub,
+            tx.Destination_Hub,
+            tx.Part_Number,
+            tx.Quantity,
+            tx.SLA_Status,
+            tx.Shipment_Cost,
+            tx.Route_Distance
+        ];
+        csvContent += row.join(",") + "\n";
+    });
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${drilldownState.title.replace(/[:\s]/g, "_")}_report.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
 
 
