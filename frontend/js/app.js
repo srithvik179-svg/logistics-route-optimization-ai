@@ -50,17 +50,19 @@ function navigateToDataset() {
 async function fetchDatasetStatus() {
     const apiIndicator = document.getElementById("api-status");
     try {
-        const [datasetRes, repositoryRes] = await Promise.all([
+        const [datasetRes, repositoryRes, pipelineRes] = await Promise.all([
             fetch(API_STATUS_URL),
-            fetch("/api/repository/status")
+            fetch("/api/repository/status"),
+            fetch("/api/pipeline/report")
         ]);
 
-        if (!datasetRes.ok || !repositoryRes.ok) {
+        if (!datasetRes.ok || !repositoryRes.ok || !pipelineRes.ok) {
             throw new Error("HTTP error fetching platform status");
         }
 
         const datasetData = await datasetRes.json();
         const repositoryData = await repositoryRes.json();
+        const pipelineData = await pipelineRes.json();
         
         // Update connection status UI
         apiIndicator.className = "status-indicator connected";
@@ -69,6 +71,7 @@ async function fetchDatasetStatus() {
         currentReport = datasetData;
         renderDashboard(datasetData);
         renderRepository(repositoryData);
+        renderPipeline(pipelineData);
         
     } catch (error) {
         console.error("API Connection Error:", error);
@@ -98,11 +101,19 @@ async function reloadData() {
         currentReport = data;
         renderDashboard(data);
 
-        // Fetch repository status concurrently
-        const repositoryRes = await fetch("/api/repository/status");
+        // Fetch repository and pipeline status concurrently
+        const [repositoryRes, pipelineRes] = await Promise.all([
+            fetch("/api/repository/status"),
+            fetch("/api/pipeline/report")
+        ]);
+        
         if (repositoryRes.ok) {
             const repositoryData = await repositoryRes.json();
             renderRepository(repositoryData);
+        }
+        if (pipelineRes.ok) {
+            const pipelineData = await pipelineRes.json();
+            renderPipeline(pipelineData);
         }
         
         // Brief visual delay for smooth transition
@@ -408,6 +419,21 @@ function renderOfflineState() {
     updateStateFlag("flag-validation", false);
     updateStateFlag("flag-repo", false);
     updateStateFlag("flag-app", false);
+
+    // Reset pipeline status UI
+    document.getElementById("pipeline-status-badge").className = "badge danger";
+    document.getElementById("pipeline-status-badge").textContent = "Offline";
+    document.getElementById("pipeline-status-text").textContent = "OFFLINE";
+    document.getElementById("pipeline-status-text").className = "stat-value text-danger";
+    document.getElementById("pipeline-duration").textContent = "0.0 ms";
+    document.getElementById("pipeline-quality-score").textContent = "0.0%";
+    document.getElementById("pipeline-quality-score").className = "stat-value text-danger";
+    document.getElementById("pipeline-records-count").textContent = "-";
+    document.getElementById("pipeline-report-body").innerHTML = `
+        <tr>
+            <td colspan="6" class="text-center text-danger">Connection refused. Pipeline offline.</td>
+        </tr>
+    `;
 }
 
 // Render Repository metadata and State Manager flags
@@ -462,6 +488,92 @@ function updateStateFlag(elementId, isReady) {
     } else {
         item.className = "state-flag-item not-ready";
         icon.className = "fa-solid fa-circle-xmark";
+    }
+}
+
+// Render Processing Pipeline report and metrics
+function renderPipeline(pipelineData) {
+    const badge = document.getElementById("pipeline-status-badge");
+    const statusText = document.getElementById("pipeline-status-text");
+    const duration = document.getElementById("pipeline-duration");
+    const score = document.getElementById("pipeline-quality-score");
+    const records = document.getElementById("pipeline-records-count");
+    const tbody = document.getElementById("pipeline-report-body");
+
+    if (pipelineData.status === "FAILED") {
+        badge.className = "badge danger";
+        badge.textContent = "Failed";
+        statusText.textContent = "FAILED";
+        statusText.className = "stat-value text-danger";
+        duration.textContent = "-";
+        score.textContent = "-";
+        records.textContent = "-";
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-danger">${pipelineData.message || 'Pipeline execution failed.'}</td>
+            </tr>
+        `;
+        return;
+    }
+
+    const summary = pipelineData.summary;
+    
+    // Update badge status
+    if (summary.status === "SUCCESS") {
+        badge.className = "badge success";
+        badge.textContent = "Success";
+        statusText.textContent = "SUCCESS";
+        statusText.className = "stat-value text-success";
+    } else if (summary.status === "WARNING") {
+        badge.className = "badge warning";
+        badge.textContent = "Warnings";
+        statusText.textContent = "WARNING";
+        statusText.className = "stat-value text-warning";
+    } else {
+        badge.className = "badge danger";
+        badge.textContent = "Failed";
+        statusText.textContent = "FAILED";
+        statusText.className = "stat-value text-danger";
+    }
+
+    duration.textContent = `${summary.duration_ms} ms`;
+    records.textContent = summary.rows_processed;
+    score.textContent = `${summary.quality_score}%`;
+    
+    if (summary.quality_score >= 90) {
+        score.className = "stat-value text-success";
+    } else if (summary.quality_score >= 70) {
+        score.className = "stat-value text-warning";
+    } else {
+        score.className = "stat-value text-danger";
+    }
+
+    // Render detailed sheet table rows
+    tbody.innerHTML = "";
+    const sheetSummaries = pipelineData.sheet_summaries;
+    
+    for (const sheetName in sheetSummaries) {
+        const sh = sheetSummaries[sheetName];
+        const tr = document.createElement("tr");
+        
+        let statusBadge = "";
+        if (sh.status === "SUCCESS") {
+            statusBadge = '<span class="badge success">Success</span>';
+        } else if (sh.status === "WARNING") {
+            statusBadge = '<span class="badge warning">Warning</span>';
+        } else {
+            statusBadge = '<span class="badge danger">Failed</span>';
+        }
+
+        tr.innerHTML = `
+            <td><strong>${sheetName}</strong></td>
+            <td class="text-center">${sh.rows_processed}</td>
+            <td class="text-center ${sh.missing_values_handled > 0 ? 'text-warning' : 'text-muted'}">${sh.missing_values_handled}</td>
+            <td class="text-center ${sh.duplicates_removed > 0 ? 'text-warning' : 'text-muted'}">${sh.duplicates_removed}</td>
+            <td class="text-center"><strong>${sh.quality_score}%</strong></td>
+            <td>${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
     }
 }
 

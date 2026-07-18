@@ -101,6 +101,18 @@ def get_repository_status():
         logger.error(f"Error fetching repository status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch repository status: {str(e)}")
 
+@app.get("/api/pipeline/report")
+def get_pipeline_report():
+    """Returns the performance report summary of the data processing pipeline."""
+    try:
+        report = repository.get_pipeline_report()
+        if report is None:
+            return {"status": "FAILED", "message": "Pipeline has not run or no dataset was loaded."}
+        return report.model_dump()
+    except Exception as e:
+        logger.error(f"Error fetching pipeline report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch pipeline report: {str(e)}")
+
 # Serve Static Frontend Files
 # Path to frontend directory
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")

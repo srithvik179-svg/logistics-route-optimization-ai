@@ -222,6 +222,65 @@
                         </div>
                     </div>
 
+                    <!-- Processing Pipeline Status Row -->
+                    <div class="grid-layout cols-2" id="pipeline-status-grid" style="margin-top: 1.5rem;">
+                        <!-- Pipeline Overview Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Data Processing Pipeline</h3>
+                                <span class="badge danger" id="pipeline-status-badge">Inactive</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="grid-layout cols-2" style="margin-bottom: 0px; gap: 1rem;">
+                                    <div class="pipeline-stat-card">
+                                        <span class="stat-label">Pipeline Status</span>
+                                        <span class="stat-value text-danger" id="pipeline-status-text">OFFLINE</span>
+                                    </div>
+                                    <div class="pipeline-stat-card">
+                                        <span class="stat-label">Processing Duration</span>
+                                        <span class="stat-value" id="pipeline-duration">0.0 ms</span>
+                                    </div>
+                                    <div class="pipeline-stat-card">
+                                        <span class="stat-label">Total Quality Score</span>
+                                        <span class="stat-value text-warning" id="pipeline-quality-score">0.0%</span>
+                                    </div>
+                                    <div class="pipeline-stat-card">
+                                        <span class="stat-label">Records Processed</span>
+                                        <span class="stat-value" id="pipeline-records-count">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pipeline Report Table Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Pipeline Summary Report</h3>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="table-container" style="max-height: 180px; overflow-y: auto;">
+                                    <table class="data-table" style="font-size: 12px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Sheet</th>
+                                                <th>Rows</th>
+                                                <th>Nulls Filled</th>
+                                                <th>Dups Removed</th>
+                                                <th>Quality</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pipeline-report-body">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No pipeline records loaded.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- File Details and Action Bar -->
                     <div class="action-bar-card">
                         <div class="file-path-details">
