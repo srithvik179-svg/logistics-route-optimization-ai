@@ -47,3 +47,8 @@ build
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Project logs and scratch folders
+logs/
+scratch/
+

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dell Logistics Route Optimization AI Platform</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>Dell Logistics</h2>
+                    <span>Route Optimization</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#" class="nav-link active" data-target="overview-section">
+                            <i class="fa-solid fa-house-chimney"></i>
+                            <span>Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="dataset-section" id="nav-dataset">
+                            <i class="fa-solid fa-database"></i>
+                            <span>Dataset Status</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator connected" id="api-status">
+                    <span class="dot"></span>
+                    <span class="status-text">Connected to API</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Viewport -->
+        <main class="main-content">
+            <!-- Top Navigation Bar -->
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1 id="header-title">Platform Overview</h1>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">Dell Operator</span>
+                        <span class="user-role">Logistics Architect</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="content-viewport">
+                
+                <!-- 1. OVERVIEW SECTION -->
+                <section id="overview-section" class="viewport-section active">
+                    <div class="welcome-card">
+                        <div class="welcome-text">
+                            <h2>Enterprise Logistics Intelligence</h2>
+                            <p>Welcome to the Dell Logistics Route Optimization Platform. A multi-agent AI framework designed to analyze transits, predict SLA compliance, minimize costs, and optimize routing paths.</p>
+                        </div>
+                        <div class="welcome-icon">
+                            <i class="fa-solid fa-network-wired"></i>
+                        </div>
+                    </div>
+
+                    <div class="grid-layout cols-2">
+                        <div class="card status-summary-card">
+                            <div class="card-header">
+                                <h3>Data Layer Status</h3>
+                                <span class="badge" id="overview-badge">Checking...</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="status-info">
+                                    <div class="status-icon-box" id="overview-status-icon">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                    </div>
+                                    <div class="status-details">
+                                        <h4 id="overview-status-title">Checking dataset availability...</h4>
+                                        <p id="overview-status-desc">Verifying Dell Logistics Excel workbook presence and integrity.</p>
+                                    </div>
+                                </div>
+                                <div class="action-btn-group">
+                                    <button class="btn btn-primary" onclick="navigateToDataset()">
+                                        <i class="fa-solid fa-arrow-right"></i> Inspect Dataset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card modules-card">
+                            <div class="card-header">
+                                <h3>Active Modules</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="module-list">
+                                    <li class="module-item active">
+                                        <span class="module-status active"><i class="fa-solid fa-circle-check"></i></span>
+                                        <div class="module-info">
+                                            <h4>Data Loading & Validation</h4>
+                                            <p>Phase 2: Reads and verifies workbook integrity and sheet schemas.</p>
+                                        </div>
+                                    </li>
+                                    <li class="module-item disabled">
+                                        <span class="module-status"><i class="fa-solid fa-lock"></i></span>
+                                        <div class="module-info">
+                                            <h4>Geospatial & Route Optimization</h4>
+                                            <p>Disabled: Pending future phase activations.</p>
+                                        </div>
+                                    </li>
+                                    <li class="module-item disabled">
+                                        <span class="module-status"><i class="fa-solid fa-lock"></i></span>
+                                        <div class="module-info">
+                                            <h4>SLA Prediction & AI Routing</h4>
+                                            <p>Disabled: Pending future phase activations.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. DATASET SECTION -->
+                <section id="dataset-section" class="viewport-section">
+                    <!-- Metrics Row -->
+                    <div class="grid-layout cols-4" id="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Dataset Status</span>
+                            <span class="metric-value text-warning" id="metric-status">Unknown</span>
+                            <span class="metric-sub" id="metric-file-name">Dell_Logistics_Route_Optimization.xlsx</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Sheets Loaded</span>
+                            <span class="metric-value" id="metric-sheet-count">0</span>
+                            <span class="metric-sub">Expected: 5 Sheets</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Errors Found</span>
+                            <span class="metric-value text-danger" id="metric-errors">0</span>
+                            <span class="metric-sub">Critical schema failures</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Warnings Found</span>
+                            <span class="metric-value text-warning" id="metric-warnings">0</span>
+                            <span class="metric-sub">Data quality observations</span>
+                        </div>
+                    </div>
+
+                    <!-- File Details and Action Bar -->
+                    <div class="action-bar-card">
+                        <div class="file-path-details">
+                            <i class="fa-solid fa-file-excel text-success"></i>
+                            <div>
+                                <h4 id="file-details-path">Loading file details...</h4>
+                                <p id="file-details-stats">Size: - | Modified: -</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" id="btn-reload" onclick="reloadData()">
+                            <i class="fa-solid fa-arrows-rotate" id="reload-icon"></i> <span id="reload-text">Reload Workbook</span>
+                        </button>
+                    </div>
+
+                    <!-- Tables and Validation details -->
+                    <div class="grid-layout cols-1">
+                        
+                        <!-- Sheets Table Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Workbook Sheets</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table class="data-table" id="sheets-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Sheet Name</th>
+                                                <th>Rows</th>
+                                                <th>Columns</th>
+                                                <th>Validation Status</th>
+                                                <th>Errors</th>
+                                                <th>Warnings</th>
+                                                <th>Details</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sheets-table-body">
+                                            <!-- Dynamic entries will be inserted here -->
+                                            <tr>
+                                                <td colspan="7" class="text-center">Loading workbook data...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validation Details Card (Lists of errors/warnings) -->
+                        <div class="card" id="validation-details-card" style="display: none;">
+                            <div class="card-header">
+                                <h3>Validation Logs & Diagnostics</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="validation-details-container">
+                                    <!-- Errors sub-section -->
+                                    <div class="validation-log-block danger" id="errors-log-block" style="display: none;">
+                                        <h4><i class="fa-solid fa-circle-xmark"></i> Validation Errors</h4>
+                                        <ul class="log-list" id="errors-log-list"></ul>
+                                    </div>
+                                    
+                                    <!-- Warnings sub-section -->
+                                    <div class="validation-log-block warning" id="warnings-log-block" style="display: none;">
+                                        <h4><i class="fa-solid fa-triangle-exclamation"></i> Validation Warnings</h4>
+                                        <ul class="log-list" id="warnings-log-list"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Sheet Details Modal -->
+    <div class="modal-overlay" id="details-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Sheet Schema Details</h3>
+                <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Expected Type</th>
+                                <th>Loaded Type</th>
+                                <th>Type Valid</th>
+                                <th>Missing Values</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-columns-body">
+                            <!-- Dynamic column rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
