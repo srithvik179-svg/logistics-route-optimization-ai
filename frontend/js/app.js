@@ -63,6 +63,9 @@ function initNavigation() {
             } else if (targetId === "network-map-section") {
                 headerTitle.textContent = "Logistics Network Map";
                 loadNetworkMap();
+            } else if (targetId === "routes-section") {
+                headerTitle.textContent = "Route Intelligence & Network Analysis";
+                loadRouteIntelligence();
             }
         });
     });
@@ -2220,6 +2223,458 @@ function resetMapView() {
         mapState.map.setView([31.25, -99.25], 6);
     }
 }
+
+// ==========================================
+// ROUTE INTELLIGENCE & NETWORK GRAPH CONTROLLER
+// ==========================================
+
+const API_ROUTE_ANALYSIS = "/api/route-analysis/payload";
+
+let routeState = {
+    filters: {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        part_category: "",
+        partner: "",
+        priority: ""
+    },
+    data: null,
+    dropdownsPopulated: false
+};
+
+async function loadRouteIntelligence() {
+    console.log("Routes Loaded event logged.");
+    
+    try {
+        const payload = await fetchRouteAnalysis();
+        routeState.data = payload;
+        
+        // 1. Populate Overview Metrics
+        updateRouteOverviewPanel(payload.overview);
+        
+        // 2. Populate Dropdowns dynamically
+        if (!routeState.dropdownsPopulated) {
+            populateRouteFiltersDropdowns(payload);
+        }
+        
+        // 3. Render Network Graph via Plotly
+        renderNetworkGraph(payload.graph);
+        
+        // 4. Render Bottlenecks panel
+        renderBottlenecksPanel(payload.bottlenecks);
+        
+        // 5. Render Route Performance Table Directory
+        renderRouteTable(payload.routes);
+        
+        // 6. Render Hub Load imbalance analysis table
+        renderFlowAnalysis(payload.flows);
+        
+    } catch (err) {
+        console.error("loadRouteIntelligence Error:", err);
+        alert("Failed loading route intelligence analytics.");
+    }
+}
+
+async function fetchRouteAnalysis() {
+    const res = await fetch(API_ROUTE_ANALYSIS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filters: routeState.filters })
+    });
+    if (!res.ok) throw new Error("Failed fetching route analysis payload");
+    return await res.json();
+}
+
+function updateRouteOverviewPanel(ov) {
+    document.getElementById("route-overview-active").textContent = ov.total_active_routes;
+    document.getElementById("route-overview-hubs").textContent = ov.total_hub_connections;
+    document.getElementById("route-overview-rcs").textContent = ov.total_rc_connections;
+    document.getElementById("route-overview-distance").textContent = `${ov.avg_route_distance} mi`;
+    document.getElementById("route-overview-transit").textContent = `${ov.avg_transit_time} Days`;
+    document.getElementById("route-overview-cost").textContent = `$${ov.avg_logistics_cost.toFixed(2)}`;
+    document.getElementById("route-overview-shipments").textContent = ov.avg_shipments_per_route;
+}
+
+function populateRouteFiltersDropdowns(data) {
+    const fillSelect = (elementId, list, keyField, labelField) => {
+        const select = document.getElementById(elementId);
+        if (!select) return;
+        
+        const firstOpt = select.options[0];
+        select.innerHTML = "";
+        select.appendChild(firstOpt);
+        
+        list.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item[keyField];
+            opt.textContent = item[labelField || keyField];
+            select.appendChild(opt);
+        });
+    };
+
+    const hubsList = (data.graph.nodes || []).filter(n => n.type !== "Repair Center");
+    fillSelect("route-filter-hub", hubsList, "id", "name");
+
+    const rcsList = (data.graph.nodes || []).filter(n => n.type === "Repair Center");
+    fillSelect("route-filter-rc", rcsList, "id", "name");
+
+    const categoriesList = [
+        { name: "Electronics" }, { name: "Mechanical" }, { name: "Cooling" }
+    ];
+    fillSelect("route-filter-category", categoriesList, "name");
+
+    const partnersList = [
+        { name: "Swift LogiCo" }, { name: "Apex Freight" }, { name: "LoneStar Delivery" }
+    ];
+    fillSelect("route-filter-partner", partnersList, "name");
+
+    routeState.dropdownsPopulated = true;
+}
+
+function renderNetworkGraph(graphData) {
+    console.log("Network Graph Built event logged.");
+    
+    const nodes = graphData.nodes || [];
+    const edges = graphData.edges || [];
+    
+    // Map nodes to easy coordinate lookups
+    const nodeCoords = {};
+    nodes.forEach(n => {
+        nodeCoords[n.id] = { lat: n.lat, lon: n.lon, name: n.name, type: n.type };
+    });
+    
+    const traces = [];
+    
+    // 1. Draw Edges (Shipment Flow lines)
+    edges.forEach(e => {
+        const src = nodeCoords[e.source];
+        const tgt = nodeCoords[e.target];
+        
+        if (src && tgt) {
+            const lineColor = e.is_bottleneck ? "#ef4444" : "#4a5568";
+            const lineWeight = e.is_bottleneck ? 4 : 2;
+            const lineDash = e.flow_type === "Outbound to TPR" ? "dash" : "solid";
+            
+            traces.push({
+                x: [src.lon, tgt.lon],
+                y: [src.lat, tgt.lat],
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: lineColor,
+                    width: lineWeight,
+                    dash: lineDash
+                },
+                hoverinfo: "text",
+                text: `Route: ${e.source} &rarr; ${e.target}<br/>Type: ${e.flow_type}<br/>Volume: ${e.volume} shipments<br/>Avg Cost: $${e.avg_cost.toFixed(2)}<br/>Avg Transit: ${e.avg_transit} Days`,
+                opacity: 0.8
+            });
+        }
+    });
+    
+    // 2. Draw Nodes (Hubs and RCs)
+    const nodeX = [];
+    const nodeY = [];
+    const nodeColors = [];
+    const nodeSizes = [];
+    const nodeTexts = [];
+    
+    nodes.forEach(n => {
+        nodeX.push(n.lon);
+        nodeY.push(n.lat);
+        
+        // Style node color by Type
+        if (n.type === "Repair Center") {
+            nodeColors.push("#f59e0b"); // Orange
+        } else if (n.type === "Distribution Hub") {
+            nodeColors.push("#00a8cc"); // Cyan
+        } else {
+            nodeColors.push("#10b981"); // Green (Regional Hub)
+        }
+        
+        // Node marker size proportional to overall workload volume
+        const size = Math.max(12, Math.min(30, 10 + n.volume * 2.5));
+        nodeSizes.push(size);
+        
+        nodeTexts.push(`Node: ${n.name} (${n.id})<br/>Type: ${n.type}<br/>Total volume handled: ${n.volume} units`);
+    });
+    
+    traces.push({
+        x: nodeX,
+        y: nodeY,
+        type: "scatter",
+        mode: "markers+text",
+        marker: {
+            size: nodeSizes,
+            color: nodeColors,
+            line: { color: "#ffffff", width: 1.5 }
+        },
+        hoverinfo: "text",
+        text: nodes.map(n => n.id),
+        textposition: "top center",
+        textfont: {
+            color: "#e2e8f0",
+            size: 10,
+            family: "Inter"
+        },
+        hovertext: nodeTexts
+    });
+    
+    const layout = {
+        paper_bgcolor: "#111827",
+        plot_bgcolor: "#111827",
+        hovermode: "closest",
+        showlegend: false,
+        margin: { l: 20, r: 20, t: 20, b: 20 },
+        xaxis: { showgrid: false, zeroline: false, showticklabels: false },
+        yaxis: { showgrid: false, zeroline: false, showticklabels: false }
+    };
+    
+    Plotly.newPlot("chart-network-graph", traces, layout, { responsive: true, displayModeBar: false });
+}
+
+function renderBottlenecksPanel(bottlenecks) {
+    const listPanel = document.getElementById("routes-bottlenecks-list");
+    listPanel.innerHTML = "";
+    
+    if (bottlenecks.length === 0) {
+        listPanel.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                <i class="fa-solid fa-circle-check text-success" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                <p>No operational bottlenecks detected in the current network segment.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    bottlenecks.forEach(b => {
+        const item = document.createElement("div");
+        item.className = "bottleneck-card-item";
+        item.style.cursor = "pointer";
+        item.onclick = () => showRouteDetailsModal(b.origin, b.destination);
+        item.innerHTML = `
+            <h5>${b.origin} &rarr; ${b.destination}</h5>
+            <p>Type: <strong>${b.route_type}</strong> | Volume: <strong>${b.shipment_count} shipments</strong></p>
+            <p>Avg Cost: <strong>$${b.avg_cost.toFixed(2)}</strong> | Avg Transit: <strong>${b.transit_time} Days</strong></p>
+            <span class="reasons-tag"><i class="fa-solid fa-triangle-exclamation"></i> ${b.bottleneck_reason}</span>
+        `;
+        listPanel.appendChild(item);
+    });
+}
+
+function renderRouteTable(routes) {
+    const tbody = document.getElementById("routes-table-body");
+    tbody.innerHTML = "";
+    
+    routes.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.style.cursor = "pointer";
+        tr.onclick = () => showRouteDetailsModal(r.origin, r.destination);
+        
+        const complMet = r.status_dist["MET"] || 0;
+        const complMissed = r.status_dist["MISSED"] || 0;
+        const complianceRate = ((complMet / r.shipment_count) * 100.0).toFixed(0);
+        
+        const complianceColor = complianceRate >= 80 ? "text-success" : complianceRate >= 50 ? "text-warning" : "text-danger";
+        
+        const bottleneckBadge = r.is_bottleneck 
+            ? `<span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> Bottleneck</span>` 
+            : `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Nominal</span>`;
+            
+        tr.innerHTML = `
+            <td><strong>${r.origin}</strong></td>
+            <td><strong>${r.destination}</strong></td>
+            <td><span class="text-muted" style="font-size: 12px;">${r.route_type}</span></td>
+            <td class="text-right">${r.distance} mi</td>
+            <td class="text-right">${r.transit_time} Days</td>
+            <td class="text-right"><strong>${r.shipment_count}</strong></td>
+            <td class="text-right">$${r.avg_cost.toFixed(2)}</td>
+            <td><span class="${complianceColor}"><strong>${complianceRate}%</strong></span> <span class="text-muted" style="font-size: 11px;">(${complMet}/${r.shipment_count})</span></td>
+            <td>${bottleneckBadge}</td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function renderFlowAnalysis(flows) {
+    const tbody = document.getElementById("flows-table-body");
+    tbody.innerHTML = "";
+    
+    // Sort hubs alphabetically
+    const hubs = Object.keys(flows.hubs).sort();
+    
+    hubs.forEach(h => {
+        const stats = flows.hubs[h];
+        const tr = document.createElement("tr");
+        
+        const total = stats.inbound + stats.outbound;
+        const outboundPct = total > 0 ? ((stats.outbound / total) * 100.0).toFixed(0) : 50;
+        
+        const imbalanceColor = stats.net > 0 ? "text-success" : stats.net < 0 ? "text-danger" : "text-muted";
+        const imbalanceText = stats.net > 0 ? `+${stats.net} Outbound` : `${stats.net} Inbound`;
+        
+        tr.innerHTML = `
+            <td><strong>${h} Hub Node</strong></td>
+            <td class="text-right">${stats.inbound} units</td>
+            <td class="text-right">${stats.outbound} units</td>
+            <td class="text-right"><span class="${imbalanceColor}"><strong>${imbalanceText}</strong></span></td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="text-muted" style="font-size: 11px;">In</span>
+                    <div class="flow-split-bar">
+                        <div class="flow-split-fill" style="width: ${outboundPct}%;"></div>
+                    </div>
+                    <span class="text-muted" style="font-size: 11px;">Out</span>
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function showRouteDetailsModal(origin, dest) {
+    console.log(`Route Selected event logged. Route: ${origin} -> ${dest}`);
+    
+    const routes = routeState.data.routes || [];
+    const r = routes.find(item => item.origin === origin && item.destination === dest);
+    if (!r) return;
+    
+    // Populate simple tags
+    document.getElementById("route-modal-origin").textContent = r.origin;
+    document.getElementById("route-modal-dest").textContent = r.destination;
+    document.getElementById("route-modal-type").textContent = r.route_type;
+    document.getElementById("route-modal-distance").textContent = `${r.distance} mi`;
+    document.getElementById("route-modal-transit").textContent = `${r.transit_time} Days`;
+    document.getElementById("route-modal-cost").textContent = `$${r.avg_cost.toFixed(2)}`;
+    
+    document.getElementById("route-modal-shipments").textContent = r.shipment_count;
+    
+    const metCount = r.status_dist["MET"] || 0;
+    const missedCount = r.status_dist["MISSED"] || 0;
+    const metPct = ((metCount / r.shipment_count) * 100.0).toFixed(0);
+    
+    document.getElementById("route-modal-sla-met").textContent = `${metCount} shipments`;
+    document.getElementById("route-modal-sla-missed").textContent = `${missedCount} shipments`;
+    document.getElementById("route-modal-sla-rate").textContent = `${metPct}% Compliance`;
+    
+    const bTag = document.getElementById("route-modal-bottleneck");
+    if (r.is_bottleneck) {
+        bTag.innerHTML = `<span class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Bottleneck Alert (${r.bottleneck_reason})</span>`;
+    } else {
+        bTag.innerHTML = `<span class="text-success"><i class="fa-solid fa-circle-check"></i> Nominal Performance</span>`;
+    }
+    
+    // Populate parts list
+    const partsUl = document.getElementById("route-modal-parts-list");
+    partsUl.innerHTML = "";
+    r.parts.forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        partsUl.appendChild(li);
+    });
+    
+    // Populate partners list
+    const partnersUl = document.getElementById("route-modal-partners-list");
+    partnersUl.innerHTML = "";
+    r.partners.forEach(partner => {
+        const li = document.createElement("li");
+        li.textContent = partner;
+        partnersUl.appendChild(li);
+    });
+    
+    // Fetch individual transactions from dashboard memory if available, or just render placeholders
+    const txBody = document.getElementById("route-modal-table-body");
+    txBody.innerHTML = "";
+    
+    // Query actual filtered shipments if we can scan the loaded dashboard transactions
+    const matchingTxns = [];
+    // Search in global dashboard state transactions if loaded
+    if (dashboardState && dashboardState.data && dashboardState.data.transactions) {
+        dashboardState.data.transactions.forEach(tx => {
+            if (tx.Origin_Hub === r.origin && (tx.Destination_Hub === r.destination || (tx.Logistics_Partner === r.destination && r.route_type === "Outbound to TPR"))) {
+                matchingTxns.push(tx);
+            }
+        });
+    }
+    
+    if (matchingTxns.length === 0) {
+        // Fallback: render dummy records derived from statistical breakdown if dashboard state isn't active
+        for (let i = 0; i < r.shipment_count; i++) {
+            const isMissed = i < missedCount;
+            txBody.innerHTML += `
+                <tr>
+                    <td>TX-EST-${1000 + i}</td>
+                    <td>2026-07-0${i + 1}</td>
+                    <td>2026-07-0${i + 3}</td>
+                    <td class="text-right">5</td>
+                    <td><span class="badge badge-${isMissed ? "danger" : "success"}">${isMissed ? "MISSED" : "MET"}</span></td>
+                    <td class="text-right">$${r.avg_cost.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+    } else {
+        matchingTxns.forEach(tx => {
+            const isMissed = tx.SLA_Status === "MISSED";
+            txBody.innerHTML += `
+                <tr>
+                    <td><strong>${tx.Transaction_ID}</strong></td>
+                    <td>${tx.Order_Date.split("T")[0]}</td>
+                    <td>${tx.Delivery_Date.split("T")[0]}</td>
+                    <td class="text-right">${tx.Quantity}</td>
+                    <td><span class="badge badge-${isMissed ? "danger" : "success"}">${tx.SLA_Status}</span></td>
+                    <td class="text-right">$${parseFloat(tx.Shipment_Cost).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    document.getElementById("route-details-modal").style.display = "flex";
+}
+
+function closeRouteDetailsModal() {
+    document.getElementById("route-details-modal").style.display = "none";
+}
+
+function applyRouteFilters() {
+    console.log("Filters Applied event logged.");
+    
+    routeState.filters.start_date = document.getElementById("route-filter-start-date").value;
+    routeState.filters.end_date = document.getElementById("route-filter-end-date").value;
+    routeState.filters.hub = document.getElementById("route-filter-hub").value;
+    routeState.filters.repair_center = document.getElementById("route-filter-rc").value;
+    routeState.filters.part_category = document.getElementById("route-filter-category").value;
+    routeState.filters.partner = document.getElementById("route-filter-partner").value;
+    routeState.filters.priority = document.getElementById("route-filter-priority").value;
+    
+    loadRouteIntelligence();
+}
+
+function clearRouteFilters() {
+    routeState.filters = {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        part_category: "",
+        partner: "",
+        priority: ""
+    };
+    
+    document.getElementById("route-filter-start-date").value = "";
+    document.getElementById("route-filter-end-date").value = "";
+    document.getElementById("route-filter-hub").value = "";
+    document.getElementById("route-filter-rc").value = "";
+    document.getElementById("route-filter-category").value = "";
+    document.getElementById("route-filter-partner").value = "";
+    document.getElementById("route-filter-priority").value = "";
+    
+    loadRouteIntelligence();
+}
+
 
 
 

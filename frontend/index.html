@@ -56,6 +56,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="#" class="nav-link" data-target="routes-section" id="nav-routes">
+                            <i class="fa-solid fa-route"></i>
+                            <span>Route Intelligence</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#" class="nav-link" data-target="dataset-section" id="nav-dataset">
                             <i class="fa-solid fa-database"></i>
                             <span>Dataset Status</span>
@@ -866,6 +872,183 @@
                     </div>
                 </section>
 
+                <!-- ROUTE INTELLIGENCE SECTION -->
+                <section class="viewport-section" id="routes-section" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; align-items: start;">
+                        <!-- Left Panel: Filters and Overview KPIs -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Filters Panel -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-filter text-primary"></i> Route Filters</h3>
+                                </div>
+                                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div class="form-group">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="date" id="route-filter-start-date" class="form-control" onchange="applyRouteFilters()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">End Date</label>
+                                        <input type="date" id="route-filter-end-date" class="form-control" onchange="applyRouteFilters()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Hub Origin/Dest</label>
+                                        <select id="route-filter-hub" class="form-control" onchange="applyRouteFilters()">
+                                            <option value="">-- All Hubs --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Repair Center</label>
+                                        <select id="route-filter-rc" class="form-control" onchange="applyRouteFilters()">
+                                            <option value="">-- All RCs --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Part Category</label>
+                                        <select id="route-filter-category" class="form-control" onchange="applyRouteFilters()">
+                                            <option value="">-- All Categories --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Logistics Partner</label>
+                                        <select id="route-filter-partner" class="form-control" onchange="applyRouteFilters()">
+                                            <option value="">-- All Partners --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Priority</label>
+                                        <select id="route-filter-priority" class="form-control" onchange="applyRouteFilters()">
+                                            <option value="">-- All Priorities --</option>
+                                            <option value="High Priority">High Priority</option>
+                                            <option value="Medium Priority">Medium Priority</option>
+                                            <option value="Low Priority">Low Priority</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" onclick="clearRouteFilters()" style="margin-top: 0.5rem;"><i class="fa-solid fa-trash-can"></i> Reset Filters</button>
+                                </div>
+                            </div>
+
+                            <!-- Overview KPIs -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-network-wired text-success"></i> Network Overview</h3>
+                                </div>
+                                <div class="card-body" style="padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Active Routes</span>
+                                        <strong id="route-overview-active">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Hub Connections</span>
+                                        <strong id="route-overview-hubs">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">RC Connections</span>
+                                        <strong id="route-overview-rcs">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Avg Distance</span>
+                                        <strong id="route-overview-distance">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Avg Transit Time</span>
+                                        <strong id="route-overview-transit">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Avg Logistics Cost</span>
+                                        <strong id="route-overview-cost">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                        <span class="text-muted">Avg Shipments/Route</span>
+                                        <strong id="route-overview-shipments">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Graph, Bottlenecks, and Routes Table -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Top split: Network Graph & Bottleneck analysis list -->
+                            <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem; align-items: start;">
+                                <!-- Network Graph -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3><i class="fa-solid fa-circle-nodes text-primary"></i> Interactive Network Topology</h3>
+                                    </div>
+                                    <div class="card-body" style="padding: 0.5rem;">
+                                        <div id="chart-network-graph" style="height: 380px; width: 100%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Bottleneck list -->
+                                <div class="card" style="height: 100%; display: flex; flex-direction: column; min-height: 412px;">
+                                    <div class="card-header">
+                                        <h3><i class="fa-solid fa-triangle-exclamation text-danger"></i> System Bottlenecks</h3>
+                                    </div>
+                                    <div class="card-body" style="padding: 1rem; overflow-y: auto; flex: 1;" id="routes-bottlenecks-list">
+                                        <!-- Dynamic bottlenecks -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Routes Table -->
+                            <div class="card">
+                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h3><i class="fa-solid fa-table-list text-primary"></i> Route Performance Directory</h3>
+                                    <div style="font-size: 12px; color: var(--text-muted);">*Click any row to open comprehensive route details</div>
+                                </div>
+                                <div class="card-body" style="padding: 0;">
+                                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="data-table interactive-table" id="tbl-route-intelligence">
+                                            <thead>
+                                                <tr>
+                                                    <th>Origin</th>
+                                                    <th>Destination</th>
+                                                    <th>Route Type</th>
+                                                    <th class="text-right">Distance</th>
+                                                    <th class="text-right">Transit Days</th>
+                                                    <th class="text-right">Shipments</th>
+                                                    <th class="text-right">Avg Cost</th>
+                                                    <th>SLA Compliance</th>
+                                                    <th>Bottleneck</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="routes-table-body">
+                                                <!-- Dynamic route entries -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Flows summary analysis -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-shuffle text-primary"></i> Hub-wise Inbound & Outbound Load Analysis</h3>
+                                </div>
+                                <div class="card-body" style="padding: 0;">
+                                    <div class="table-container">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Hub Location</th>
+                                                    <th class="text-right">Inbound Flow Volume</th>
+                                                    <th class="text-right">Outbound Flow Volume</th>
+                                                    <th class="text-right">Net Flow Imbalance</th>
+                                                    <th>Ecosystem Flow Split</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="flows-table-body">
+                                                <!-- Dynamic flows entries -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- DATASET EXPLORER SECTION -->
                 <section class="viewport-section" id="explorer-section" style="display: none;">
                     <div class="explorer-container">
@@ -1034,6 +1217,82 @@
                             <!-- Dynamic rows -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Details Modal -->
+    <div class="modal-overlay" id="route-details-modal" style="display: none;">
+        <div class="modal" style="max-width: 850px; width: 90%; max-height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 id="route-modal-title">Route Analytics & Intelligence</h3>
+                <button class="close-btn" onclick="closeRouteDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                <div class="grid-layout cols-2" style="gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <!-- Left: Basic Stats -->
+                    <div class="card" style="padding: 1rem;">
+                        <h4 style="margin: 0 0 0.75rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">Route Attributes</h4>
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Origin Node:</span> <strong id="route-modal-origin">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Destination Node:</span> <strong id="route-modal-dest">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Route Category:</span> <strong id="route-modal-type">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Average Distance:</span> <strong id="route-modal-distance">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Average Transit Time:</span> <strong id="route-modal-transit">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Average Logistics Cost:</span> <strong id="route-modal-cost">-</strong></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Performance Summary -->
+                    <div class="card" style="padding: 1rem;">
+                        <h4 style="margin: 0 0 0.75rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">Performance Statistics</h4>
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Total Shipments:</span> <strong id="route-modal-shipments">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">SLA Compliance Met:</span> <strong id="route-modal-sla-met">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">SLA Compliance Missed:</span> <strong id="route-modal-sla-missed">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">SLA Compliance Rate:</span> <strong id="route-modal-sla-rate">-</strong></div>
+                            <div style="display: flex; justify-content: space-between;"><span class="text-muted">Operational Bottleneck:</span> <strong id="route-modal-bottleneck">-</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transported Parts & Logistics Partners -->
+                <div class="grid-layout cols-2" style="gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="card" style="padding: 1rem;">
+                        <h4 style="margin: 0 0 0.75rem 0;">Parts Transported</h4>
+                        <ul style="font-size: 13px; margin: 0; padding-left: 1.25rem; line-height: 1.6;" id="route-modal-parts-list"></ul>
+                    </div>
+                    <div class="card" style="padding: 1rem;">
+                        <h4 style="margin: 0 0 0.75rem 0;">Logistics Partners</h4>
+                        <ul style="font-size: 13px; margin: 0; padding-left: 1.25rem; line-height: 1.6;" id="route-modal-partners-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Transaction history list -->
+                <div class="card" style="margin-top: 1rem;">
+                    <div class="card-header">
+                        <h4>Connected Transactions History</h4>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tx ID</th>
+                                        <th>Order Date</th>
+                                        <th>Delivery Date</th>
+                                        <th class="text-right">Quantity</th>
+                                        <th>SLA Status</th>
+                                        <th class="text-right">Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="route-modal-table-body">
+                                    <!-- Dynamic transactions list -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
