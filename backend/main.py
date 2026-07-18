@@ -19,6 +19,7 @@ from backend.services.analytics_service import AnalyticsService
 from backend.services.bi_service import BIService
 from backend.services.geospatial_service import GeospatialService
 from backend.services.route_analysis_service import RouteAnalysisService
+from backend.services.performance_service import PerformanceService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -139,6 +140,9 @@ class GeospatialNetworkRequest(BaseModel):
     filters: Dict[str, Any]
 
 class RouteAnalysisRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class PerformanceRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -372,6 +376,16 @@ def get_route_analysis_payload(payload: RouteAnalysisRequest):
         return data
     except Exception as e:
         logger.error(f"Route Analysis API Error: Failed retrieving route intelligence payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/performance/payload")
+def get_performance_payload(payload: PerformanceRequest):
+    """Returns dynamically analyzed logistics KPIs, node scorecards, delay/cost summaries, and trend data."""
+    try:
+        data = PerformanceService.get_performance_payload(payload.filters)
+        return data
+    except Exception as e:
+        logger.error(f"Performance Monitoring API Error: Failed retrieving performance payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files

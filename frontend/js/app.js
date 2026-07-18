@@ -66,6 +66,9 @@ function initNavigation() {
             } else if (targetId === "routes-section") {
                 headerTitle.textContent = "Route Intelligence & Network Analysis";
                 loadRouteIntelligence();
+            } else if (targetId === "performance-section") {
+                headerTitle.textContent = "Logistics Performance Monitoring";
+                loadLogisticsPerformance();
             }
         });
     });
@@ -2674,6 +2677,355 @@ function clearRouteFilters() {
     
     loadRouteIntelligence();
 }
+
+// ==========================================
+// LOGISTICS PERFORMANCE MONITORING CONTROLLER
+// ==========================================
+
+const API_PERFORMANCE = "/api/performance/payload";
+
+let perfState = {
+    filters: {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        part_category: "",
+        partner: "",
+        priority: "",
+        status: ""
+    },
+    data: null,
+    dropdownsPopulated: false
+};
+
+async function loadLogisticsPerformance() {
+    console.log("Performance Dashboard Loaded event logged.");
+    
+    try {
+        const payload = await fetchPerformanceData();
+        perfState.data = payload;
+        
+        // 1. Update 10 Overview KPI Cards
+        updatePerfOverviewPanel(payload.kpis);
+        
+        // 2. Populate Dropdowns dynamically once
+        if (!perfState.dropdownsPopulated) {
+            populatePerfDropdowns(payload);
+        }
+        
+        // 3. Render Distribution & Trend Charts via Plotly
+        renderPerfCharts(payload);
+        
+        // 4. Render Hub & Repair Center Performance Scorecards
+        renderPerfScorecards(payload.hub_scorecard, payload.rc_scorecard);
+        
+    } catch (err) {
+        console.error("loadLogisticsPerformance Error:", err);
+        alert("Failed loading logistics performance monitoring dashboards.");
+    }
+}
+
+async function fetchPerformanceData() {
+    const res = await fetch(API_PERFORMANCE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filters: perfState.filters })
+    });
+    if (!res.ok) throw new Error("Failed fetching performance monitoring payload");
+    return await res.json();
+}
+
+function updatePerfOverviewPanel(kpis) {
+    document.getElementById("kpi-perf-transit").textContent = `${kpis.avg_transit_time} Days`;
+    document.getElementById("kpi-perf-cost").textContent = `$${kpis.avg_logistics_cost.toFixed(2)}`;
+    document.getElementById("kpi-perf-route-util").textContent = `${kpis.avg_route_utilization}%`;
+    document.getElementById("kpi-perf-delay").textContent = `${kpis.avg_shipment_delay} Days`;
+    document.getElementById("kpi-perf-hub-util").textContent = `${kpis.avg_hub_utilization}%`;
+    document.getElementById("kpi-perf-rc-util").textContent = `${kpis.avg_rc_utilization}%`;
+    document.getElementById("kpi-perf-otd").textContent = `${kpis.on_time_delivery_pct}%`;
+    document.getElementById("kpi-perf-delayed-pct").textContent = `${kpis.delayed_shipment_pct}%`;
+    document.getElementById("kpi-perf-day-vol").textContent = kpis.avg_shipments_per_day;
+    document.getElementById("kpi-perf-route-vol").textContent = kpis.avg_shipments_per_route;
+    
+    console.log("KPIs Calculated event logged.");
+}
+
+function populatePerfDropdowns(data) {
+    const fillSelect = (elementId, list, keyField, labelField) => {
+        const select = document.getElementById(elementId);
+        if (!select) return;
+        
+        const firstOpt = select.options[0];
+        select.innerHTML = "";
+        select.appendChild(firstOpt);
+        
+        list.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item[keyField];
+            opt.textContent = item[labelField || keyField];
+            select.appendChild(opt);
+        });
+    };
+
+    const hubsList = (data.hub_scorecard || []);
+    fillSelect("perf-filter-hub", hubsList, "id", "name");
+
+    const rcsList = (data.rc_scorecard || []);
+    fillSelect("perf-filter-rc", rcsList, "id", "name");
+
+    const categoriesList = [
+        { name: "Electronics" }, { name: "Mechanical" }, { name: "Cooling" }
+    ];
+    fillSelect("perf-filter-category", categoriesList, "name");
+
+    const partnersList = [
+        { name: "Swift LogiCo" }, { name: "Apex Freight" }, { name: "LoneStar Delivery" }
+    ];
+    fillSelect("perf-filter-partner", partnersList, "name");
+
+    perfState.dropdownsPopulated = true;
+}
+
+function renderPerfCharts(payload) {
+    console.log("Charts Rendered event logged.");
+    
+    const daily = payload.trends.daily || [];
+    
+    // Layout template for dashboard consistency
+    const getBaseLayout = (title) => ({
+        title: { text: title, font: { color: "#e2e8f0", size: 13, family: "Inter" } },
+        paper_bgcolor: "#111827",
+        plot_bgcolor: "#111827",
+        margin: { l: 40, r: 20, t: 40, b: 40 },
+        xaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 10 } },
+        yaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 10 } }
+    });
+
+    // 1. Tabbed Charts: Distributions
+    // Transit Distribution (bar histogram)
+    const transitVals = daily.map(d => d.avg_transit_time);
+    const transitCounts = {};
+    transitVals.forEach(v => {
+        const key = Math.round(v);
+        transitCounts[key] = (transitCounts[key] || 0) + 1;
+    });
+    
+    const transitX = Object.keys(transitCounts).sort((a,b)=>a-b);
+    const transitY = transitX.map(x => transitCounts[x]);
+    
+    Plotly.newPlot("chart-perf-transit-dist", [{
+        x: transitX.map(x => `${x} Days`),
+        y: transitY,
+        type: "bar",
+        marker: { color: "#00a8cc" }
+    }], getBaseLayout("Transit Duration Frequency Distribution"), { responsive: true, displayModeBar: false });
+
+    // Cost Distribution (histogram representation)
+    const costVals = daily.map(d => d.avg_cost);
+    Plotly.newPlot("chart-perf-cost-dist", [{
+        x: costVals,
+        type: "histogram",
+        marker: { color: "#10b981" },
+        nbinsx: 10
+    }], getBaseLayout("Average Daily Shipment Cost Distribution"), { responsive: true, displayModeBar: false });
+
+    // 2. Tabbed Charts: Trends (Daily Series)
+    const dates = daily.map(d => d.date);
+    const volumes = daily.map(d => d.shipment_volume);
+    const costs = daily.map(d => d.avg_cost);
+    
+    // Daily Volume Line
+    Plotly.newPlot("chart-perf-daily-volume", [{
+        x: dates,
+        y: volumes,
+        type: "scatter",
+        mode: "lines+markers",
+        line: { color: "#00a8cc", width: 2.5 },
+        marker: { size: 6 }
+    }], getBaseLayout("Daily Shipment Volume Timeline"), { responsive: true, displayModeBar: false });
+
+    // Daily Cost Line
+    Plotly.newPlot("chart-perf-daily-cost", [{
+        x: dates,
+        y: costs,
+        type: "scatter",
+        mode: "lines+markers",
+        line: { color: "#10b981", width: 2.5 },
+        marker: { size: 6 }
+    }], getBaseLayout("Average Daily Shipment Cost Timeline"), { responsive: true, displayModeBar: false });
+
+    // 3. Cost & Delay Analysis Breakdowns
+    const da = payload.delay_analysis;
+    const ca = payload.cost_analysis;
+
+    // Delay by Priority Bar
+    const prioX = Object.keys(da.by_priority);
+    const prioY = prioX.map(x => da.by_priority[x]);
+    Plotly.newPlot("chart-perf-delay-priority", [{
+        x: prioX,
+        y: prioY,
+        type: "bar",
+        marker: { color: "#ef4444" }
+    }], {
+        paper_bgcolor: "#111827",
+        plot_bgcolor: "#111827",
+        margin: { l: 30, r: 10, t: 20, b: 30 },
+        xaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 9 } },
+        yaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 9 } }
+    }, { responsive: true, displayModeBar: false });
+
+    // Delay by Partner Pie Chart
+    const partnerKeys = Object.keys(da.by_partner);
+    const partnerVals = partnerKeys.map(k => da.by_partner[k]);
+    Plotly.newPlot("chart-perf-delay-partner", [{
+        labels: partnerKeys,
+        values: partnerVals,
+        type: "pie",
+        hole: 0.4,
+        marker: { colors: ["#3b82f6", "#10b981", "#f59e0b"] }
+    }], {
+        paper_bgcolor: "#111827",
+        plot_bgcolor: "#111827",
+        margin: { l: 10, r: 10, t: 20, b: 10 },
+        legend: { font: { color: "#9ca3af", size: 9 } }
+    }, { responsive: true, displayModeBar: false });
+
+    // Cost by Category Horizontal Bar
+    const catKeys = Object.keys(ca.by_category);
+    const catVals = catKeys.map(k => ca.by_category[k]);
+    Plotly.newPlot("chart-perf-cost-category", [{
+        y: catKeys,
+        x: catVals,
+        type: "bar",
+        orientation: "h",
+        marker: { color: "#10b981" }
+    }], {
+        paper_bgcolor: "#111827",
+        plot_bgcolor: "#111827",
+        margin: { l: 80, r: 10, t: 20, b: 30 },
+        xaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 9 } },
+        yaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 9 } }
+    }, { responsive: true, displayModeBar: false });
+
+    // Cost by Hub Vertical Bar
+    const hubKeys = Object.keys(ca.by_hub);
+    const hubVals = hubKeys.map(k => ca.by_hub[k]);
+    Plotly.newPlot("chart-perf-cost-hub", [{
+        x: hubKeys,
+        y: hubVals,
+        type: "bar",
+        marker: { color: "#00a8cc" }
+    }], {
+        paper_bgcolor: "#111827",
+        plot_bgcolor: "#111827",
+        margin: { l: 40, r: 10, t: 20, b: 30 },
+        xaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 9 } },
+        yaxis: { gridcolor: "#1f2937", tickfont: { color: "#9ca3af", size: 9 } }
+    }, { responsive: true, displayModeBar: false });
+}
+
+function renderPerfScorecards(hubs, rcs) {
+    console.log("Scorecards Generated event logged.");
+    
+    // Render Hub Scorecard
+    const hubBody = document.getElementById("tbl-perf-hub-scorecard");
+    hubBody.innerHTML = "";
+    hubs.forEach(h => {
+        const scoreColor = h.performance_score >= 80 ? "text-success" : h.performance_score >= 50 ? "text-warning" : "text-danger";
+        hubBody.innerHTML += `
+            <tr>
+                <td><strong>${h.name}</strong></td>
+                <td class="text-right">${h.total_shipments}</td>
+                <td class="text-right">$${h.avg_logistics_cost.toFixed(2)}</td>
+                <td class="text-right"><strong>${h.capacity_utilization}%</strong></td>
+                <td class="text-right"><span class="${scoreColor}"><strong>${h.performance_score}</strong></span></td>
+            </tr>
+        `;
+    });
+
+    // Render RC Scorecard
+    const rcBody = document.getElementById("tbl-perf-rc-scorecard");
+    rcBody.innerHTML = "";
+    rcs.forEach(rc => {
+        const scoreColor = rc.performance_score >= 80 ? "text-success" : rc.performance_score >= 50 ? "text-warning" : "text-danger";
+        rcBody.innerHTML += `
+            <tr>
+                <td><strong>${rc.name}</strong></td>
+                <td class="text-right">${rc.incoming_shipments}</td>
+                <td class="text-right">${rc.avg_processing_time} Days</td>
+                <td class="text-right"><strong>${rc.capacity_utilization}%</strong></td>
+                <td class="text-right"><span class="${scoreColor}"><strong>${rc.performance_score}</strong></span></td>
+            </tr>
+        `;
+    });
+}
+
+function switchPerfTab(tabName) {
+    const distTabBtn = document.getElementById("btn-tab-distributions");
+    const trendsTabBtn = document.getElementById("btn-tab-trends");
+    
+    const distContent = document.getElementById("perf-tab-distributions-content");
+    const trendsContent = document.getElementById("perf-tab-trends-content");
+    
+    if (tabName === "distributions") {
+        distTabBtn.classList.add("active");
+        trendsTabBtn.classList.remove("active");
+        distContent.style.display = "grid";
+        trendsContent.style.display = "none";
+    } else {
+        distTabBtn.classList.remove("active");
+        trendsTabBtn.classList.add("active");
+        distContent.style.display = "none";
+        trendsContent.style.display = "grid";
+        
+        // Trigger relayout on Plotly charts to fix sizing in hidden viewports
+        setTimeout(() => {
+            Plotly.Plots.resize("chart-perf-daily-volume");
+            Plotly.Plots.resize("chart-perf-daily-cost");
+        }, 50);
+    }
+}
+
+function applyPerfFilters() {
+    console.log("Filters Applied event logged.");
+    
+    perfState.filters.start_date = document.getElementById("perf-filter-start-date").value;
+    perfState.filters.end_date = document.getElementById("perf-filter-end-date").value;
+    perfState.filters.hub = document.getElementById("perf-filter-hub").value;
+    perfState.filters.repair_center = document.getElementById("perf-filter-rc").value;
+    perfState.filters.part_category = document.getElementById("perf-filter-category").value;
+    perfState.filters.partner = document.getElementById("perf-filter-partner").value;
+    perfState.filters.priority = document.getElementById("perf-filter-priority").value;
+    perfState.filters.status = document.getElementById("perf-filter-status").value;
+    
+    loadLogisticsPerformance();
+}
+
+function clearPerfFilters() {
+    perfState.filters = {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        part_category: "",
+        partner: "",
+        priority: "",
+        status: ""
+    };
+    
+    document.getElementById("perf-filter-start-date").value = "";
+    document.getElementById("perf-filter-end-date").value = "";
+    document.getElementById("perf-filter-hub").value = "";
+    document.getElementById("perf-filter-rc").value = "";
+    document.getElementById("perf-filter-category").value = "";
+    document.getElementById("perf-filter-partner").value = "";
+    document.getElementById("perf-filter-priority").value = "";
+    document.getElementById("perf-filter-status").value = "";
+    
+    loadLogisticsPerformance();
+}
+
 
 
 
