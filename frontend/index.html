@@ -41,6 +41,12 @@
                             <span>Dataset Status</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="explorer-section" id="nav-explorer">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                            <span>Dataset Explorer</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
             
@@ -350,6 +356,111 @@
                             </div>
                         </div>
 
+                    </div>
+                </section>
+
+                <!-- DATASET EXPLORER SECTION -->
+                <section class="viewport-section" id="explorer-section" style="display: none;">
+                    <div class="explorer-container">
+                        <!-- Top Controls: Dataset Selector and global stats -->
+                        <div class="card">
+                            <div class="card-body flex-layout" style="display: flex; gap: 1.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <label for="dataset-select" style="font-weight: 600; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Active Dataset:</label>
+                                    <select id="dataset-select" class="form-control" style="background-color: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem 1rem; font-size: 13px; font-weight: 600; min-width: 220px;" onchange="onDatasetChange()">
+                                        <option value="">-- Select a Dataset --</option>
+                                    </select>
+                                </div>
+                                <div class="explorer-summary-strip" style="display: flex; gap: 2rem;">
+                                    <div class="summary-item"><span class="lbl">Rows:</span> <strong id="exp-summary-rows">-</strong></div>
+                                    <div class="summary-item"><span class="lbl">Cols:</span> <strong id="exp-summary-cols">-</strong></div>
+                                    <div class="summary-item"><span class="lbl">Memory:</span> <strong id="exp-summary-memory">-</strong></div>
+                                    <div class="summary-item"><span class="lbl">Status:</span> <span class="badge" id="exp-summary-status">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Split Panel (Left: Table/Filters, Right: Column Inspector) -->
+                        <div class="explorer-split-layout" style="display: grid; grid-template-columns: 3fr 1fr; gap: 1.5rem; margin-top: 1.5rem; align-items: start;">
+                            <!-- Left: Filters panel and Main Table -->
+                            <div class="explorer-main-panel" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                                <!-- Filters panel -->
+                                <div class="card">
+                                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem;">
+                                        <h3>Search & Advanced Filters</h3>
+                                        <button class="btn btn-secondary btn-sm" onclick="addFilterRow()"><i class="fa-solid fa-plus"></i> Add Filter</button>
+                                    </div>
+                                    <div class="card-body" style="padding-top: 0.5rem;">
+                                        <!-- Global Search -->
+                                        <div style="position: relative; margin-bottom: 1rem;">
+                                            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 12px; color: var(--text-muted);"></i>
+                                            <input type="text" id="explorer-search" class="form-control" placeholder="Search across all columns..." style="padding-left: 36px; width: 100%;" oninput="debounceSearch()">
+                                        </div>
+                                        
+                                        <!-- Stackable filter rows container -->
+                                        <div id="filter-rows-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                            <!-- Filter rows inserted dynamically -->
+                                        </div>
+                                        
+                                        <!-- Filter Actions -->
+                                        <div id="filter-actions-bar" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem; display: none;">
+                                            <button class="btn btn-secondary btn-sm" onclick="clearAllFilters()"><i class="fa-solid fa-trash-can"></i> Clear All</button>
+                                            <button class="btn btn-primary btn-sm" onclick="applyQueries()"><i class="fa-solid fa-filter"></i> Apply Filters</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Main Table -->
+                                <div class="card">
+                                    <div class="card-body" style="padding: 0;">
+                                        <div class="table-container" style="max-height: 480px; overflow: auto; position: relative;">
+                                            <table class="data-table interactive-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                                                <thead style="position: sticky; top: 0; background-color: var(--card-bg); z-index: 10;">
+                                                    <tr id="explorer-table-header">
+                                                        <!-- Header columns dynamically populated -->
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="explorer-table-body">
+                                                    <tr>
+                                                        <td class="text-center text-muted" style="padding: 4rem;">Please select a dataset to start browsing.</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <!-- Table Footer (Pagination controls) -->
+                                        <div class="table-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid var(--border-color); font-size: 13px;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <span>Rows per page:</span>
+                                                <select id="explorer-page-size" class="form-control" style="width: auto; padding: 0.25rem; font-size: 12px;" onchange="onPageSizeChange()">
+                                                    <option value="10">10</option>
+                                                    <option value="20">20</option>
+                                                    <option value="50">50</option>
+                                                </select>
+                                                <span style="color: var(--text-muted); margin-left: 1rem;" id="explorer-pagination-summary">Showing 0-0 of 0 records</span>
+                                            </div>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-secondary btn-sm" id="btn-exp-prev" onclick="changePage(-1)" disabled><i class="fa-solid fa-angle-left"></i> Previous</button>
+                                                <button class="btn btn-secondary btn-sm" id="btn-exp-next" onclick="changePage(1)" disabled>Next <i class="fa-solid fa-angle-right"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Column Inspector side-card -->
+                            <div class="card" id="column-inspector-panel">
+                                <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                                    <h3><i class="fa-solid fa-circle-info text-primary"></i> Column Inspector</h3>
+                                </div>
+                                <div class="card-body" id="column-inspector-body">
+                                    <div class="text-center text-muted" style="padding: 3rem 0;">
+                                        <i class="fa-solid fa-table-columns" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                        <p>Select any column header or cell in the table to inspect details.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 

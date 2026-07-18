@@ -1,9 +1,28 @@
 // API Endpoints
 const API_STATUS_URL = "/api/dataset/status";
 const API_RELOAD_URL = "/api/dataset/reload";
+const API_EXPLORER_DATASETS = "/api/explorer/datasets";
+const API_EXPLORER_QUERY = "/api/explorer/query";
+const API_EXPLORER_PROFILE = "/api/explorer/column-profile";
 
 // Global state holding loaded dataset report details
 let currentReport = null;
+
+// Explorer query states
+let explorerState = {
+    datasetName: "",
+    columns: [], // Array of {name, type}
+    records: [],
+    totalRecords: 0,
+    page: 1,
+    pageSize: 10,
+    sortBy: null,
+    sortOrder: "asc",
+    searchQuery: "",
+    filters: [] // Array of {column, operator, value}
+};
+
+let searchDebounceTimer = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     initNavigation();
@@ -34,6 +53,9 @@ function initNavigation() {
                 headerTitle.textContent = "Platform Overview";
             } else if (targetId === "dataset-section") {
                 headerTitle.textContent = "Dataset Loading & Validation";
+            } else if (targetId === "explorer-section") {
+                headerTitle.textContent = "Enterprise Dataset Explorer";
+                loadExplorerDatasets();
             }
         });
     });
@@ -594,3 +616,505 @@ function formatDate(isoStr) {
         return isoStr;
     }
 }
+
+// ==========================================
+// DATASET EXPLORER CONTROLLER & BINDINGS
+// ==========================================
+
+async function loadExplorerDatasets() {
+    try {
+        const res = await fetch(API_EXPLORER_DATASETS);
+        if (!res.ok) throw new Error("Failed to load explorer datasets list");
+        const datasets = await res.json();
+        
+        const select = document.getElementById("dataset-select");
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- Select a Dataset --</option>';
+        
+        datasets.forEach(ds => {
+            const opt = document.createElement("option");
+            opt.value = ds;
+            opt.textContent = ds.replace(/_/g, ' ');
+            select.appendChild(opt);
+        });
+        
+        if (currentVal && datasets.includes(currentVal)) {
+            select.value = currentVal;
+        }
+    } catch (err) {
+        console.error("loadExplorerDatasets Error:", err);
+    }
+}
+
+async function onDatasetChange() {
+    const select = document.getElementById("dataset-select");
+    const name = select.value;
+    
+    explorerState.datasetName = name;
+    explorerState.page = 1;
+    explorerState.sortBy = null;
+    explorerState.sortOrder = "asc";
+    explorerState.searchQuery = "";
+    explorerState.filters = [];
+    
+    // Clear DOM controls
+    document.getElementById("explorer-search").value = "";
+    document.getElementById("filter-rows-container").innerHTML = "";
+    document.getElementById("filter-actions-bar").style.display = "none";
+    
+    // Reset Inspector panel
+    resetColumnInspector();
+    
+    if (!name) {
+        resetExplorerTable("Please select a dataset to start browsing.");
+        resetExplorerSummary();
+        return;
+    }
+    
+    console.log("Dataset Selected:", name);
+    
+    try {
+        // Fetch summary & columns
+        const [summaryRes, columnsRes] = await Promise.all([
+            fetch(`/api/explorer/summary/${name}`),
+            fetch(`/api/explorer/columns/${name}`)
+        ]);
+        
+        if (!summaryRes.ok || !columnsRes.ok) throw new Error("Failed fetching metadata");
+        
+        const summary = await summaryRes.json();
+        const columns = await columnsRes.json();
+        
+        explorerState.columns = columns;
+        
+        // Render summary
+        renderExplorerSummary(summary);
+        
+        // Load table rows
+        await fetchQueryResults();
+        
+    } catch (err) {
+        console.error("onDatasetChange Error:", err);
+        resetExplorerTable("Failed loading metadata details for " + name);
+        resetExplorerSummary();
+    }
+}
+
+async function fetchQueryResults() {
+    if (!explorerState.datasetName) return;
+    
+    const tbody = document.getElementById("explorer-table-body");
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="100" class="text-center" style="padding: 4rem;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                <p style="margin-top: 1rem;">Loading query results...</p>
+            </td>
+        </tr>
+    `;
+    
+    try {
+        const payload = {
+            page: explorerState.page,
+            page_size: explorerState.pageSize,
+            sort_by: explorerState.sortBy,
+            sort_order: explorerState.sortOrder,
+            search_query: explorerState.searchQuery,
+            filters: explorerState.filters
+        };
+        
+        const res = await fetch(`${API_EXPLORER_QUERY}/${explorerState.datasetName}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error("Query execution failed");
+        
+        const data = await res.json();
+        explorerState.records = data.records;
+        explorerState.totalRecords = data.total_records;
+        
+        renderExplorerTable();
+        renderExplorerPagination();
+    } catch (err) {
+        console.error("fetchQueryResults Error:", err);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="100" class="text-center text-danger" style="padding: 4rem;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem;"></i>
+                    <p style="margin-top: 1rem;">Error running query filter results. Please try again.</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderExplorerSummary(s) {
+    document.getElementById("exp-summary-rows").textContent = s.rows;
+    document.getElementById("exp-summary-cols").textContent = s.columns;
+    document.getElementById("exp-summary-memory").textContent = s.memory_usage;
+    
+    const badge = document.getElementById("exp-summary-status");
+    badge.textContent = s.processing_status;
+    if (s.processing_status === "PROCESSED") {
+        badge.className = "badge success";
+    } else {
+        badge.className = "badge warning";
+    }
+}
+
+function renderExplorerTable() {
+    const thead = document.getElementById("explorer-table-header");
+    const tbody = document.getElementById("explorer-table-body");
+    
+    if (explorerState.columns.length === 0) {
+        thead.innerHTML = "";
+        tbody.innerHTML = '<tr><td class="text-center text-muted">No columns found.</td></tr>';
+        return;
+    }
+    
+    // 1. Render headers with sorting bindings
+    thead.innerHTML = "";
+    explorerState.columns.forEach(col => {
+        const th = document.createElement("th");
+        th.className = "interactive-header";
+        if (explorerState.sortBy === col.name) {
+            th.classList.add("active-sort");
+        }
+        
+        // Icon for sorting status
+        let sortIcon = '<i class="fa-solid fa-sort sort-icon"></i>';
+        if (explorerState.sortBy === col.name) {
+            sortIcon = explorerState.sortOrder === "asc" 
+                ? '<i class="fa-solid fa-sort-up sort-icon"></i>' 
+                : '<i class="fa-solid fa-sort-down sort-icon"></i>';
+        }
+        
+        th.innerHTML = `${col.name} ${sortIcon}`;
+        th.onclick = () => onHeaderClick(col.name);
+        thead.appendChild(th);
+    });
+    
+    // 2. Render rows
+    tbody.innerHTML = "";
+    if (explorerState.records.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="${explorerState.columns.length}" class="text-center text-muted" style="padding: 4rem;">
+                    No records found matching query criteria.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    explorerState.records.forEach(row => {
+        const tr = document.createElement("tr");
+        explorerState.columns.forEach(col => {
+            const td = document.createElement("td");
+            const val = row[col.name];
+            
+            if (val === null || val === undefined) {
+                td.textContent = "-";
+                td.className = "text-muted";
+            } else if (col.type === "boolean") {
+                td.innerHTML = val 
+                    ? '<span class="badge success" style="padding: 2px 6px;">True</span>' 
+                    : '<span class="badge danger" style="padding: 2px 6px;">False</span>';
+            } else {
+                td.textContent = val;
+            }
+            
+            td.style.cursor = "pointer";
+            td.onclick = (e) => {
+                document.querySelectorAll(".interactive-table td").forEach(c => c.style.backgroundColor = "");
+                td.style.backgroundColor = "rgba(0, 168, 204, 0.08)";
+                selectColumn(col.name);
+            };
+            
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+}
+
+function onHeaderClick(colName) {
+    if (explorerState.sortBy === colName) {
+        explorerState.sortOrder = explorerState.sortOrder === "asc" ? "desc" : "asc";
+    } else {
+        explorerState.sortBy = colName;
+        explorerState.sortOrder = "asc";
+    }
+    explorerState.page = 1;
+    console.log("Sorting Applied:", colName, explorerState.sortOrder);
+    fetchQueryResults();
+}
+
+function renderExplorerPagination() {
+    const total = explorerState.totalRecords;
+    const size = explorerState.pageSize;
+    const page = explorerState.page;
+    
+    const prevBtn = document.getElementById("btn-exp-prev");
+    const nextBtn = document.getElementById("btn-exp-next");
+    const summary = document.getElementById("explorer-pagination-summary");
+    
+    if (total === 0) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        summary.textContent = "Showing 0-0 of 0 records";
+        return;
+    }
+    
+    const start = (page - 1) * size + 1;
+    const end = Math.min(page * size, total);
+    
+    summary.textContent = `Showing ${start}-${end} of ${total} records`;
+    
+    prevBtn.disabled = page <= 1;
+    nextBtn.disabled = end >= total;
+}
+
+function changePage(delta) {
+    explorerState.page += delta;
+    fetchQueryResults();
+}
+
+function onPageSizeChange() {
+    const select = document.getElementById("explorer-page-size");
+    explorerState.pageSize = parseInt(select.value) || 10;
+    explorerState.page = 1;
+    fetchQueryResults();
+}
+
+function addFilterRow() {
+    if (explorerState.columns.length === 0) return;
+    
+    const container = document.getElementById("filter-rows-container");
+    const bar = document.getElementById("filter-actions-bar");
+    bar.style.display = "flex";
+    
+    const row = document.createElement("div");
+    row.className = "filter-row";
+    
+    let colOptions = "";
+    explorerState.columns.forEach(col => {
+        colOptions += `<option value="${col.name}" data-type="${col.type}">${col.name}</option>`;
+    });
+    
+    row.innerHTML = `
+        <select class="filter-col" onchange="onFilterColumnChange(this)">
+            ${colOptions}
+        </select>
+        <select class="filter-op">
+            <!-- Populated dynamically -->
+        </select>
+        <input type="text" class="filter-val" placeholder="Value..." style="flex-grow: 1;">
+        <button class="btn-remove" onclick="removeFilterRow(this)"><i class="fa-solid fa-trash-can"></i></button>
+    `;
+    
+    container.appendChild(row);
+    
+    const colSelect = row.querySelector(".filter-col");
+    onFilterColumnChange(colSelect);
+}
+
+function onFilterColumnChange(selectEl) {
+    const row = selectEl.parentElement;
+    const opSelect = row.querySelector(".filter-op");
+    const valInput = row.querySelector(".filter-val");
+    
+    const optSelected = selectEl.options[selectEl.selectedIndex];
+    const type = optSelected.getAttribute("data-type");
+    
+    let opOptions = "";
+    if (type === "numeric") {
+        opOptions = `
+            <option value="==">Equals (==)</option>
+            <option value=">">Greater than (&gt;)</option>
+            <option value="<">Less than (&lt;)</option>
+            <option value=">=">Greater or Equal (&gt;=)</option>
+            <option value="<=">Less or Equal (&lt;=)</option>
+        `;
+        valInput.type = "number";
+        valInput.placeholder = "Number...";
+    } else if (type === "datetime") {
+        opOptions = `
+            <option value="on_date">On Date</option>
+            <option value="before">Before Date</option>
+            <option value="after">After Date</option>
+        `;
+        valInput.type = "date";
+        valInput.placeholder = "Select Date...";
+    } else if (type === "boolean") {
+        opOptions = `
+            <option value="is_true">Is True</option>
+            <option value="is_false">Is False</option>
+        `;
+        valInput.type = "hidden";
+        valInput.value = "true";
+    } else { // text
+        opOptions = `
+            <option value="contains">Contains</option>
+            <option value="equals">Equals</option>
+            <option value="starts_with">Starts With</option>
+        `;
+        valInput.type = "text";
+        valInput.placeholder = "Text pattern...";
+    }
+    
+    opSelect.innerHTML = opOptions;
+}
+
+function removeFilterRow(btnEl) {
+    const row = btnEl.parentElement;
+    row.remove();
+    
+    const container = document.getElementById("filter-rows-container");
+    if (container.children.length === 0) {
+        document.getElementById("filter-actions-bar").style.display = "none";
+        clearAllFilters();
+    }
+}
+
+function clearAllFilters() {
+    document.getElementById("filter-rows-container").innerHTML = "";
+    document.getElementById("filter-actions-bar").style.display = "none";
+    explorerState.filters = [];
+    explorerState.page = 1;
+    console.log("Filters Cleared");
+    fetchQueryResults();
+}
+
+function applyQueries() {
+    const container = document.getElementById("filter-rows-container");
+    const filterRows = container.querySelectorAll(".filter-row");
+    
+    const collectedFilters = [];
+    filterRows.forEach(row => {
+        const col = row.querySelector(".filter-col").value;
+        const op = row.querySelector(".filter-op").value;
+        const val = row.querySelector(".filter-val").value;
+        
+        collectedFilters.push({ column: col, operator: op, value: val });
+    });
+    
+    explorerState.filters = collectedFilters;
+    explorerState.page = 1;
+    console.log("Filters Applied:", collectedFilters);
+    fetchQueryResults();
+}
+
+function debounceSearch() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+        const searchInput = document.getElementById("explorer-search");
+        explorerState.searchQuery = searchInput.value.trim();
+        explorerState.page = 1;
+        console.log("Search Executed:", explorerState.searchQuery);
+        fetchQueryResults();
+    }, 400);
+}
+
+async function selectColumn(colName) {
+    if (!explorerState.datasetName) return;
+    
+    const body = document.getElementById("column-inspector-body");
+    body.innerHTML = `
+        <div class="text-center" style="padding: 3rem 0;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <p style="margin-top: 1rem;">Profiling column statistics...</p>
+        </div>
+    `;
+    
+    try {
+        const res = await fetch(`${API_EXPLORER_PROFILE}/${explorerState.datasetName}/${colName}`);
+        if (!res.ok) throw new Error("Failed to profile column");
+        const profile = await res.json();
+        
+        console.log("Column Selected:", colName);
+        renderColumnInspector(profile);
+    } catch (err) {
+        console.error("selectColumn Error:", err);
+        body.innerHTML = `
+            <div class="text-center text-danger" style="padding: 3rem 0;">
+                <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem;"></i>
+                <p style="margin-top: 1rem;">Failed to profile column metadata.</p>
+            </div>
+        `;
+    }
+}
+
+function renderColumnInspector(p) {
+    const body = document.getElementById("column-inspector-body");
+    
+    let sampleRows = "";
+    if (p.sample_values.length === 0) {
+        sampleRows = '<li class="text-muted">No non-null sample values.</li>';
+    } else {
+        p.sample_values.forEach(v => {
+            sampleRows += `<li>${v}</li>`;
+        });
+    }
+    
+    body.innerHTML = `
+        <div class="inspector-detail-item">
+            <label>Column Name</label>
+            <div class="value-box mono">${p.column_name}</div>
+        </div>
+        <div class="inspector-detail-item">
+            <label>Data Type</label>
+            <div class="value-box">${p.data_type.toUpperCase()}</div>
+        </div>
+        <div class="inspector-detail-item">
+            <label>Distinct Values</label>
+            <div class="value-box">${p.unique_count}</div>
+        </div>
+        <div class="inspector-detail-item">
+            <label>Missing Values (Nulls)</label>
+            <div class="value-box ${p.null_count > 0 ? 'text-warning' : ''}">${p.null_count} / ${p.total_count}</div>
+        </div>
+        <div class="inspector-detail-item">
+            <label>Duplicate Values</label>
+            <div class="value-box ${p.duplicate_count > 0 ? 'text-warning' : ''}">${p.duplicate_count}</div>
+        </div>
+        <div class="inspector-detail-item">
+            <label>Sample Values</label>
+            <ul class="sample-values-list">
+                ${sampleRows}
+            </ul>
+        </div>
+    `;
+}
+
+function resetColumnInspector() {
+    const body = document.getElementById("column-inspector-body");
+    body.innerHTML = `
+        <div class="text-center text-muted" style="padding: 3rem 0;">
+            <i class="fa-solid fa-table-columns" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>Select any column header or cell in the table to inspect details.</p>
+        </div>
+    `;
+}
+
+function resetExplorerTable(msg) {
+    const thead = document.getElementById("explorer-table-header");
+    const tbody = document.getElementById("explorer-table-body");
+    thead.innerHTML = "";
+    tbody.innerHTML = `
+        <tr>
+            <td class="text-center text-muted" style="padding: 4rem;">${msg}</td>
+        </tr>
+    `;
+}
+
+function resetExplorerSummary() {
+    document.getElementById("exp-summary-rows").textContent = "-";
+    document.getElementById("exp-summary-cols").textContent = "-";
+    document.getElementById("exp-summary-memory").textContent = "-";
+    const badge = document.getElementById("exp-summary-status");
+    badge.textContent = "-";
+    badge.className = "badge";
+}
+

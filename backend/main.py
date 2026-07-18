@@ -1,16 +1,20 @@
 import os
 import uvicorn
+import pandas as pd
+import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+from pydantic import BaseModel
 
 from backend.config import BASE_DIR
 from backend.services.repository import repository
 from backend.services.state_manager import state_manager
 from backend.utils.logger import logger
 from backend.services.dataset_loader import DatasetLoader
+from backend.services.explorer_service import ExplorerService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -112,6 +116,170 @@ def get_pipeline_report():
     except Exception as e:
         logger.error(f"Error fetching pipeline report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch pipeline report: {str(e)}")
+
+# Explorer API Models & Endpoints
+class QueryFilter(BaseModel):
+    column: str
+    operator: str
+    value: Any
+
+class QueryPayload(BaseModel):
+    page: int = 1
+    page_size: int = 10
+    sort_by: Optional[str] = None
+    sort_order: Optional[str] = "asc"
+    search_query: Optional[str] = None
+    filters: Optional[List[QueryFilter]] = None
+
+@app.get("/api/explorer/datasets")
+def list_explorer_datasets():
+    """Lists available datasets in repository."""
+    try:
+        return repository.list_available_sheets()
+    except Exception as e:
+        logger.error(f"Explorer API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/explorer/summary/{dataset_name}")
+def get_dataset_summary(dataset_name: str):
+    """Returns catalog metadata details for a sheet."""
+    try:
+        if not repository.sheet_exists(dataset_name):
+            raise HTTPException(status_code=404, detail="Dataset not found")
+        
+        # Fetch processed sheet if available
+        df = repository._processed_sheets.get(dataset_name)
+        if df is None:
+            df = repository._sheets[dataset_name]
+            
+        state = state_manager.get_state()
+        
+        return {
+            "dataset_name": dataset_name,
+            "rows": len(df),
+            "columns": len(df.columns),
+            "memory_usage": ExplorerService.get_memory_usage(df),
+            "last_loaded": state.last_load_time,
+            "validation_status": "VALID" if state.validation_passed else "INVALID",
+            "processing_status": "PROCESSED" if dataset_name in repository._processed_sheets else "RAW"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Explorer API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/explorer/columns/{dataset_name}")
+def get_dataset_columns(dataset_name: str):
+    """Returns list of column names and type hints for a sheet."""
+    try:
+        if not repository.sheet_exists(dataset_name):
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        df = repository._processed_sheets.get(dataset_name)
+        if df is None:
+            df = repository._sheets[dataset_name]
+            
+        columns_info = []
+        for col in df.columns:
+            # Simple type category detection
+            series = df[col]
+            if pd.api.types.is_datetime64_any_dtype(series):
+                col_type = "datetime"
+            elif pd.api.types.is_bool_dtype(series):
+                col_type = "boolean"
+            elif pd.api.types.is_numeric_dtype(series):
+                col_type = "numeric"
+            else:
+                col_type = "text"
+            columns_info.append({"name": col, "type": col_type})
+            
+        return columns_info
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Explorer API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/explorer/column-profile/{dataset_name}/{column}")
+def get_column_profile(dataset_name: str, column: str):
+    """Profiles a single column of a dataset."""
+    try:
+        if not repository.sheet_exists(dataset_name):
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        df = repository._processed_sheets.get(dataset_name)
+        if df is None:
+            df = repository._sheets[dataset_name]
+            
+        if column not in df.columns:
+            raise HTTPException(status_code=404, detail=f"Column '{column}' not found")
+            
+        profile = ExplorerService.profile_column(df, column)
+        return profile
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Explorer API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/explorer/query/{dataset_name}")
+def query_dataset(dataset_name: str, payload: QueryPayload):
+    """Queries, filters, searches, and paginates a dataset, returning JSON-safe rows."""
+    try:
+        if not repository.sheet_exists(dataset_name):
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        df = repository._processed_sheets.get(dataset_name)
+        if df is None:
+            df = repository._sheets[dataset_name]
+            
+        # Parse filters from model
+        filters_list = []
+        if payload.filters:
+            for f in payload.filters:
+                filters_list.append({
+                    "column": f.column,
+                    "operator": f.operator,
+                    "value": f.value
+                })
+                
+        # Perform query
+        paginated_df, total_records = ExplorerService.query_dataframe(
+            df=df,
+            page=payload.page,
+            page_size=payload.page_size,
+            sort_by=payload.sort_by,
+            sort_order=payload.sort_order,
+            search_query=payload.search_query,
+            filters=filters_list
+        )
+        
+        # Prepare for JSON serialization: format dates, replace NaN/NaT
+        serialized_df = paginated_df.copy()
+        for col in serialized_df.columns:
+            if pd.api.types.is_datetime64_any_dtype(serialized_df[col]):
+                # Fill missing dates first to avoid pandas warning
+                serialized_df[col] = serialized_df[col].fillna(pd.Timestamp("1970-01-01"))
+                serialized_df[col] = serialized_df[col].dt.strftime("%Y-%m-%d %H:%M:%S")
+                
+        # Replace NaN with None
+        serialized_df = serialized_df.where(pd.notnull(serialized_df), None)
+        records = serialized_df.to_dict(orient="records")
+        
+        logger.info(f"Explorer Query: Dataset='{dataset_name}', Page={payload.page}, Filters={len(filters_list)}, Results={len(records)}")
+        
+        return {
+            "records": records,
+            "total_records": total_records,
+            "page": payload.page,
+            "page_size": payload.page_size
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Explorer API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
 # Path to frontend directory
