@@ -17,6 +17,7 @@ from backend.services.dataset_loader import DatasetLoader
 from backend.services.explorer_service import ExplorerService
 from backend.services.analytics_service import AnalyticsService
 from backend.services.bi_service import BIService
+from backend.services.geospatial_service import GeospatialService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -132,6 +133,9 @@ class BICompareRequest(BaseModel):
 class BIExportRequest(BaseModel):
     filters: Dict[str, Any]
     report_type: str
+
+class GeospatialNetworkRequest(BaseModel):
+    filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
 class QueryFilter(BaseModel):
@@ -343,6 +347,17 @@ def export_bi_report(payload: BIExportRequest):
         )
     except Exception as e:
         logger.error(f"BI API Error: Failed exporting CSV report: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/geospatial/network")
+def get_geospatial_network(payload: GeospatialNetworkRequest):
+    """Returns dynamically filtered hubs, RCs, shipment flows, and summary KPIs for the map."""
+    try:
+        data = GeospatialService.get_network_payload(payload.filters)
+        logger.info("Map Loaded event logged via API.")
+        return data
+    except Exception as e:
+        logger.error(f"Geospatial API Error: Failed retrieving map network payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files

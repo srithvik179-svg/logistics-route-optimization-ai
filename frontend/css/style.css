@@ -1017,6 +1017,115 @@ body {
     color: var(--text-color);
 }
 
+/* Leaflet custom map theme overrides */
+#network-map {
+    background-color: #121214 !important;
+}
+
+.leaflet-bar {
+    border: 1px solid var(--border-color) !important;
+    background-color: var(--card-bg) !important;
+}
+
+.leaflet-bar a {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.leaflet-bar a:hover {
+    background-color: var(--sidebar-bg) !important;
+    color: var(--text-color) !important;
+}
+
+.leaflet-popup-content-wrapper {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+.leaflet-popup-tip {
+    background-color: var(--card-bg) !important;
+    border-left: 1px solid var(--border-color) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--text-muted) !important;
+}
+
+/* Map Legend Control */
+.map-legend {
+    background-color: rgba(26, 26, 30, 0.9);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.75rem;
+    color: var(--text-color);
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.map-legend h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 12px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.25rem;
+    color: var(--text-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.legend-key {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legend-key.dist-hub {
+    background-color: #00a8cc;
+    border: 1.5px solid #ffffff;
+}
+
+.legend-key.reg-hub {
+    background-color: #10b981;
+    border: 1.5px solid #ffffff;
+}
+
+.legend-key.rc-center {
+    background-color: #f59e0b;
+    border: 1.5px solid #ffffff;
+}
+
+.legend-key.flow-hub {
+    background-color: #00a8cc;
+    height: 3px;
+    width: 20px;
+    border-radius: 0;
+}
+
+.legend-key.flow-tpr {
+    background-color: #f59e0b;
+    height: 3px;
+    width: 20px;
+    border-radius: 0;
+}
+
 
 
 

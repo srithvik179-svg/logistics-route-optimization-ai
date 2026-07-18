@@ -60,6 +60,9 @@ function initNavigation() {
             } else if (targetId === "explorer-section") {
                 headerTitle.textContent = "Enterprise Dataset Explorer";
                 loadExplorerDatasets();
+            } else if (targetId === "network-map-section") {
+                headerTitle.textContent = "Logistics Network Map";
+                loadNetworkMap();
             }
         });
     });
@@ -1924,6 +1927,300 @@ function exportDrilldownCSV() {
     a.click();
     document.body.removeChild(a);
 }
+
+// ==========================================
+// GEOSPATIAL LOGISTICS NETWORK MAP CONTROLLER
+// ==========================================
+
+const API_GEOSPATIAL_NETWORK = "/api/geospatial/network";
+
+let mapState = {
+    map: null,
+    markersGroup: null,
+    flowsGroup: null,
+    legendControl: null,
+    filters: {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        part_category: "",
+        partner: "",
+        priority: "",
+        status: ""
+    },
+    dropdownsPopulated: false
+};
+
+async function loadNetworkMap() {
+    console.log("Map Loaded event logged.");
+    
+    // Ensure map container has correct size and Leaflet is initialized
+    if (!mapState.map) {
+        initLeafletMap();
+    } else {
+        setTimeout(() => {
+            mapState.map.invalidateSize();
+        }, 100);
+    }
+    
+    try {
+        const payload = await fetchGeospatialNetwork();
+        
+        // Populate Summary Stats panel
+        updateMapSummaryPanel(payload.summary);
+        
+        // Render locations (hubs, TPRs) and flows (lines)
+        renderMapLayers(payload);
+        
+        // Populate filter dropdowns dynamically once
+        if (!mapState.dropdownsPopulated) {
+            populateMapDropdowns(payload);
+        }
+        
+    } catch (err) {
+        console.error("loadNetworkMap Error:", err);
+        alert("Failed loading geospatial network map payload.");
+    }
+}
+
+function initLeafletMap() {
+    // 1. Initialize map centered on Texas
+    mapState.map = L.map("network-map", {
+        center: [31.25, -99.25],
+        zoom: 6,
+        zoomControl: true
+    });
+    
+    // 2. Add modern dark-theme CartoDB Dark Matter tile layer
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(mapState.map);
+    
+    // 3. Create active feature groups
+    mapState.markersGroup = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        disableClusteringAtZoom: 8
+    }).addTo(mapState.map);
+    
+    mapState.flowsGroup = L.layerGroup().addTo(mapState.map);
+    
+    // 4. Create and mount Legend control
+    mapState.legendControl = L.control({ position: "bottomright" });
+    mapState.legendControl.onAdd = function() {
+        const div = L.DomUtil.create("div", "map-legend");
+        div.innerHTML = `
+            <h4>Logistics Legend</h4>
+            <div class="legend-item"><span class="legend-key dist-hub"></span><span>Distribution Hub</span></div>
+            <div class="legend-item"><span class="legend-key reg-hub"></span><span>Regional Hub</span></div>
+            <div class="legend-item"><span class="legend-key rc-center"></span><span>Repair Center (TPR)</span></div>
+            <div class="legend-item"><span class="legend-key flow-hub"></span><span>Hub-to-Hub Transfer</span></div>
+            <div class="legend-item"><span class="legend-key flow-tpr" style="border-top: 2px dashed #f59e0b; background: none; width: 20px;"></span><span>Outbound to TPR</span></div>
+        `;
+        return div;
+    };
+    mapState.legendControl.addTo(mapState.map);
+    
+    // 5. Wire log on popup open
+    mapState.map.on("popupopen", function(e) {
+        console.log("Popup Opened event logged.");
+    });
+}
+
+async function fetchGeospatialNetwork() {
+    const res = await fetch(API_GEOSPATIAL_NETWORK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filters: mapState.filters })
+    });
+    if (!res.ok) throw new Error("Failed fetching geospatial payload");
+    return await res.json();
+}
+
+function renderMapLayers(data) {
+    // Clear active groups
+    mapState.markersGroup.clearLayers();
+    mapState.flowsGroup.clearLayers();
+    
+    // 1. Draw Hub markers
+    const hubs = data.hubs || [];
+    hubs.forEach(h => {
+        const color = h.type === "Distribution Hub" ? "#00a8cc" : "#10b981";
+        const marker = L.circleMarker([h.lat, h.lon], {
+            radius: 8,
+            fillColor: color,
+            color: "#ffffff",
+            weight: 1.5,
+            opacity: 1,
+            fillOpacity: 0.85
+        });
+        
+        const popupHtml = `
+            <div style="font-family: 'Inter', sans-serif; min-width: 190px;">
+                <h4 style="margin: 0 0 0.5rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; font-size: 13px; color: var(--text-color);">${h.name}</h4>
+                <div style="font-size: 11px; display: flex; flex-direction: column; gap: 0.25rem; color: var(--text-color);">
+                    <div><span style="color: var(--text-muted);">Type:</span> <strong>${h.type}</strong></div>
+                    <div><span style="color: var(--text-muted);">Location:</span> <strong>${h.city}, ${h.state}</strong></div>
+                    <div><span style="color: var(--text-muted);">Capacity:</span> <strong>${h.capacity.toLocaleString()} units/day</strong></div>
+                    <div><span style="color: var(--text-muted);">Utilization:</span> <strong>${h.utilization}%</strong></div>
+                    <div><span style="color: var(--text-muted);">Status:</span> <strong>${h.inventory_summary}</strong></div>
+                </div>
+            </div>
+        `;
+        marker.bindPopup(popupHtml);
+        mapState.markersGroup.addLayer(marker);
+    });
+    console.log("Markers Generated event logged.");
+
+    // 2. Draw Repair Center markers
+    const rcs = data.repair_centers || [];
+    rcs.forEach(rc => {
+        const marker = L.circleMarker([rc.lat, rc.lon], {
+            radius: 8,
+            fillColor: "#f59e0b",
+            color: "#ffffff",
+            weight: 1.5,
+            opacity: 1,
+            fillOpacity: 0.85
+        });
+        
+        const popupHtml = `
+            <div style="font-family: 'Inter', sans-serif; min-width: 190px;">
+                <h4 style="margin: 0 0 0.5rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem; font-size: 13px; color: var(--text-color);">${rc.name}</h4>
+                <div style="font-size: 11px; display: flex; flex-direction: column; gap: 0.25rem; color: var(--text-color);">
+                    <div><span style="color: var(--text-muted);">Type:</span> <strong>${rc.type}</strong></div>
+                    <div><span style="color: var(--text-muted);">Location:</span> <strong>${rc.city}, ${rc.state}</strong></div>
+                    <div><span style="color: var(--text-muted);">Supported Parts:</span> <strong>${rc.supported_parts.join(", ")}</strong></div>
+                    <div><span style="color: var(--text-muted);">Workload Capacity:</span> <strong>${rc.capacity} units</strong></div>
+                    <div><span style="color: var(--text-muted);">Utilization:</span> <strong>${rc.utilization}%</strong></div>
+                </div>
+            </div>
+        `;
+        marker.bindPopup(popupHtml);
+        mapState.markersGroup.addLayer(marker);
+    });
+    
+    // 3. Draw Flow vectors (Lines)
+    const flows = data.flows || [];
+    flows.forEach(fl => {
+        const isTPR = fl.flow_type === "Outbound to TPR";
+        const color = isTPR ? "#f59e0b" : "#00a8cc";
+        const options = {
+            color: color,
+            weight: 3.5,
+            opacity: 0.7,
+            dashArray: isTPR ? "6, 6" : null
+        };
+        
+        const line = L.polyline([[fl.origin_lat, fl.origin_lon], [fl.dest_lat, fl.dest_lon]], options);
+        
+        const tooltipHtml = `
+            <div style="font-family: 'Inter', sans-serif; padding: 0.25rem; font-size: 11px;">
+                <strong>${fl.origin_id} &rarr; ${fl.destination_id}</strong><br/>
+                <span class="text-muted">Type:</span> ${fl.flow_type}<br/>
+                <span class="text-muted">Shipments count:</span> <strong>${fl.shipment_count}</strong><br/>
+                <span class="text-muted">Avg Transit Time:</span> <strong>${fl.avg_transit_time} Days</strong><br/>
+                <span class="text-muted">Avg Logistics Cost:</span> <strong>$${fl.avg_cost.toFixed(2)}</strong>
+            </div>
+        `;
+        line.bindTooltip(tooltipHtml, { sticky: true });
+        mapState.flowsGroup.addLayer(line);
+    });
+    console.log("Flows Rendered event logged.");
+}
+
+function updateMapSummaryPanel(sum) {
+    document.getElementById("map-summary-hubs").textContent = sum.total_hubs;
+    document.getElementById("map-summary-rcs").textContent = sum.total_rcs;
+    document.getElementById("map-summary-shipments").textContent = sum.visible_shipments;
+    document.getElementById("map-summary-connections").textContent = sum.visible_connections;
+    document.getElementById("map-summary-transit").textContent = `${sum.avg_transit_time} Days`;
+    document.getElementById("map-summary-cost").textContent = `$${sum.avg_cost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+}
+
+function populateMapDropdowns(data) {
+    const fillSelect = (elementId, list, keyField, labelField) => {
+        const select = document.getElementById(elementId);
+        if (!select) return;
+        
+        // Save first option
+        const firstOpt = select.options[0];
+        select.innerHTML = "";
+        select.appendChild(firstOpt);
+        
+        list.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item[keyField];
+            opt.textContent = item[labelField || keyField];
+            select.appendChild(opt);
+        });
+    };
+
+    fillSelect("map-filter-hub", data.hubs, "id", "name");
+    fillSelect("map-filter-rc", data.repair_centers, "id", "name");
+    
+    // Fetch unique categories & partners from active dashboard distributions
+    const categoriesList = [
+        { name: "Electronics" }, { name: "Mechanical" }, { name: "Cooling" }
+    ];
+    fillSelect("map-filter-category", categoriesList, "name");
+
+    const partnersList = [
+        { name: "Swift LogiCo" }, { name: "Apex Freight" }, { name: "LoneStar Delivery" }
+    ];
+    fillSelect("map-filter-partner", partnersList, "name");
+
+    mapState.dropdownsPopulated = true;
+}
+
+function applyMapFilters() {
+    console.log("Filters Applied event logged.");
+    
+    mapState.filters.start_date = document.getElementById("map-filter-start-date").value;
+    mapState.filters.end_date = document.getElementById("map-filter-end-date").value;
+    mapState.filters.hub = document.getElementById("map-filter-hub").value;
+    mapState.filters.repair_center = document.getElementById("map-filter-rc").value;
+    mapState.filters.part_category = document.getElementById("map-filter-category").value;
+    mapState.filters.partner = document.getElementById("map-filter-partner").value;
+    mapState.filters.priority = document.getElementById("map-filter-priority").value;
+    mapState.filters.status = document.getElementById("map-filter-status").value;
+    
+    loadNetworkMap();
+}
+
+function clearMapFilters() {
+    mapState.filters = {
+        start_date: "",
+        end_date: "",
+        hub: "",
+        repair_center: "",
+        part_category: "",
+        partner: "",
+        priority: "",
+        status: ""
+    };
+    
+    document.getElementById("map-filter-start-date").value = "";
+    document.getElementById("map-filter-end-date").value = "";
+    document.getElementById("map-filter-hub").value = "";
+    document.getElementById("map-filter-rc").value = "";
+    document.getElementById("map-filter-category").value = "";
+    document.getElementById("map-filter-partner").value = "";
+    document.getElementById("map-filter-priority").value = "";
+    document.getElementById("map-filter-status").value = "";
+    
+    loadNetworkMap();
+}
+
+function resetMapView() {
+    if (mapState.map) {
+        mapState.map.setView([31.25, -99.25], 6);
+    }
+}
+
 
 
 

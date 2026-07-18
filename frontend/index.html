@@ -14,6 +14,12 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <!-- Leaflet.js Mapping CDNs -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -41,6 +47,12 @@
                         <a href="#" class="nav-link" data-target="dashboard-section" id="nav-dashboard">
                             <i class="fa-solid fa-chart-line"></i>
                             <span>Executive Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="network-map-section" id="nav-network-map">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <span>Logistics Network Map</span>
                         </a>
                     </li>
                     <li>
@@ -740,6 +752,117 @@
                             </div>
                         </div>
 
+                    </div>
+                </section>
+
+                <!-- LOGISTICS NETWORK MAP SECTION -->
+                <section class="viewport-section" id="network-map-section" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; align-items: start;">
+                        <!-- Left Panel: Filters and Summary stats -->
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Filters Panel -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-filter text-primary"></i> Map Filters</h3>
+                                </div>
+                                <div class="card-body" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div class="form-group">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="date" id="map-filter-start-date" class="form-control" onchange="applyMapFilters()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">End Date</label>
+                                        <input type="date" id="map-filter-end-date" class="form-control" onchange="applyMapFilters()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Hub Location</label>
+                                        <select id="map-filter-hub" class="form-control" onchange="applyMapFilters()">
+                                            <option value="">-- All Hubs --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Repair Center</label>
+                                        <select id="map-filter-rc" class="form-control" onchange="applyMapFilters()">
+                                            <option value="">-- All RCs --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Part Category</label>
+                                        <select id="map-filter-category" class="form-control" onchange="applyMapFilters()">
+                                            <option value="">-- All Categories --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Logistics Partner</label>
+                                        <select id="map-filter-partner" class="form-control" onchange="applyMapFilters()">
+                                            <option value="">-- All Partners --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Priority</label>
+                                        <select id="map-filter-priority" class="form-control" onchange="applyMapFilters()">
+                                            <option value="">-- All Priorities --</option>
+                                            <option value="High Priority">High Priority</option>
+                                            <option value="Medium Priority">Medium Priority</option>
+                                            <option value="Low Priority">Low Priority</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">SLA Status</label>
+                                        <select id="map-filter-status" class="form-control" onchange="applyMapFilters()">
+                                            <option value="">-- All Statuses --</option>
+                                            <option value="MET">MET</option>
+                                            <option value="MISSED">MISSED</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" onclick="clearMapFilters()" style="margin-top: 0.5rem;"><i class="fa-solid fa-trash-can"></i> Reset Filters</button>
+                                </div>
+                            </div>
+
+                            <!-- Summary KPIs Panel -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-square-poll-vertical text-success"></i> Map Summary</h3>
+                                </div>
+                                <div class="card-body" style="padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Total Hubs</span>
+                                        <strong id="map-summary-hubs">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Repair Centers</span>
+                                        <strong id="map-summary-rcs">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Visible Shipments</span>
+                                        <strong id="map-summary-shipments">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Active Flows</span>
+                                        <strong id="map-summary-connections">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 13px;">
+                                        <span class="text-muted">Avg Transit Time</span>
+                                        <strong id="map-summary-transit">-</strong>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                        <span class="text-muted">Avg Logistics Cost</span>
+                                        <strong id="map-summary-cost">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Interactive Leaflet Map Canvas -->
+                        <div class="card" style="height: 100%; display: flex; flex-direction: column; min-height: 600px;">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem;">
+                                <h3><i class="fa-solid fa-map-location-dot text-primary"></i> Geographic Logistics Ecosystem</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="resetMapView()"><i class="fa-solid fa-arrow-rotate-left"></i> Reset View</button>
+                            </div>
+                            <div class="card-body" style="padding: 0; flex: 1; position: relative;">
+                                <div id="network-map" style="width: 100%; height: 560px; border-radius: 0 0 6px 6px; z-index: 1;"></div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
