@@ -4,6 +4,7 @@ const API_RELOAD_URL = "/api/dataset/reload";
 const API_EXPLORER_DATASETS = "/api/explorer/datasets";
 const API_EXPLORER_QUERY = "/api/explorer/query";
 const API_EXPLORER_PROFILE = "/api/explorer/column-profile";
+const API_DASHBOARD_URL = "/api/analytics/dashboard";
 
 // Global state holding loaded dataset report details
 let currentReport = null;
@@ -51,6 +52,9 @@ function initNavigation() {
             // Update Header Title
             if (targetId === "overview-section") {
                 headerTitle.textContent = "Platform Overview";
+            } else if (targetId === "dashboard-section") {
+                headerTitle.textContent = "Executive Analytics Dashboard";
+                loadExecutiveDashboard();
             } else if (targetId === "dataset-section") {
                 headerTitle.textContent = "Dataset Loading & Validation";
             } else if (targetId === "explorer-section") {
@@ -1117,4 +1121,254 @@ function resetExplorerSummary() {
     badge.textContent = "-";
     badge.className = "badge";
 }
+
+// ==========================================
+// EXECUTIVE ANALYTICS DASHBOARD CONTROLLER
+// ==========================================
+
+async function loadExecutiveDashboard() {
+    console.log("Dashboard Loaded event logged.");
+    
+    // Set loading placeholders
+    const views = ["dashboard-kpi-grid-1", "dashboard-kpi-grid-2"];
+    views.forEach(v => {
+        document.querySelectorAll(`#${v} .metric-value`).forEach(val => {
+            val.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size: 14px;"></i>';
+        });
+    });
+
+    try {
+        const res = await fetch(API_DASHBOARD_URL);
+        if (!res.ok) throw new Error("Failed fetching executive dashboard payload");
+        const data = await res.json();
+        
+        console.log("Metrics Calculated and Summary Generated event logged.");
+        
+        // 1. Populate KPI Cards
+        renderDashboardKPIs(data.kpis);
+        
+        // 2. Populate Summary Strip
+        renderDashboardSummary(data.summary_info);
+        
+        // 3. Populate Tables
+        renderDashboardTables(data.distributions);
+        
+        // 4. Render Plotly Charts
+        renderDashboardCharts(data);
+        
+        console.log("Charts Generated event logged.");
+        
+    } catch (err) {
+        console.error("loadExecutiveDashboard Error:", err);
+        // Show placeholders
+        views.forEach(v => {
+            document.querySelectorAll(`#${v} .metric-value`).forEach(val => {
+                val.textContent = "Error";
+            });
+        });
+        alert("Failed loading analytics dashboard. Verify backend service is operational.");
+    }
+}
+
+function renderDashboardKPIs(kpis) {
+    document.querySelector("#kpi-shipments .metric-value").textContent = kpis.total_shipments.value;
+    document.querySelector("#kpi-total-cost .metric-value").textContent = kpis.total_cost.value;
+    document.querySelector("#kpi-avg-cost .metric-value").textContent = kpis.avg_cost.value;
+    document.querySelector("#kpi-avg-transit .metric-value").textContent = kpis.avg_transit_days.value;
+    document.querySelector("#kpi-inventory .metric-value").textContent = kpis.avg_inventory_level.value;
+    
+    document.querySelector("#kpi-hubs .metric-value").textContent = kpis.total_hubs.value;
+    document.querySelector("#kpi-tprs .metric-value").textContent = kpis.total_tprs.value;
+    document.querySelector("#kpi-parts .metric-value").textContent = kpis.total_parts.value;
+    document.querySelector("#kpi-hub-util .metric-value").textContent = kpis.avg_hub_utilization.value;
+    document.querySelector("#kpi-tpr-util .metric-value").textContent = kpis.avg_rc_utilization.value;
+}
+
+function renderDashboardSummary(info) {
+    const datasetBadge = document.getElementById("dash-summary-dataset");
+    datasetBadge.textContent = info.dataset_status;
+    datasetBadge.className = info.dataset_status === "LOADED" ? "badge success" : "badge danger";
+    
+    const repoBadge = document.getElementById("dash-summary-repo");
+    repoBadge.textContent = info.repository_status;
+    repoBadge.className = info.repository_status === "HEALTHY" ? "badge success" : (info.repository_status === "WARNING" ? "badge warning" : "badge danger");
+    
+    const procBadge = document.getElementById("dash-summary-proc");
+    procBadge.textContent = info.processing_status;
+    procBadge.className = info.processing_status === "SUCCESS" ? "badge success" : "badge warning";
+    
+    document.getElementById("dash-summary-records").textContent = info.total_processed_records;
+    document.getElementById("dash-summary-refresh-time").textContent = formatDate(info.last_refresh_time);
+}
+
+function renderDashboardTables(dists) {
+    // Helper to render simple count/cost table rows
+    const populateSummaryTable = (elementId, dataList, categoryKey) => {
+        const tbody = document.getElementById(elementId);
+        tbody.innerHTML = "";
+        
+        if (!dataList || dataList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No data available.</td></tr>';
+            return;
+        }
+        
+        dataList.forEach(r => {
+            const tr = document.createElement("tr");
+            const cat = r[categoryKey];
+            const count = r.count;
+            const cost = r.cost !== undefined ? `$${r.cost.toFixed(2)}` : null;
+            
+            if (cost !== null) {
+                tr.innerHTML = `<td><strong>${cat}</strong></td><td class="text-right">${count}</td><td class="text-right">${cost}</td>`;
+            } else {
+                tr.innerHTML = `<td><strong>${cat}</strong></td><td class="text-right">${count}</td>`;
+            }
+            tbody.appendChild(tr);
+        });
+    };
+
+    populateSummaryTable("tbl-flow-types", dists.flow_types, "Flow_Type");
+    populateSummaryTable("tbl-priorities", dists.priorities, "Priority");
+    populateSummaryTable("tbl-partners", dists.partners, "Logistics_Partner");
+    populateSummaryTable("tbl-categories", dists.part_categories, "Category");
+    populateSummaryTable("tbl-sla-statuses", dists.sla_statuses, "SLA_Status");
+    populateSummaryTable("tbl-hub-types", dists.hub_types, "Hub_Type");
+    populateSummaryTable("tbl-tpr-locations", dists.tpr_locations, "Coverage_Region");
+}
+
+function renderDashboardCharts(data) {
+    const defaultLayoutProps = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        font: { color: '#a1a1aa', family: 'Inter, sans-serif', size: 10 },
+        margin: { t: 40, b: 40, l: 40, r: 20 },
+        showlegend: false,
+        xaxis: { gridcolor: 'rgba(255,255,255,0.05)', zeroline: false },
+        yaxis: { gridcolor: 'rgba(255,255,255,0.05)', zeroline: false }
+    };
+    
+    const colors = ['#00a8cc', '#8624e1', '#f59e0b', '#10b981', '#ef4444'];
+
+    // 1. Time Series Chart (Shipments & Costs over time)
+    const ts = data.time_series || [];
+    const dates = ts.map(x => x.Order_Date_Str);
+    const costs = ts.map(x => x.cost);
+    const shipments = ts.map(x => x.shipments);
+    
+    const traceCost = {
+        x: dates,
+        y: costs,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Shipment Cost ($)',
+        line: { color: '#8624e1', width: 2 },
+        marker: { color: '#8624e1', size: 6 },
+        yaxis: 'y2'
+    };
+    const traceVol = {
+        x: dates,
+        y: shipments,
+        type: 'bar',
+        name: 'Shipments Volume',
+        marker: { color: 'rgba(0, 168, 204, 0.4)' }
+    };
+    
+    const tsLayout = {
+        ...defaultLayoutProps,
+        showlegend: true,
+        legend: { orientation: 'h', x: 0, y: 1.1, font: { size: 9 } },
+        margin: { t: 50, b: 30, l: 40, r: 40 },
+        yaxis: { title: 'Shipments', gridcolor: 'rgba(255,255,255,0.05)' },
+        yaxis2: {
+            title: 'Cost ($)',
+            overlaying: 'y',
+            side: 'right',
+            gridcolor: 'rgba(0,0,0,0)'
+        }
+    };
+    Plotly.newPlot('chart-time-series', [traceVol, traceCost], tsLayout, { responsive: true, displayModeBar: false });
+
+    // 2. Flow Type Distribution (Pie Chart)
+    const ft = data.distributions.flow_types || [];
+    const flowLabels = ft.map(x => x.Flow_Type);
+    const flowValues = ft.map(x => x.count);
+    
+    const flowTrace = {
+        labels: flowLabels,
+        values: flowValues,
+        type: 'pie',
+        hole: 0.4,
+        marker: { colors: colors },
+        textinfo: 'percent',
+        hoverinfo: 'label+value+percent'
+    };
+    const flowLayout = {
+        ...defaultLayoutProps,
+        showlegend: true,
+        legend: { orientation: 'h', x: 0, y: -0.1, font: { size: 9 } },
+        margin: { t: 20, b: 40, l: 20, r: 20 }
+    };
+    Plotly.newPlot('chart-flow-type', [flowTrace], flowLayout, { responsive: true, displayModeBar: false });
+
+    // 3. SLA & Priority Distributions (Grouped/Stacked Bar chart)
+    const prio = data.distributions.priorities || [];
+    const prioLabels = prio.map(x => x.Priority);
+    const prioValues = prio.map(x => x.count);
+    
+    const prioTrace = {
+        x: prioLabels,
+        y: prioValues,
+        type: 'bar',
+        name: 'Priority Count',
+        marker: { color: colors.slice(0, prioLabels.length) }
+    };
+    Plotly.newPlot('chart-sla-prio', [prioTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
+
+    // 4. Part Category Distribution (Horizontal Bar)
+    const pc = data.distributions.part_categories || [];
+    const catLabels = pc.map(x => x.Category);
+    const catValues = pc.map(x => x.count);
+    
+    const catTrace = {
+        y: catLabels,
+        x: catValues,
+        type: 'bar',
+        orientation: 'h',
+        marker: { color: '#00a8cc' }
+    };
+    const catLayout = {
+        ...defaultLayoutProps,
+        margin: { t: 20, b: 30, l: 80, r: 20 }
+    };
+    Plotly.newPlot('chart-part-cat', [catTrace], catLayout, { responsive: true, displayModeBar: false });
+
+    // 5. Logistics Cost Distribution (Histogram box type)
+    // Pull list of raw transaction costs
+    const txCosts = data.distributions.partners.map(x => x.cost);
+    const costTrace = {
+        y: txCosts,
+        type: 'box',
+        name: 'Costs',
+        marker: { color: '#8624e1' },
+        boxpoints: 'all',
+        jitter: 0.3,
+        pointpos: -1.8
+    };
+    Plotly.newPlot('chart-cost-dist', [costTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
+
+    // 6. Hub Types & Service Coverage (Bar chart)
+    const ht = data.distributions.hub_types || [];
+    const hubLabels = ht.map(x => x.Hub_Type);
+    const hubValues = ht.map(x => x.count);
+    
+    const hubTrace = {
+        x: hubLabels,
+        y: hubValues,
+        type: 'bar',
+        name: 'Hubs',
+        marker: { color: '#10b981' }
+    };
+    Plotly.newPlot('chart-hub-tpr', [hubTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
+}
+
 

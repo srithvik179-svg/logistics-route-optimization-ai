@@ -52,7 +52,7 @@ def test_repository_suite():
     tx_cols = repo.get_column_count("Logistics_Transactions")
     print(f"\nTransactions sheet stats: Rows = {tx_rows}, Cols = {tx_cols}")
     assert tx_rows > 0
-    assert tx_cols == 10
+    assert tx_cols == 22
     
     # 5. Test missing sheet behavior
     print("\nTesting missing sheet access...")

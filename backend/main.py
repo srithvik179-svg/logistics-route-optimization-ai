@@ -15,6 +15,7 @@ from backend.services.state_manager import state_manager
 from backend.utils.logger import logger
 from backend.services.dataset_loader import DatasetLoader
 from backend.services.explorer_service import ExplorerService
+from backend.services.analytics_service import AnalyticsService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -279,6 +280,17 @@ def query_dataset(dataset_name: str, payload: QueryPayload):
         raise
     except Exception as e:
         logger.error(f"Explorer API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/dashboard")
+def get_executive_dashboard():
+    """Returns calculated KPIs, summaries, distributions, and time series data for the dashboard."""
+    try:
+        payload = AnalyticsService.get_dashboard_payload()
+        logger.info("Executive Dashboard Loaded API triggered successfully.")
+        return payload
+    except Exception as e:
+        logger.error(f"Analytics API Error: Failed loading dashboard metrics: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files

@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style Sheet -->
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Plotly.js CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -33,6 +35,12 @@
                         <a href="#" class="nav-link active" data-target="overview-section">
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="dashboard-section" id="nav-dashboard">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Executive Dashboard</span>
                         </a>
                     </li>
                     <li>
@@ -143,6 +151,182 @@
                                         </div>
                                     </li>
                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- EXECUTIVE DASHBOARD SECTION -->
+                <section id="dashboard-section" class="viewport-section" style="display: none;">
+                    
+                    <!-- KPI Cards Row 1 (5 cols) -->
+                    <div class="grid-layout cols-5" id="dashboard-kpi-grid-1" style="gap: 1rem;">
+                        <div class="metric-card" id="kpi-shipments">
+                            <span class="metric-label">Total Shipments</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Total completed transactions</span>
+                        </div>
+                        <div class="metric-card" id="kpi-total-cost">
+                            <span class="metric-label">Total Logistics Cost</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Aggregated freight shipping cost</span>
+                        </div>
+                        <div class="metric-card" id="kpi-avg-cost">
+                            <span class="metric-label">Average Logistics Cost</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Mean cost incurred per transaction</span>
+                        </div>
+                        <div class="metric-card" id="kpi-avg-transit">
+                            <span class="metric-label">Average Transit Days</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Mean elapsed delivery duration</span>
+                        </div>
+                        <div class="metric-card" id="kpi-inventory">
+                            <span class="metric-label">Average Inventory Level</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Average stock units held at hubs</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI Cards Row 2 (5 cols) -->
+                    <div class="grid-layout cols-5" id="dashboard-kpi-grid-2" style="margin-top: 1rem; gap: 1rem;">
+                        <div class="metric-card" id="kpi-hubs">
+                            <span class="metric-label">Total Hubs</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Active logistics distribution hubs</span>
+                        </div>
+                        <div class="metric-card" id="kpi-tprs">
+                            <span class="metric-label">Total Repair Centers</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Third-party servicing centers</span>
+                        </div>
+                        <div class="metric-card" id="kpi-parts">
+                            <span class="metric-label">Total Parts Catalog</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Unique managed inventory parts</span>
+                        </div>
+                        <div class="metric-card" id="kpi-hub-util">
+                            <span class="metric-label">Average Hub Utilization</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Mean hub throughput load capacity</span>
+                        </div>
+                        <div class="metric-card" id="kpi-tpr-util">
+                            <span class="metric-label">Average Center Utilization</span>
+                            <span class="metric-value">-</span>
+                            <span class="metric-sub">Mean service bay workload load</span>
+                        </div>
+                    </div>
+
+                    <!-- Executive Summary strip and refresh info -->
+                    <div class="card" style="margin-top: 1.5rem;">
+                        <div class="card-body" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; flex-wrap: wrap; gap: 1.5rem;">
+                            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                                <div class="summary-item"><span class="lbl">Dataset Status:</span> <strong id="dash-summary-dataset">-</strong></div>
+                                <div class="summary-item"><span class="lbl">Repository Status:</span> <strong id="dash-summary-repo">-</strong></div>
+                                <div class="summary-item"><span class="lbl">Processing Status:</span> <strong id="dash-summary-proc">-</strong></div>
+                                <div class="summary-item"><span class="lbl">Total Processed Records:</span> <strong id="dash-summary-records">-</strong></div>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted);">
+                                Last Refresh: <span id="dash-summary-refresh-time">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plots Container: Plotly plots -->
+                    <div class="grid-layout cols-2" style="margin-top: 1.5rem; gap: 1.5rem;">
+                        <div class="card">
+                            <div class="card-header"><h3>Shipment Volume & Cost Time Series</h3></div>
+                            <div class="card-body" style="padding: 0.5rem;"><div id="chart-time-series" style="height: 300px; width: 100%;"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3>Flow Type Distribution</h3></div>
+                            <div class="card-body" style="padding: 0.5rem;"><div id="chart-flow-type" style="height: 300px; width: 100%;"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3>SLA & Priority Distributions</h3></div>
+                            <div class="card-body" style="padding: 0.5rem;"><div id="chart-sla-prio" style="height: 300px; width: 100%;"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3>Part Category Distribution</h3></div>
+                            <div class="card-body" style="padding: 0.5rem;"><div id="chart-part-cat" style="height: 300px; width: 100%;"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3>Logistics Cost Distribution</h3></div>
+                            <div class="card-body" style="padding: 0.5rem;"><div id="chart-cost-dist" style="height: 300px; width: 100%;"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><h3>Hub Types & Service Coverage</h3></div>
+                            <div class="card-body" style="padding: 0.5rem;"><div id="chart-hub-tpr" style="height: 300px; width: 100%;"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Summary tables grid -->
+                    <div class="card" style="margin-top: 1.5rem;">
+                        <div class="card-header"><h3>Descriptive Analytics Breakdown Summary</h3></div>
+                        <div class="card-body" style="padding: 0;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; padding: 1.5rem;">
+                                <!-- Shipments by Flow Type Table -->
+                                <div class="table-card">
+                                    <h4>Shipments by Flow Type</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>Flow Type</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                        <tbody id="tbl-flow-types"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Shipments by Priority Table -->
+                                <div class="table-card">
+                                    <h4>Shipments by Priority</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>Priority</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                        <tbody id="tbl-priorities"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Shipments by Logistics Partner Table -->
+                                <div class="table-card">
+                                    <h4>Shipments by Logistics Partner</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>Logistics Partner</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                        <tbody id="tbl-partners"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Shipments by Part Category Table -->
+                                <div class="table-card">
+                                    <h4>Shipments by Part Category</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>Part Category</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                        <tbody id="tbl-categories"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Shipments by SLA Status Table -->
+                                <div class="table-card">
+                                    <h4>Shipments by SLA Status</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>SLA Status</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                        <tbody id="tbl-sla-statuses"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Hub Types Table -->
+                                <div class="table-card">
+                                    <h4>Hub Types Distribution</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>Hub Type</th><th class="text-right">Hub Count</th></tr></thead>
+                                        <tbody id="tbl-hub-types"></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Repair Center Locations Table -->
+                                <div class="table-card">
+                                    <h4>Repair Center Coverage</h4>
+                                    <table class="data-table compact-table">
+                                        <thead><tr><th>Region</th><th class="text-right">Center Count</th></tr></thead>
+                                        <tbody id="tbl-tpr-locations"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -495,5 +679,7 @@
             </div>
         </div>
     </div>
+    <!-- Main Client-Side Javascript -->
+    <script src="/static/js/app.js"></script>
 </body>
 </html>
