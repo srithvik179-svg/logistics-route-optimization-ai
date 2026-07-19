@@ -32,6 +32,7 @@ from backend.services.route_scoring_engine import RouteScoringEngine
 from backend.services.optimization_readiness_engine import OptimizationReadinessEngine
 from backend.services.astar_engine import AStarEngine
 from backend.services.genetic_algorithm_engine import GeneticAlgorithmEngine
+from backend.services.ant_colony_engine import AntColonyEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -197,6 +198,13 @@ class GeneticAlgorithmRequest(BaseModel):
     filters: Dict[str, Any]
     population_size: Optional[int] = 30
     generations: Optional[int] = 20
+
+class AntColonyRequest(BaseModel):
+    source: str
+    destination: str
+    filters: Dict[str, Any]
+    swarm_size: Optional[int] = 15
+    iterations: Optional[int] = 10
 
 # Explorer API Models & Endpoints
 class QueryFilter(BaseModel):
@@ -561,6 +569,18 @@ def get_genetic_optimization(payload: GeneticAlgorithmRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Genetic Algorithm API Error: Failed retrieving optimized route: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ant-colony/optimize")
+def get_aco_optimization(payload: AntColonyRequest):
+    """Returns comprehensive Ant Colony Optimization optimized routes: best ant route, iteration stats, final pheromone matrix, and algorithm benchmarks."""
+    try:
+        data = AntColonyEngine.optimize_route(
+            payload.source, payload.destination, payload.filters, payload.swarm_size, payload.iterations
+        )
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Ant Colony Optimization API Error: Failed retrieving optimized route: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
