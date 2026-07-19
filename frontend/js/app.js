@@ -150,6 +150,11 @@ function initNavigation() {
                 if (typeof window.loadAIOrchestratorWorkspace === "function") {
                     window.loadAIOrchestratorWorkspace();
                 }
+            } else if (targetId === "reports-section") {
+                headerTitle.textContent = "Executive Report & Insight Generator";
+                if (typeof window.loadExecutiveReportsWorkspace === "function") {
+                    window.loadExecutiveReportsWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

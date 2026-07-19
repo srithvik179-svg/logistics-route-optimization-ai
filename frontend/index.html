@@ -78,6 +78,15 @@
     <link rel="stylesheet" href="/static/components/ai-orchestrator/DecisionPanel/DecisionPanel.css">
     <link rel="stylesheet" href="/static/components/ai-orchestrator/WorkflowHistory/WorkflowHistory.css">
     <link rel="stylesheet" href="/static/components/ai-orchestrator/AgentHealth/AgentHealth.css">
+    <!-- Executive Reports & Insight Generator -->
+    <link rel="stylesheet" href="/static/pages/executive-reports/executive_reports.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/ReportBuilder/ReportBuilder.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/ExecutiveSummary/ExecutiveSummary.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/InsightCards/InsightCards.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/PresentationMode/PresentationMode.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/ReportHistory/ReportHistory.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/ExportPanel/ExportPanel.css">
+    <link rel="stylesheet" href="/static/components/executive-reports/ReportTemplates/ReportTemplates.css">
 
 
 
@@ -199,6 +208,12 @@
                         <a href="#" class="nav-link" data-target="executive-section" id="nav-executive">
                             <i class="fa-solid fa-crown"></i>
                             <span>Executive Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="reports-section" id="nav-reports">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <span>Reports Center</span>
                         </a>
                     </li>
                     <li>
@@ -3106,6 +3121,44 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE EXECUTIVE REPORT & INSIGHT GENERATOR -->
+                <section class="viewport-section" id="reports-section">
+                    <div class="reports-workspace">
+
+                        <!-- Report Builder Controls Cockpit -->
+                        <div id="reports-builder-container"></div>
+
+                        <div class="reports-row-grid">
+                            
+                            <!-- Left Column: Report Contents -->
+                            <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+                                
+                                <!-- Executive Overview & Rating Assessment -->
+                                <div id="reports-summary-container"></div>
+
+                                <!-- AI Insight Cards Grid -->
+                                <div id="reports-insights-container"></div>
+
+                                <!-- Report Actions/Downloads Bar -->
+                                <div class="card glass-panel fade-in-slide-up" style="padding:var(--space-3); border:1px solid rgba(63, 63, 70, 0.4); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-2);">
+                                    <span style="font-size:11px; color:var(--text-muted);">Format Actions:</span>
+                                    <div style="display:flex; gap:var(--space-2);">
+                                        <button class="btn btn-secondary btn-sm" onclick="window.exportReportCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="window.exportReportPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                                        <button class="btn btn-secondary btn-sm" onclick="window.exportReportPDF()"><i class="fa-solid fa-print"></i> Print Report</button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Right Column: History & Templates Logs -->
+                            <div id="reports-history-container"></div>
+
+                        </div>
+
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3407,6 +3460,13 @@
     <script src="/static/components/ai-orchestrator/DecisionPanel/DecisionPanel.js"></script>
     <script src="/static/components/ai-orchestrator/WorkflowHistory/WorkflowHistory.js"></script>
     <script src="/static/pages/ai-orchestrator/ai_orchestrator.js"></script>
+    <!-- Executive Report & Insight Generator -->
+    <script src="/static/components/executive-reports/ReportBuilder/ReportBuilder.js"></script>
+    <script src="/static/components/executive-reports/ExecutiveSummary/ExecutiveSummary.js"></script>
+    <script src="/static/components/executive-reports/InsightCards/InsightCards.js"></script>
+    <script src="/static/components/executive-reports/PresentationMode/PresentationMode.js"></script>
+    <script src="/static/components/executive-reports/ReportHistory/ReportHistory.js"></script>
+    <script src="/static/pages/executive-reports/executive_reports.js"></script>
 
 
 

@@ -41,6 +41,7 @@ from backend.services.reverse_logistics_service import ReverseLogisticsService
 from backend.services.sla_prediction_service import SLAPredictionService
 from backend.services.risk_forecasting_service import RiskForecastingService
 from backend.orchestrator.workflow_engine import WorkflowEngine
+from backend.services.report_generator import ReportGenerator
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -741,6 +742,31 @@ def run_orchestrator_workflow(payload: Dict[str, Any] = None):
     except Exception as e:
         logger.error(f"Orchestrator Run API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/reports/history")
+def get_reports_history():
+    """Returns log of previous report generation history."""
+    try:
+        data = ReportGenerator.get_history()
+        return data
+    except Exception as e:
+        logger.error(f"Reports History API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/reports/generate")
+def compile_report_payload(payload: Dict[str, Any] = None):
+    """Generates executive report based on template type and user parameters."""
+    params = payload if payload else {}
+    report_type = params.get("report_type", "Executive Summary")
+    template = params.get("template", "Executive Leadership")
+    generated_by = params.get("generated_by", "analyst")
+    try:
+        data = ReportGenerator.compile_report(report_type, template, generated_by)
+        return data
+    except Exception as e:
+        logger.error(f"Reports Generation API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
