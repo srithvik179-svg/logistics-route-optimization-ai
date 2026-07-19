@@ -33,6 +33,7 @@ from backend.services.optimization_readiness_engine import OptimizationReadiness
 from backend.services.astar_engine import AStarEngine
 from backend.services.genetic_algorithm_engine import GeneticAlgorithmEngine
 from backend.services.ant_colony_engine import AntColonyEngine
+from backend.services.rl_preparation_engine import RLPreparationEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -205,6 +206,11 @@ class AntColonyRequest(BaseModel):
     filters: Dict[str, Any]
     swarm_size: Optional[int] = 15
     iterations: Optional[int] = 10
+
+class RLPreparationRequest(BaseModel):
+    source: str
+    destination: str
+    filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
 class QueryFilter(BaseModel):
@@ -581,6 +587,18 @@ def get_aco_optimization(payload: AntColonyRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Ant Colony Optimization API Error: Failed retrieving optimized route: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/rl-preparation/environment")
+def get_rl_environment(payload: RLPreparationRequest):
+    """Returns comprehensive RL prepared environments: state/action definitions, reward configurations, sample bootstrap episodes, and algorithm benchmarks."""
+    try:
+        data = RLPreparationEngine.generate_environment(
+            payload.source, payload.destination, payload.filters
+        )
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"RL Preparation API Error: Failed retrieving environment setup: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
