@@ -25,6 +25,7 @@ from backend.services.transit_engine import TransitEngine
 from backend.services.inventory_engine import InventoryEngine
 from backend.services.capacity_engine import CapacityEngine
 from backend.services.sla_engine import SLAEngine
+from backend.services.graph_engine import GraphEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -163,6 +164,9 @@ class CapacityAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class SLAAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class GraphAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -456,6 +460,16 @@ def get_sla_analytics_payload(payload: SLAAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"SLA Analytics API Error: Failed retrieving SLA analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/graph-analytics/payload")
+def get_graph_analytics_payload(payload: GraphAnalyticsRequest):
+    """Returns comprehensive route graph analytics: nodes, edges, adjacency list, matrix weights, connectivity metrics, and stats."""
+    try:
+        data = GraphEngine.get_graph_payload(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Graph Analytics API Error: Failed retrieving graph analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
