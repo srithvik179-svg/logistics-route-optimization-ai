@@ -18,52 +18,10 @@
     let tokenWaitQueue = [];
 
     /**
-     * Resolves or fetches a valid JWT auth token using mock admin credentials.
+     * Resolves the current auth token stored in localStorage (set by auth.js on login).
      */
     async function acquireAuthToken() {
-        if (authToken) return authToken;
-
-        if (isFetchingToken) {
-            return new Promise((resolve) => {
-                tokenWaitQueue.push(resolve);
-            });
-        }
-
-        isFetchingToken = true;
-        console.log("[Observability] JWT Access Token missing. Requesting token from security gateway...");
-
-        try {
-            const response = await originalFetch("/api/v1/security/auth/token", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: "admin", password: "admin123" })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Authentication endpoint returned status ${response.status}`);
-            }
-
-            const data = await response.json();
-            // Automatically unwrap success payload
-            const payload = (data && data.status === "success") ? data.payload : data;
-            const token = payload ? payload.access_token : null;
-
-            if (token) {
-                authToken = token;
-                localStorage.setItem("dell_gateway_auth_token", token);
-                console.log("[Observability] JWT Access Token successfully acquired.");
-            } else {
-                console.error("[Observability] Token format not recognized:", data);
-            }
-        } catch (err) {
-            console.error("[Observability] JWT Authentication Failure:", err);
-        } finally {
-            isFetchingToken = false;
-            const queue = [...tokenWaitQueue];
-            tokenWaitQueue = [];
-            queue.forEach(resolve => resolve(authToken));
-        }
-
+        authToken = localStorage.getItem("dell_gateway_auth_token");
         return authToken;
     }
 
@@ -101,11 +59,14 @@
                 const response = await originalFetch(url, requestOptions);
 
                 // Handle token expiration/revocation (401 Unauthorized)
-                if (response.status === 401 && !isAuthCall && attempt < maxAttempts) {
-                    console.warn(`[Observability] JWT Token invalid or expired (401). Retrying with token refresh...`);
+                if (response.status === 401 && !isAuthCall) {
+                    console.warn(`[Observability] JWT Token invalid or expired (401). Triggering logout...`);
                     authToken = null;
                     localStorage.removeItem("dell_gateway_auth_token");
-                    continue;
+                    if (window.AuthManager && typeof window.AuthManager.logout === "function") {
+                        window.AuthManager.logout();
+                    }
+                    return response;
                 }
 
                 // Handle server issues (status >= 500)

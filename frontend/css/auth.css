@@ -1,0 +1,339 @@
+/* Enterprise Authentication Styles
+ * Styled to fit the premium design tokens of Phase 36.
+ */
+
+/* Fullscreen Login Wrapper */
+.auth-screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--zinc-950);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.auth-screen-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Glassmorphic Login Card */
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(24, 24, 27, var(--glass-opacity-bg));
+    backdrop-filter: blur(var(--glass-blur-radius));
+    -webkit-backdrop-filter: blur(var(--glass-blur-radius));
+    border: 1px solid rgba(63, 63, 70, var(--glass-opacity-border));
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    box-shadow: var(--elevation-floating);
+    transform: translateY(12px);
+    transition: transform var(--transition-normal);
+}
+
+.auth-screen-overlay.active .auth-card {
+    transform: translateY(0);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: var(--space-6);
+}
+
+.auth-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-3);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+}
+
+.auth-header h2 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+}
+
+.auth-header p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+/* Form Layout & Validation styling */
+.auth-form .form-group {
+    margin-bottom: var(--space-4);
+}
+
+.auth-form label {
+    display: block;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon-wrapper i {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: var(--font-size-base);
+}
+
+.input-icon-wrapper input {
+    padding-left: var(--space-10) !important;
+}
+
+.form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+    font-size: var(--font-size-sm);
+}
+
+.remember-me-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.forgot-password-link {
+    color: var(--brand-blue);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: color var(--transition-fast);
+}
+
+.forgot-password-link:hover {
+    color: var(--brand-blue-hover);
+    text-decoration: underline;
+}
+
+.auth-error-msg {
+    background-color: rgba(244, 63, 94, 0.1);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    color: var(--danger-color);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    animation: authShake 0.3s ease;
+}
+
+@keyframes authShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* User Profile Menu Dropdown */
+.profile-menu-container {
+    position: relative;
+}
+
+.user-profile {
+    cursor: pointer;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    transition: background-color var(--transition-fast);
+}
+
+.user-profile:hover {
+    background-color: var(--zinc-800);
+}
+
+.profile-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--space-2));
+    width: 280px;
+    background: rgba(24, 24, 27, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(63, 63, 70, 0.5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-floating);
+    padding: var(--space-4);
+    display: none;
+    z-index: 500;
+    transform: scale(0.95);
+    transform-origin: top right;
+    transition: transform var(--transition-fast) ease, opacity var(--transition-fast) ease;
+    opacity: 0;
+}
+
+.profile-dropdown-menu.active {
+    display: block;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.profile-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-3);
+}
+
+.profile-dropdown-header .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+}
+
+.profile-details h4 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.profile-details p {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.profile-meta-list {
+    list-style: none;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+}
+
+.profile-meta-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-1) 0;
+}
+
+.profile-meta-list li span:first-child {
+    color: var(--text-muted);
+}
+
+.logout-btn-container {
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-3);
+}
+
+/* Session Timeout slide-in Alert */
+.timeout-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(9, 9, 11, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.timeout-modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.timeout-dialog {
+    width: 90%;
+    max-width: 420px;
+    background: rgba(24, 24, 27, 0.95);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--elevation-floating);
+    transform: scale(0.95);
+    transition: transform var(--transition-normal);
+    text-align: center;
+}
+
+.timeout-modal-overlay.active .timeout-dialog {
+    transform: scale(1);
+}
+
+.timeout-icon {
+    font-size: var(--font-size-4xl);
+    color: var(--warning-color);
+    margin-bottom: var(--space-3);
+}
+
+.timeout-dialog h3 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-2);
+}
+
+.timeout-dialog p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+}
+
+.timeout-countdown-bar {
+    height: 4px;
+    width: 100%;
+    background-color: var(--zinc-800);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--space-6);
+}
+
+.timeout-progress {
+    height: 100%;
+    width: 100%;
+    background-color: var(--warning-color);
+    transition: width 1s linear;
+}
+
+.timeout-btn-group {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+}

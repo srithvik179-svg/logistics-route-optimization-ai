@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/static/design-system/tokens.css">
     <link rel="stylesheet" href="/static/design-system/theme.css">
     <link rel="stylesheet" href="/static/design-system/components.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <!-- Leaflet.js Mapping CDNs -->
@@ -122,13 +123,35 @@
                 <div class="page-title">
                     <h1 id="header-title">Platform Overview</h1>
                 </div>
-                <div class="user-profile">
-                    <div class="avatar">
-                        <i class="fa-solid fa-user-tie"></i>
+                <div class="profile-menu-container">
+                    <div class="user-profile" id="profile-avatar-click">
+                        <div class="avatar">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">Dell Operator</span>
+                            <span class="user-role">Logistics Architect</span>
+                        </div>
                     </div>
-                    <div class="user-info">
-                        <span class="user-name">Dell Operator</span>
-                        <span class="user-role">Logistics Architect</span>
+                    <!-- Profile Menu Dropdown -->
+                    <div class="profile-dropdown-menu" id="profile-dropdown">
+                        <div class="profile-dropdown-header">
+                            <div class="avatar">DO</div>
+                            <div class="profile-details">
+                                <h4 id="profile-name-val">Dell Operator</h4>
+                                <p id="profile-role-val">Logistics Architect</p>
+                            </div>
+                        </div>
+                        <ul class="profile-meta-list">
+                            <li><span>Department:</span><span id="profile-dept-val">Operations Control</span></li>
+                            <li><span>Last Login:</span><span id="profile-last-login-val">Pending</span></li>
+                            <li><span>Session Status:</span><span id="profile-status-val">Active</span></li>
+                        </ul>
+                        <div class="logout-btn-container">
+                            <button class="btn btn-secondary" style="width:100%" onclick="AuthManager.logout()">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -2680,12 +2703,107 @@
         </div>
     </div>
 
+    <!-- 1. FULLSCREEN AUTH OVERLAY -->
+    <div class="auth-screen-overlay" id="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fa-solid fa-truck-ramp-box"></i>
+                </div>
+                <h2>Dell Logistics AI</h2>
+                <p>Enterprise Route Optimization Platform</p>
+            </div>
+            
+            <div class="auth-error-msg" id="login-error" style="display:none">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Invalid credentials</span>
+            </div>
+            
+            <form class="auth-form" onsubmit="event.preventDefault(); AuthManager.login(document.getElementById('login-username').value, document.getElementById('login-password').value, document.getElementById('login-remember').checked)">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="login-username" required placeholder="Enter username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="login-password" required placeholder="Enter password">
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="remember-me-label">
+                        <input type="checkbox" id="login-remember">
+                        Remember Me
+                    </label>
+                    <a href="#" class="forgot-password-link" onclick="event.preventDefault(); document.getElementById('auth-overlay').classList.remove('active'); document.getElementById('forgot-overlay').classList.add('active')">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-submit-btn" style="width:100%">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. FORGOT PASSWORD OVERLAY (UI ONLY) -->
+    <div class="auth-screen-overlay" id="forgot-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <h2>Reset Password</h2>
+                <p>Enterprise credentials recovery process</p>
+            </div>
+            
+            <div class="auth-form">
+                <div class="form-group">
+                    <label for="forgot-email">Account Email</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="text" id="forgot-email" placeholder="Enter corporate email">
+                    </div>
+                </div>
+                <div style="margin-bottom:var(--space-6); font-size:var(--font-size-xs); color:var(--text-muted)">
+                    Instructional recovery link will be dispatched upon verified administrator authorization.
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-bottom:var(--space-3)" onclick="alert('Recovery instructions sent to email queue.'); document.getElementById('forgot-overlay').classList.remove('active'); document.getElementById('auth-overlay').classList.add('active')">Send Request</button>
+                <button class="btn btn-secondary" style="width:100%" onclick="document.getElementById('forgot-overlay').classList.remove('active'); document.getElementById('auth-overlay').classList.add('active')">Back to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SESSION TIMEOUT DIALOG -->
+    <div class="timeout-modal-overlay" id="timeout-overlay">
+        <div class="timeout-dialog">
+            <div class="timeout-icon">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <h3>Session Timeout</h3>
+            <p>Your security session is about to expire in <span id="timeout-countdown-text" style="font-weight:bold; color:var(--warning-color)">30</span> seconds due to inactivity policy rules.</p>
+            <div class="timeout-countdown-bar">
+                <div class="timeout-progress" id="timeout-progress-bar"></div>
+            </div>
+            <div class="timeout-btn-group">
+                <button class="btn btn-primary" onclick="AuthManager.extendSession()">
+                    <i class="fa-solid fa-arrows-rotate"></i> Keep Working
+                </button>
+                <button class="btn btn-secondary" onclick="AuthManager.logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Client-Side Javascript -->
     <script src="/static/js/api_gateway_integration.js"></script>
     <script src="/static/js/executive_dashboard.js"></script>
     <script src="/static/js/workspace.js"></script>
     <!-- Design System Engine -->
     <script src="/static/design-system/design_system.js"></script>
+    <!-- Authentication Experience -->
+    <script src="/static/js/auth.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>
