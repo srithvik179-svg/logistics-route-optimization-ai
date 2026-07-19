@@ -125,6 +125,11 @@ function initNavigation() {
                 if (typeof window.loadRecommendationWorkspace === "function") {
                     window.loadRecommendationWorkspace();
                 }
+            } else if (targetId === "corridor-section") {
+                headerTitle.textContent = "Corridor Efficiency Intelligence";
+                if (typeof window.loadCorridorWorkspace === "function") {
+                    window.loadCorridorWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

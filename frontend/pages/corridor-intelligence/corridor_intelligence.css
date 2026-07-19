@@ -1,0 +1,42 @@
+/* corridor_intelligence Page Styles */
+.corridor-workspace-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+}
+.corridor-top-summary-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 1fr;
+    gap: var(--space-6);
+}
+@media (max-width: 1024px) {
+    .corridor-top-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.corridor-map-alerts-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--space-6);
+}
+@media (max-width: 1024px) {
+    .corridor-map-alerts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.corridor-alerts-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+.corridor-metrics-extra-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+}
+@media (max-width: 768px) {
+    .corridor-metrics-extra-grid {
+        grid-template-columns: 1fr;
+    }
+}

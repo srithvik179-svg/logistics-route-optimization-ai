@@ -1,0 +1,8 @@
+/* RecommendationPanel Styles */
+.rec-suggestion-card {
+    transition: transform var(--transition-fast) ease, border-color var(--transition-fast) ease;
+}
+.rec-suggestion-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+}

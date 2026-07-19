@@ -1,0 +1,16 @@
+/* HeatMap Styles */
+.corridor-map {
+    height: 420px;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+.hub-congestion-pulsing {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    animation: hub-pulse 1.4s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+@keyframes hub-pulse {
+    to {
+        box-shadow: 0 0 0 18px rgba(239, 68, 68, 0);
+    }
+}

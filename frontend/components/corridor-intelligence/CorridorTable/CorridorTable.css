@@ -1,0 +1,15 @@
+/* CorridorTable Styles */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition-fast) ease;
+}
+th.sortable:hover {
+    color: var(--brand-blue);
+}
+th.active-sort {
+    color: var(--brand-blue) !important;
+}
+.data-table th, .data-table td {
+    padding: var(--space-2) var(--space-3) !important;
+}

@@ -35,6 +35,7 @@ from backend.services.genetic_algorithm_engine import GeneticAlgorithmEngine
 from backend.services.ant_colony_engine import AntColonyEngine
 from backend.services.rl_preparation_engine import RLPreparationEngine
 from backend.services.ai_preparation_engine import AIPreparationEngine
+from backend.services.corridor_service import CorridorService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -658,6 +659,18 @@ def get_ai_decision_support(payload: AIDecisionRequest):
     except Exception as e:
         logger.error(f"AI Preparation API Error: Failed retrieving decision context: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/corridor-intelligence/payload")
+def get_corridor_intelligence_payload(payload: Dict[str, Any] = None):
+    """Returns comprehensive corridor efficiency analytics, normalized scores, and AI recommendations."""
+    filters = payload.get("filters", {}) if payload else {}
+    try:
+        data = CorridorService.get_corridor_intelligence(filters)
+        return data
+    except Exception as e:
+        logger.error(f"Corridor Intelligence API Error: Failed retrieving corridor data: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # Serve Static Frontend Files
 # Path to frontend directory

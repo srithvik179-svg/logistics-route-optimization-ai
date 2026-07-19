@@ -1,0 +1,20 @@
+/* BottleneckPanel Styles */
+.bottleneck-card-alert {
+    transition: transform var(--transition-fast) ease, border-color var(--transition-fast) ease;
+}
+.bottleneck-card-alert:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+.text-danger {
+    color: var(--danger-color) !important;
+}
+.text-warning {
+    color: var(--warning-color) !important;
+}
+.text-info {
+    color: var(--brand-blue) !important;
+}
+.text-success {
+    color: var(--success-color) !important;
+}

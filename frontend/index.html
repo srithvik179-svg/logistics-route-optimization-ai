@@ -38,6 +38,15 @@
     <link rel="stylesheet" href="/static/components/route-recommendation/ComparisonTable/ComparisonTable.css">
     <link rel="stylesheet" href="/static/components/route-recommendation/RoutePlayback/RoutePlayback.css">
     <link rel="stylesheet" href="/static/components/route-recommendation/RecommendationHistory/RecommendationHistory.css">
+    <!-- AI Corridor Intelligence Components -->
+    <link rel="stylesheet" href="/static/pages/corridor-intelligence/corridor_intelligence.css">
+    <link rel="stylesheet" href="/static/components/corridor-intelligence/CorridorDashboard/CorridorDashboard.css">
+    <link rel="stylesheet" href="/static/components/corridor-intelligence/EfficiencyCard/EfficiencyCard.css">
+    <link rel="stylesheet" href="/static/components/corridor-intelligence/HeatMap/HeatMap.css">
+    <link rel="stylesheet" href="/static/components/corridor-intelligence/BottleneckPanel/BottleneckPanel.css">
+    <link rel="stylesheet" href="/static/components/corridor-intelligence/RecommendationPanel/RecommendationPanel.css">
+    <link rel="stylesheet" href="/static/components/corridor-intelligence/CorridorTable/CorridorTable.css">
+
 
 
 
@@ -121,6 +130,12 @@
                         <a href="#" class="nav-link" data-target="recommendation-section" id="nav-recommendation">
                             <i class="fa-solid fa-compass-drafting"></i>
                             <span>AI Routing Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="corridor-section" id="nav-corridor">
+                            <i class="fa-solid fa-diagram-project"></i>
+                            <span>Corridor Intelligence</span>
                         </a>
                     </li>
                     <li>
@@ -2850,6 +2865,41 @@
                         
                     </div>
                 </section>
+                
+                <!-- AI CORRIDOR EFFICIENCY INTELLIGENCE SECTION -->
+                <section class="viewport-section" id="corridor-section">
+                    <div class="corridor-workspace-container">
+                        
+                        <!-- Top Summary Grid: Health and Top/Bottom lists -->
+                        <div class="corridor-top-summary-grid">
+                            <div id="corridor-health-card"></div>
+                            <div id="corridor-top-efficient"></div>
+                            <div id="corridor-top-inefficient"></div>
+                        </div>
+
+                        <!-- HeatMap Map and Bottlenecks Sidebar Split Grid -->
+                        <div class="corridor-map-alerts-grid">
+                            <!-- Corridor HeatMap Viewer -->
+                            <div id="corridor-heatmap-map" class="corridor-map"></div>
+                            
+                            <!-- Bottlenecks Warnings Panel -->
+                            <div id="corridor-bottlenecks-panel" class="corridor-alerts-sidebar"></div>
+                        </div>
+
+                        <!-- Additional Details: Top Delayed, Top Cost, and AI Suggestions -->
+                        <div class="corridor-metrics-extra-grid">
+                            <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+                                <div id="corridor-most-delayed"></div>
+                                <div id="corridor-highest-cost"></div>
+                            </div>
+                            <div id="corridor-suggestions-panel"></div>
+                        </div>
+
+                        <!-- Corridor performance grid registry table -->
+                        <div id="corridor-table-panel"></div>
+
+                    </div>
+                </section>
 
             </div>
         </main>
@@ -3113,6 +3163,15 @@
     <script src="/static/components/route-recommendation/RoutePlayback/RoutePlayback.js"></script>
     <script src="/static/components/route-recommendation/RecommendationHistory/RecommendationHistory.js"></script>
     <script src="/static/pages/route-recommendation/route_recommendation.js"></script>
+    <!-- AI Corridor Intelligence Components -->
+    <script src="/static/components/corridor-intelligence/CorridorDashboard/CorridorDashboard.js"></script>
+    <script src="/static/components/corridor-intelligence/EfficiencyCard/EfficiencyCard.js"></script>
+    <script src="/static/components/corridor-intelligence/HeatMap/HeatMap.js"></script>
+    <script src="/static/components/corridor-intelligence/BottleneckPanel/BottleneckPanel.js"></script>
+    <script src="/static/components/corridor-intelligence/RecommendationPanel/RecommendationPanel.js"></script>
+    <script src="/static/components/corridor-intelligence/CorridorTable/CorridorTable.js"></script>
+    <script src="/static/pages/corridor-intelligence/corridor_intelligence.js"></script>
+
 
     
     <script src="/static/js/api_gateway_integration.js"></script>
