@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/static/design-system/theme.css">
     <link rel="stylesheet" href="/static/design-system/components.css">
     <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="/static/design-system/command_center.css">
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <!-- Leaflet.js Mapping CDNs -->
@@ -120,37 +121,109 @@
         <main class="main-content">
             <!-- Top Navigation Bar -->
             <header class="top-bar">
-                <div class="page-title">
-                    <h1 id="header-title">Platform Overview</h1>
-                </div>
-                <div class="profile-menu-container">
-                    <div class="user-profile" id="profile-avatar-click">
-                        <div class="avatar">
-                            <i class="fa-solid fa-user-tie"></i>
+                <div class="header-left">
+                    <div class="page-title" style="display:flex; align-items:center; gap:var(--space-3)">
+                        <div class="brand-logo" style="width:32px; height:32px; font-size:14px; box-shadow:none; margin:0">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
                         </div>
-                        <div class="user-info">
-                            <span class="user-name">Dell Operator</span>
-                            <span class="user-role">Logistics Architect</span>
-                        </div>
+                        <h1 id="header-title" style="font-family:var(--font-heading); font-size:var(--font-size-md); font-weight:600; margin:0">Platform Overview</h1>
                     </div>
-                    <!-- Profile Menu Dropdown -->
-                    <div class="profile-dropdown-menu" id="profile-dropdown">
-                        <div class="profile-dropdown-header">
-                            <div class="avatar">DO</div>
-                            <div class="profile-details">
-                                <h4 id="profile-name-val">Dell Operator</h4>
-                                <p id="profile-role-val">Logistics Architect</p>
+                    <!-- Workspace Switcher Dropdown -->
+                    <div class="workspace-switcher">
+                        <button class="switcher-btn" id="switcher-btn">
+                            <i class="fa-solid fa-network-wired text-success"></i>
+                            <span class="workspace-name">Production Grid</span>
+                            <i class="fa-solid fa-chevron-down" style="font-size:10px; color:var(--text-muted)"></i>
+                        </button>
+                        <div class="switcher-dropdown" id="switcher-dropdown">
+                            <div class="switcher-option active">
+                                <span>Production Grid</span>
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="switcher-option">
+                                <span>Simulation Network</span>
+                                <i></i>
+                            </div>
+                            <div class="switcher-option">
+                                <span>Disaster Recovery Node</span>
+                                <i></i>
                             </div>
                         </div>
-                        <ul class="profile-meta-list">
-                            <li><span>Department:</span><span id="profile-dept-val">Operations Control</span></li>
-                            <li><span>Last Login:</span><span id="profile-last-login-val">Pending</span></li>
-                            <li><span>Session Status:</span><span id="profile-status-val">Active</span></li>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <!-- Global Command Search bar -->
+                    <div class="header-search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="global-search-input" class="form-control" placeholder="Search operations or hit '/'">
+                    </div>
+                    
+                    <!-- Quick Create Button -->
+                    <button class="btn btn-primary btn-sm" id="quick-create-btn" title="Create dispatch request">
+                        <i class="fa-solid fa-plus"></i> Dispatch
+                    </button>
+                    
+                    <!-- Notification Bell dropdown trigger -->
+                    <button class="notification-bell-btn" id="notification-bell-btn" title="Notifications">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="bell-badge"></span>
+                    </button>
+                    <div class="notification-dropdown" id="notification-dropdown">
+                        <div class="notification-header">
+                            <h4>Operations Alerts</h4>
+                            <span onclick="alert('All notifications marked as read.')">Clear All</span>
+                        </div>
+                        <ul class="notification-list">
+                            <li class="notification-item">
+                                <h5>SLA Breach Threat</h5>
+                                <p>Route Austin-Dallas delay risk detected due to congestion.</p>
+                                <div class="time">2 minutes ago</div>
+                            </li>
+                            <li class="notification-item">
+                                <h5>Optimization Complete</h5>
+                                <p>Ant Colony optimization resolved 14 paths successfully.</p>
+                                <div class="time">15 minutes ago</div>
+                            </li>
+                            <li class="notification-item">
+                                <h5>System Backup</h5>
+                                <p>Repository snapshot backup successfully completed.</p>
+                                <div class="time">1 hour ago</div>
+                            </li>
                         </ul>
-                        <div class="logout-btn-container">
-                            <button class="btn btn-secondary" style="width:100%" onclick="AuthManager.logout()">
-                                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-                            </button>
+                    </div>
+
+                    <!-- Theme Toggle button (UI state only) -->
+                    <button class="notification-bell-btn" onclick="alert('Theme configuration locked under corporate tenant rules.')" title="Toggle Theme">
+                        <i class="fa-solid fa-circle-half-stroke"></i>
+                    </button>
+
+                    <!-- User Profile Dropdown container -->
+                    <div class="profile-menu-container">
+                        <div class="user-profile" id="profile-avatar-click">
+                            <div class="avatar" style="width:32px; height:32px; border-radius:50%; background:var(--zinc-800); display:flex; align-items:center; justify-content:center; color:var(--text-primary)">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                        </div>
+                        <!-- Profile Menu Dropdown -->
+                        <div class="profile-dropdown-menu" id="profile-dropdown">
+                            <div class="profile-dropdown-header">
+                                <div class="avatar">DO</div>
+                                <div class="profile-details">
+                                    <h4 id="profile-name-val">Dell Operator</h4>
+                                    <p id="profile-role-val">Logistics Architect</p>
+                                </div>
+                            </div>
+                            <ul class="profile-meta-list">
+                                <li><span>Department:</span><span id="profile-dept-val">Operations Control</span></li>
+                                <li><span>Last Login:</span><span id="profile-last-login-val">Pending</span></li>
+                                <li><span>Session Status:</span><span id="profile-status-val">Active</span></li>
+                            </ul>
+                            <div class="logout-btn-container">
+                                <button class="btn btn-secondary" style="width:100%" onclick="AuthManager.logout()">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -161,17 +234,30 @@
                 
                 <!-- 1. OVERVIEW SECTION -->
                 <section id="overview-section" class="viewport-section active">
-                    <div class="welcome-card">
+                    <!-- Welcome Banner -->
+                    <div class="welcome-card fade-in-slide-up">
                         <div class="welcome-text">
-                            <h2>Enterprise Logistics Intelligence</h2>
-                            <p>Welcome to the Dell Logistics Route Optimization Platform. A multi-agent AI framework designed to analyze transits, predict SLA compliance, minimize costs, and optimize routing paths.</p>
+                            <h2>Enterprise Command Center</h2>
+                            <p>Welcome back to the Dell Logistics Route Optimization Platform. A premium command twin managing distribution operations, latency statistics, and AI optimized routing modules.</p>
                         </div>
                         <div class="welcome-icon">
-                            <i class="fa-solid fa-network-wired"></i>
+                            <i class="fa-solid fa-crown"></i>
                         </div>
                     </div>
 
-                    <div class="grid-layout cols-2">
+                    <!-- Favorites & Shortcut Quick Chips -->
+                    <div class="favorites-bar fade-in-slide-up" style="animation-delay: 0.1s;">
+                        <span class="favorites-title"><i class="fa-solid fa-star text-warning"></i> Quick Links</span>
+                        <div class="favorites-list">
+                            <a href="#" class="favorite-chip" onclick="event.preventDefault(); document.getElementById('nav-dashboard').click();"><i class="fa-solid fa-chart-line text-success"></i> Analytics</a>
+                            <a href="#" class="favorite-chip" onclick="event.preventDefault(); document.getElementById('nav-network-map').click();"><i class="fa-solid fa-map-location-dot text-info"></i> Network Map</a>
+                            <a href="#" class="favorite-chip" onclick="event.preventDefault(); document.getElementById('nav-routes').click();"><i class="fa-solid fa-route text-warning"></i> Route Optimization</a>
+                            <a href="#" class="favorite-chip" onclick="event.preventDefault(); document.getElementById('nav-workspace').click();"><i class="fa-solid fa-brain text-purple"></i> AI Insights</a>
+                        </div>
+                    </div>
+
+                    <!-- Layout widgets: main data summary row -->
+                    <div class="grid-layout cols-2 fade-in-slide-up" style="animation-delay: 0.2s;">
                         <div class="card status-summary-card">
                             <div class="card-header">
                                 <h3>Data Layer Status</h3>
@@ -187,8 +273,8 @@
                                         <p id="overview-status-desc">Verifying Dell Logistics Excel workbook presence and integrity.</p>
                                     </div>
                                 </div>
-                                <div class="action-btn-group">
-                                    <button class="btn btn-primary" onclick="navigateToDataset()">
+                                <div class="action-btn-group" style="margin-top:var(--space-4)">
+                                    <button class="btn btn-primary btn-sm" onclick="navigateToDataset()">
                                         <i class="fa-solid fa-arrow-right"></i> Inspect Dataset
                                     </button>
                                 </div>
@@ -212,17 +298,110 @@
                                         <span class="module-status"><i class="fa-solid fa-lock"></i></span>
                                         <div class="module-info">
                                             <h4>Geospatial & Route Optimization</h4>
-                                            <p>Disabled: Pending future phase activations.</p>
+                                            <p>Pending: Authenticated role configurations.</p>
                                         </div>
                                     </li>
                                     <li class="module-item disabled">
                                         <span class="module-status"><i class="fa-solid fa-lock"></i></span>
                                         <div class="module-info">
                                             <h4>SLA Prediction & AI Routing</h4>
-                                            <p>Disabled: Pending future phase activations.</p>
+                                            <p>Pending: Authenticated role configurations.</p>
                                         </div>
                                     </li>
                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Double-panel dashboard layout (recent activity & quick actions) -->
+                    <div class="dashboard-grid fade-in-slide-up" style="animation-delay: 0.3s;">
+                        <div class="card glass-panel">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-list-check text-info"></i> Recent Operations Log</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="activity-list">
+                                    <li class="activity-item">
+                                        <div class="activity-dot success"></div>
+                                        <div class="activity-info">
+                                            <p>Production data validated successfully. Quality Score: 98%</p>
+                                            <span>Just now • Validator Engine</span>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item">
+                                        <div class="activity-dot info"></div>
+                                        <div class="activity-info">
+                                            <p>User admin session initiated successfully.</p>
+                                            <span>2 minutes ago • Security gateway</span>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item">
+                                        <div class="activity-dot warning"></div>
+                                        <div class="activity-info">
+                                            <p>Congestion warning flag updated on Texas transit nodes.</p>
+                                            <span>15 minutes ago • A* Route Planner</span>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item">
+                                        <div class="activity-dot info"></div>
+                                        <div class="activity-info">
+                                            <p>Ant Colony parameter sets cached successfully.</p>
+                                            <span>1 hour ago • Optimization Cache</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+                            <!-- Quick Actions -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3>Quick Commands</h3>
+                                </div>
+                                <div class="card-body quick-actions-panel">
+                                    <div class="quick-action-btn" id="quick-action-dispatch">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>Dispatch Order</span>
+                                    </div>
+                                    <div class="quick-action-btn" onclick="document.getElementById('nav-dataset').click();">
+                                        <i class="fa-solid fa-rotate"></i>
+                                        <span>Reload Data</span>
+                                    </div>
+                                    <div class="quick-action-btn" onclick="document.getElementById('nav-workspace').click();">
+                                        <i class="fa-solid fa-terminal"></i>
+                                        <span>Command Shell</span>
+                                    </div>
+                                    <div class="quick-action-btn" onclick="alert('Exporting system diagnostics package...');">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                        <span>Diagnostics</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Status Widget -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3>System Telemetry</h3>
+                                </div>
+                                <div class="card-body status-grid">
+                                    <div class="status-grid-item">
+                                        <label>API Delay</label>
+                                        <p>4 ms</p>
+                                    </div>
+                                    <div class="status-grid-item">
+                                        <label>Uptime</label>
+                                        <p>99.98%</p>
+                                    </div>
+                                    <div class="status-grid-item">
+                                        <label>Cache State</label>
+                                        <p>Healthy</p>
+                                    </div>
+                                    <div class="status-grid-item">
+                                        <label>Secure Key</label>
+                                        <p>Active</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -302,59 +481,139 @@
                     
                     <!-- KPI Cards Row 1 (5 cols) -->
                     <div class="grid-layout cols-5" id="dashboard-kpi-grid-1" style="gap: 1rem;">
-                        <div class="metric-card" id="kpi-shipments">
-                            <span class="metric-label">Total Shipments</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Total completed transactions</span>
+                        <div class="metric-card glass-panel" id="kpi-shipments">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Total Shipments</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Total completed transactions</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-total-cost">
-                            <span class="metric-label">Total Logistics Cost</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Aggregated freight shipping cost</span>
+                        <div class="metric-card glass-panel" id="kpi-total-cost">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Total Logistics Cost</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-wallet"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Aggregated shipping cost</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-avg-cost">
-                            <span class="metric-label">Average Logistics Cost</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Mean cost incurred per transaction</span>
+                        <div class="metric-card glass-panel" id="kpi-avg-cost">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Average Logistics Cost</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-coins"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Mean cost per transaction</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-avg-transit">
-                            <span class="metric-label">Average Transit Days</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Mean elapsed delivery duration</span>
+                        <div class="metric-card glass-panel" id="kpi-avg-transit">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Average Transit Days</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-clock"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Mean elapsed delivery duration</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-inventory">
-                            <span class="metric-label">Average Inventory Level</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Average stock units held at hubs</span>
+                        <div class="metric-card glass-panel" id="kpi-inventory">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Average Inventory Level</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-cubes"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Average stock units held at hubs</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- KPI Cards Row 2 (5 cols) -->
                     <div class="grid-layout cols-5" id="dashboard-kpi-grid-2" style="margin-top: 1rem; gap: 1rem;">
-                        <div class="metric-card" id="kpi-hubs">
-                            <span class="metric-label">Total Hubs</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Active logistics distribution hubs</span>
+                        <div class="metric-card glass-panel" id="kpi-hubs">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Total Hubs</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-circle-nodes"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Active logistics distribution hubs</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-tprs">
-                            <span class="metric-label">Total Repair Centers</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Third-party servicing centers</span>
+                        <div class="metric-card glass-panel" id="kpi-tprs">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Total Repair Centers</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Third-party servicing centers</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-parts">
-                            <span class="metric-label">Total Parts Catalog</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Unique managed inventory parts</span>
+                        <div class="metric-card glass-panel" id="kpi-parts">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Total Parts Catalog</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-gears"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Unique managed inventory parts</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-hub-util">
-                            <span class="metric-label">Average Hub Utilization</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Mean hub throughput load capacity</span>
+                        <div class="metric-card glass-panel" id="kpi-hub-util">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Average Hub Utilization</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-chart-area"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Mean hub throughput load capacity</span>
+                            </div>
                         </div>
-                        <div class="metric-card" id="kpi-tpr-util">
-                            <span class="metric-label">Average Center Utilization</span>
-                            <span class="metric-value">-</span>
-                            <span class="metric-sub">Mean service bay workload load</span>
+                        <div class="metric-card glass-panel" id="kpi-tpr-util">
+                            <div class="card-kpi-header">
+                                <span class="metric-label">Average Center Utilization</span>
+                                <div class="kpi-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                            </div>
+                            <div class="card-kpi-body">
+                                <span class="metric-value">-</span>
+                                <div class="kpi-trend"></div>
+                            </div>
+                            <div class="card-kpi-footer">
+                                <span class="metric-sub">Mean service bay workload load</span>
+                            </div>
                         </div>
                     </div>
 
@@ -2804,6 +3063,8 @@
     <script src="/static/design-system/design_system.js"></script>
     <!-- Authentication Experience -->
     <script src="/static/js/auth.js"></script>
+    <!-- Command Center Experience -->
+    <script src="/static/design-system/command_center.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>
