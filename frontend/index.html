@@ -97,7 +97,17 @@
     <link rel="stylesheet" href="/static/components/command-center/NetworkHealth/NetworkHealth.css">
     <link rel="stylesheet" href="/static/components/command-center/OperationsTimeline/OperationsTimeline.css">
     <link rel="stylesheet" href="/static/components/command-center/CommandPalette/CommandPalette.css">
-    <link rel="stylesheet" href="/static/components/command-center/NotificationCenter/NotificationCenter.css">
+    <!-- Enterprise Geospatial Intelligence Workspace -->
+    <link rel="stylesheet" href="/static/pages/geospatial/geospatial.css">
+    <link rel="stylesheet" href="/static/components/NetworkExplorer/NetworkExplorer.css">
+    <link rel="stylesheet" href="/static/components/LayerManager/LayerManager.css">
+    <link rel="stylesheet" href="/static/components/RoutePlayback/RoutePlayback.css">
+    <link rel="stylesheet" href="/static/components/HubPanel/HubPanel.css">
+    <link rel="stylesheet" href="/static/components/RoutePanel/RoutePanel.css">
+    <link rel="stylesheet" href="/static/components/MapToolbar/MapToolbar.css">
+    <link rel="stylesheet" href="/static/components/Timeline/Timeline.css">
+    <link rel="stylesheet" href="/static/components/SpatialSearch/SpatialSearch.css">
+    <link rel="stylesheet" href="/static/components/SavedViews/SavedViews.css">
 
 
 
@@ -141,6 +151,12 @@
                         <a href="#" class="nav-link" data-target="command-center-section" id="nav-command-center">
                             <i class="fa-solid fa-tower-broadcast"></i>
                             <span>Command Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="geospatial-section" id="nav-geospatial">
+                            <i class="fa-solid fa-earth-americas"></i>
+                            <span>Geospatial Intel</span>
                         </a>
                     </li>
                     <li>
@@ -3225,6 +3241,36 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE GEOSPATIAL INTELLIGENCE PLATFORM -->
+                <section class="viewport-section" id="geospatial-section">
+                    <div class="geospatial-workspace-layout fade-in-slide-up">
+                        <!-- Left Main Map Area -->
+                        <div class="map-view-canvas-container">
+                            <div id="geospatial-map-canvas"></div>
+                            
+                            <!-- Spatial Search Overlay Container -->
+                            <div class="map-floating-overlay-top-left" id="geospatial-search-overlay-container"></div>
+
+                            <!-- Map Utilities Toolbar Container -->
+                            <div class="map-floating-overlay-top-right" id="geospatial-toolbar-container"></div>
+
+                            <!-- Bottom Left Controls Overlay -->
+                            <div class="map-floating-overlay-bottom-left" style="display:flex; flex-direction:column; gap:var(--space-2);">
+                                <div id="geospatial-playback-container"></div>
+                                <div id="geospatial-timeline-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Control Sidebar -->
+                        <div class="geospatial-control-sidebar">
+                            <div id="geospatial-layer-container"></div>
+                            <div id="geospatial-saved-views-container"></div>
+                            <div id="geospatial-hub-container"></div>
+                            <div id="geospatial-route-container"></div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3541,7 +3587,17 @@
     <script src="/static/components/command-center/GlobalSearch/GlobalSearch.js"></script>
     <script src="/static/components/command-center/NetworkHealth/NetworkHealth.js"></script>
     <script src="/static/components/command-center/CommandPalette/CommandPalette.js"></script>
-    <script src="/static/pages/command-center/command_center.js"></script>
+    <!-- Enterprise Geospatial Intelligence Workspace -->
+    <script src="/static/components/NetworkExplorer/NetworkExplorer.js"></script>
+    <script src="/static/components/LayerManager/LayerManager.js"></script>
+    <script src="/static/components/RoutePlayback/RoutePlayback.js"></script>
+    <script src="/static/components/HubPanel/HubPanel.js"></script>
+    <script src="/static/components/RoutePanel/RoutePanel.js"></script>
+    <script src="/static/components/MapToolbar/MapToolbar.js"></script>
+    <script src="/static/components/Timeline/Timeline.js"></script>
+    <script src="/static/components/SpatialSearch/SpatialSearch.js"></script>
+    <script src="/static/components/SavedViews/SavedViews.js"></script>
+    <script src="/static/pages/geospatial/geospatial.js"></script>
 
 
 

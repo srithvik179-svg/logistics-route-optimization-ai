@@ -160,6 +160,11 @@ function initNavigation() {
                 if (typeof window.loadCommandCenterWorkspace === "function") {
                     window.loadCommandCenterWorkspace();
                 }
+            } else if (targetId === "geospatial-section") {
+                headerTitle.textContent = "Geospatial Intelligence Platform";
+                if (typeof window.loadGeospatialWorkspace === "function") {
+                    window.loadGeospatialWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();
