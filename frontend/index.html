@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style Sheet -->
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Design System Layers -->
+    <link rel="stylesheet" href="/static/design-system/tokens.css">
+    <link rel="stylesheet" href="/static/design-system/theme.css">
+    <link rel="stylesheet" href="/static/design-system/components.css">
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <!-- Leaflet.js Mapping CDNs -->
@@ -80,6 +84,24 @@
                         <a href="#" class="nav-link" data-target="explorer-section" id="nav-explorer">
                             <i class="fa-solid fa-magnifying-glass-chart"></i>
                             <span>Dataset Explorer</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="workspace-section" id="nav-workspace">
+                            <i class="fa-solid fa-brain"></i>
+                            <span>AI Insights</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="executive-section" id="nav-executive">
+                            <i class="fa-solid fa-crown"></i>
+                            <span>Executive Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="admin-section" id="nav-admin">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            <span>Admin Center</span>
                         </a>
                     </li>
                 </ul>
@@ -1388,6 +1410,1132 @@
                     </div>
                 </section>
 
+                <!-- 8. ADMINISTRATION & OPERATIONS CENTER SECTION -->
+                <!-- ===================================================== -->
+                <!-- AI INSIGHTS WORKSPACE SECTION (Phase 35)               -->
+                <!-- ===================================================== -->
+                <section class="viewport-section" id="workspace-section">
+
+                    <!-- Welcome Banner -->
+                    <div class="welcome-card ws-welcome" style="margin-bottom:1.25rem;">
+                        <div class="welcome-text">
+                            <h2>AI Insights Workspace</h2>
+                            <p>Intelligent insight presentation, advanced analytics, and enterprise productivity tools powered by existing logistics intelligence engines.</p>
+                        </div>
+                        <div class="welcome-icon" style="font-size:2rem; color:#8b5cf6;">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                    </div>
+
+                    <!-- Saved Views Bar -->
+                    <div class="saved-views-bar" id="ws-saved-views-bar">
+                        <span class="saved-views-label"><i class="fa-solid fa-bookmark"></i> Views:</span>
+                        <div class="saved-views-list" id="ws-saved-views-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="promptSaveView()" title="Save current view">
+                            <i class="fa-solid fa-floppy-disk"></i> Save View
+                        </button>
+                        <div class="ws-toolbar-divider"></div>
+                        <button class="btn btn-secondary btn-sm" id="ws-search-btn" onclick="openQuickSearch()" title="Quick Search (Ctrl+/)">
+                            <i class="fa-solid fa-magnifying-glass"></i> Search
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="ws-cmd-btn" onclick="openCommandPalette()" title="Command Palette (Ctrl+K)">
+                            <i class="fa-solid fa-terminal"></i> Commands
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="showShortcutsModal()" title="Keyboard Shortcuts (Shift+?)">
+                            <i class="fa-solid fa-keyboard"></i>
+                        </button>
+                    </div>
+
+                    <!-- Workspace Tab Navigation -->
+                    <div class="ws-tab-nav" id="ws-tab-nav">
+                        <button class="ws-tab active" data-tab="ws-insights" onclick="switchWsTab('ws-insights', this)">
+                            <i class="fa-solid fa-lightbulb"></i> Insight Overview
+                        </button>
+                        <button class="ws-tab" data-tab="ws-decision" onclick="switchWsTab('ws-decision', this)">
+                            <i class="fa-solid fa-scale-balanced"></i> Decision Support
+                        </button>
+                        <button class="ws-tab" data-tab="ws-alerts" onclick="switchWsTab('ws-alerts', this)">
+                            <i class="fa-solid fa-bell"></i> Operational Alerts
+                            <span class="ws-badge" id="ws-alert-badge" style="display:none;"></span>
+                        </button>
+                        <button class="ws-tab" data-tab="ws-analytics" onclick="switchWsTab('ws-analytics', this)">
+                            <i class="fa-solid fa-chart-bar"></i> Analytics Workspace
+                        </button>
+                        <button class="ws-tab" data-tab="ws-productivity" onclick="switchWsTab('ws-productivity', this)">
+                            <i class="fa-solid fa-rocket"></i> Productivity Hub
+                        </button>
+                    </div>
+
+                    <!-- ====== TAB PANES ====== -->
+                    <div class="ws-tab-content" id="ws-tab-content">
+
+                        <!-- TAB 1: INSIGHT OVERVIEW -->
+                        <div class="ws-tab-pane active" id="ws-insights">
+
+                            <!-- Executive Highlights Strip -->
+                            <div class="ws-section-header ws-collapsible-header" data-target="ws-highlights-body">
+                                <h3><i class="fa-solid fa-star" style="color:#f59e0b; margin-right:6px;"></i>Executive Highlights</h3>
+                                <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                            </div>
+                            <div class="ws-collapsible-body" id="ws-highlights-body">
+                                <div class="ws-highlight-strip" id="ws-highlight-strip">
+                                    <div class="exec-loading">Loading highlights...</div>
+                                </div>
+                            </div>
+
+                            <!-- Opportunities & Risks (2-col) -->
+                            <div class="grid-layout cols-2" style="gap:1.5rem; margin-top:1.25rem; align-items:start;">
+                                <!-- Opportunities -->
+                                <div>
+                                    <div class="ws-section-header ws-collapsible-header" data-target="ws-opp-body">
+                                        <h3><i class="fa-solid fa-arrow-trend-up" style="color:#10b981; margin-right:6px;"></i>Top Opportunities</h3>
+                                        <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                                    </div>
+                                    <div class="ws-collapsible-body" id="ws-opp-body">
+                                        <div class="ws-insight-grid" id="ws-opp-cards">
+                                            <div class="exec-loading">Analysing opportunities...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Risks -->
+                                <div>
+                                    <div class="ws-section-header ws-collapsible-header" data-target="ws-risk-body">
+                                        <h3><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; margin-right:6px;"></i>Top Risks</h3>
+                                        <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                                    </div>
+                                    <div class="ws-collapsible-body" id="ws-risk-body">
+                                        <div class="ws-insight-grid" id="ws-risk-cards">
+                                            <div class="exec-loading">Analysing risks...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Business Trends -->
+                            <div class="ws-section-header ws-collapsible-header" data-target="ws-trends-body" style="margin-top:1.25rem;">
+                                <h3><i class="fa-solid fa-chart-area" style="color:#3b82f6; margin-right:6px;"></i>Business Trends</h3>
+                                <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                            </div>
+                            <div class="ws-collapsible-body" id="ws-trends-body">
+                                <div class="ws-trend-grid" id="ws-trend-cards">
+                                    <div class="exec-loading">Loading trends...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: DECISION SUPPORT -->
+                        <div class="ws-tab-pane" id="ws-decision">
+                            <div class="grid-layout cols-2" style="gap:1.5rem; align-items:start; margin-bottom:1.25rem;">
+                                <!-- Top Performers -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3><i class="fa-solid fa-trophy" style="color:#f59e0b; margin-right:6px;"></i>Best Performing Regions</h3>
+                                    </div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Route / Hub</th><th>Score</th><th>SLA %</th><th>Cost</th><th>Action</th></tr></thead>
+                                            <tbody id="ws-top-performers"><tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- Bottom Performers -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3><i class="fa-solid fa-arrow-trend-down" style="color:#ef4444; margin-right:6px;"></i>Lowest Performing Regions</h3>
+                                    </div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Route / Hub</th><th>Score</th><th>Violations</th><th>Cost</th><th>Action</th></tr></thead>
+                                            <tbody id="ws-bottom-performers"><tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Optimization Comparison -->
+                            <div class="card" style="margin-bottom:1.25rem;">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-bolt" style="color:#8b5cf6; margin-right:6px;"></i>Optimization Comparison Workspace</h3>
+                                </div>
+                                <div class="card-body" style="padding:0;">
+                                    <table class="data-table ws-comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Metric</th>
+                                                <th><i class="fa-solid fa-star" style="color:#f59e0b;"></i> A* Pathfinding</th>
+                                                <th>Genetic Algorithm</th>
+                                                <th>Ant Colony (ACO)</th>
+                                                <th>Winner</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ws-opt-comparison">
+                                            <tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading optimization data...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- SLA Trend -->
+                            <div class="card">
+                                <div class="card-header"><h3><i class="fa-solid fa-chart-line" style="color:#10b981; margin-right:6px;"></i>SLA Compliance Trend</h3></div>
+                                <div class="card-body">
+                                    <div id="ws-sla-trend-chart" style="height:240px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: OPERATIONAL ALERTS -->
+                        <div class="ws-tab-pane" id="ws-alerts">
+                            <!-- Alert Summary Strip -->
+                            <div class="ws-alert-summary" id="ws-alert-summary">
+                                <div class="ws-alert-count critical"><span id="ws-cnt-critical">0</span><small>Critical</small></div>
+                                <div class="ws-alert-count high"><span id="ws-cnt-high">0</span><small>High</small></div>
+                                <div class="ws-alert-count medium"><span id="ws-cnt-medium">0</span><small>Medium</small></div>
+                                <div class="ws-alert-count low"><span id="ws-cnt-low">0</span><small>Low</small></div>
+                                <div class="ws-alert-count info"><span id="ws-cnt-info">0</span><small>Info</small></div>
+                                <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+                                    <select class="form-control" id="ws-alert-filter" onchange="filterAlerts(this.value)" style="font-size:12px; padding:4px 8px;">
+                                        <option value="all">All Severities</option>
+                                        <option value="CRITICAL">Critical</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="LOW">Low</option>
+                                    </select>
+                                    <button class="btn btn-secondary btn-sm" onclick="loadOperationalAlerts()">
+                                        <i class="fa-solid fa-rotate"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Alert Feed -->
+                            <div class="ws-alert-feed" id="ws-alert-feed">
+                                <div class="exec-loading">Scanning for alerts...</div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: ANALYTICS WORKSPACE -->
+                        <div class="ws-tab-pane" id="ws-analytics">
+                            <!-- Compact KPI Strip -->
+                            <div class="ws-kpi-strip" id="ws-kpi-strip">
+                                <!-- Populated dynamically -->
+                            </div>
+
+                            <!-- Collapsible Panel: Cost Analytics -->
+                            <div class="ws-panel" id="ws-panel-cost">
+                                <div class="ws-panel-header ws-collapsible-header" data-target="ws-cost-body">
+                                    <div class="ws-panel-title">
+                                        <i class="fa-solid fa-coins" style="color:#f59e0b;"></i>
+                                        <span>Cost Analytics</span>
+                                    </div>
+                                    <div class="ws-panel-actions">
+                                        <button class="ws-panel-action-btn" onclick="addFavorite('panel', 'Cost Analytics', 'fa-coins')" title="Add to Favorites">
+                                            <i class="fa-regular fa-star"></i>
+                                        </button>
+                                        <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="ws-collapsible-body" id="ws-cost-body">
+                                    <div class="ws-panel-body" id="ws-cost-panel-content">
+                                        <div class="exec-loading">Loading cost data...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Collapsible Panel: Transit Analytics -->
+                            <div class="ws-panel" id="ws-panel-transit">
+                                <div class="ws-panel-header ws-collapsible-header" data-target="ws-transit-body">
+                                    <div class="ws-panel-title">
+                                        <i class="fa-solid fa-truck" style="color:#3b82f6;"></i>
+                                        <span>Transit Analytics</span>
+                                    </div>
+                                    <div class="ws-panel-actions">
+                                        <button class="ws-panel-action-btn" onclick="addFavorite('panel', 'Transit Analytics', 'fa-truck')" title="Add to Favorites">
+                                            <i class="fa-regular fa-star"></i>
+                                        </button>
+                                        <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="ws-collapsible-body" id="ws-transit-body">
+                                    <div class="ws-panel-body" id="ws-transit-panel-content">
+                                        <div class="exec-loading">Loading transit data...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Collapsible Panel: Inventory Analytics -->
+                            <div class="ws-panel" id="ws-panel-inventory">
+                                <div class="ws-panel-header ws-collapsible-header" data-target="ws-inventory-body">
+                                    <div class="ws-panel-title">
+                                        <i class="fa-solid fa-warehouse" style="color:#8b5cf6;"></i>
+                                        <span>Inventory Analytics</span>
+                                    </div>
+                                    <div class="ws-panel-actions">
+                                        <button class="ws-panel-action-btn" onclick="addFavorite('panel', 'Inventory Analytics', 'fa-warehouse')" title="Add to Favorites">
+                                            <i class="fa-regular fa-star"></i>
+                                        </button>
+                                        <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="ws-collapsible-body" id="ws-inventory-body">
+                                    <div class="ws-panel-body" id="ws-inventory-panel-content">
+                                        <div class="exec-loading">Loading inventory data...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Collapsible Panel: Network Analytics -->
+                            <div class="ws-panel" id="ws-panel-network">
+                                <div class="ws-panel-header ws-collapsible-header" data-target="ws-network-body">
+                                    <div class="ws-panel-title">
+                                        <i class="fa-solid fa-diagram-project" style="color:#10b981;"></i>
+                                        <span>Network Capacity Analytics</span>
+                                    </div>
+                                    <div class="ws-panel-actions">
+                                        <button class="ws-panel-action-btn" onclick="addFavorite('panel', 'Network Analytics', 'fa-diagram-project')" title="Add to Favorites">
+                                            <i class="fa-regular fa-star"></i>
+                                        </button>
+                                        <i class="fa-solid fa-chevron-down ws-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="ws-collapsible-body" id="ws-network-body">
+                                    <div class="ws-panel-body" id="ws-network-panel-content">
+                                        <div class="exec-loading">Loading network data...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 5: PRODUCTIVITY HUB -->
+                        <div class="ws-tab-pane" id="ws-productivity">
+                            <div class="grid-layout cols-2" style="gap:1.5rem; align-items:start;">
+                                <!-- Left Column: Quick Actions + Favorites -->
+                                <div>
+                                    <!-- Quick Actions -->
+                                    <div class="card" style="margin-bottom:1.25rem;">
+                                        <div class="card-header"><h3><i class="fa-solid fa-rocket" style="color:#8b5cf6; margin-right:6px;"></i>Quick Actions</h3></div>
+                                        <div class="card-body">
+                                            <div class="quick-actions-grid" id="ws-quick-actions">
+                                                <!-- Populated by workspace.js -->
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Favorites Manager -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3><i class="fa-solid fa-star" style="color:#f59e0b; margin-right:6px;"></i>Favorites</h3>
+                                            <button class="btn btn-secondary btn-sm" onclick="clearAllFavorites()">Clear All</button>
+                                        </div>
+                                        <div class="card-body" style="padding:0;">
+                                            <div class="favorites-panel" id="ws-favorites-panel">
+                                                <div class="exec-loading">No favorites yet. Star items to add them here.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: Activity Feed + Saved Views -->
+                                <div>
+                                    <!-- Recent Activity -->
+                                    <div class="card" style="margin-bottom:1.25rem;">
+                                        <div class="card-header">
+                                            <h3><i class="fa-solid fa-clock-rotate-left" style="color:#3b82f6; margin-right:6px;"></i>Recent Activity</h3>
+                                            <button class="btn btn-secondary btn-sm" onclick="clearActivity()">Clear</button>
+                                        </div>
+                                        <div class="card-body" style="padding:0; max-height:280px; overflow-y:auto;">
+                                            <div class="activity-feed" id="ws-activity-feed">
+                                                <div class="exec-loading">No activity yet.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Saved Views Manager -->
+                                    <div class="card">
+                                        <div class="card-header"><h3><i class="fa-solid fa-bookmark" style="color:#10b981; margin-right:6px;"></i>Saved Dashboard Views</h3></div>
+                                        <div class="card-body" style="padding:0;">
+                                            <div class="saved-views-manager" id="ws-views-manager">
+                                                <div class="exec-loading">No saved views yet.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- end ws-tab-content -->
+                </section>
+                <!-- END AI INSIGHTS WORKSPACE SECTION -->
+
+                <!-- ===================================================== -->
+                <!-- GLOBAL UX OVERLAYS (Command Palette, Search, Shortcuts)-->
+                <!-- ===================================================== -->
+
+                <!-- Command Palette Overlay -->
+                <div class="cmd-palette-overlay" id="cmd-palette-overlay" style="display:none;" onclick="closeCmdPaletteIfBg(event)">
+                    <div class="cmd-palette-box" id="cmd-palette-box">
+                        <div class="cmd-palette-header">
+                            <i class="fa-solid fa-terminal" style="color:var(--accent-blue); margin-right:8px;"></i>
+                            <input type="text" id="cmd-palette-input" placeholder="Type a command or search actions… (Ctrl+K)"
+                                   autocomplete="off" spellcheck="false" oninput="filterCommands(this.value)" onkeydown="cmdPaletteKeyNav(event)">
+                            <button onclick="closeCommandPalette()" class="cmd-close-btn"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="cmd-palette-results" id="cmd-palette-results">
+                            <!-- Populated by workspace.js -->
+                        </div>
+                        <div class="cmd-palette-footer">
+                            <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+                            <span><kbd>Enter</kbd> Execute</span>
+                            <span><kbd>Esc</kbd> Close</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Search Overlay -->
+                <div class="search-overlay" id="search-overlay" style="display:none;" onclick="closeSearchIfBg(event)">
+                    <div class="search-box" id="search-box">
+                        <div class="search-input-row">
+                            <i class="fa-solid fa-magnifying-glass" style="color:var(--text-muted); margin-right:10px;"></i>
+                            <input type="text" id="search-input" placeholder="Search sections, routes, hubs… (Ctrl+/)"
+                                   autocomplete="off" oninput="performSearch(this.value)">
+                            <button onclick="closeQuickSearch()" class="cmd-close-btn"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="search-results" id="search-results">
+                            <div class="search-hint">Type to search across the platform…</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keyboard Shortcuts Modal -->
+                <div class="shortcuts-overlay" id="shortcuts-overlay" style="display:none;" onclick="closeShortcutsIfBg(event)">
+                    <div class="shortcuts-modal">
+                        <div class="shortcuts-header">
+                            <h3><i class="fa-solid fa-keyboard" style="margin-right:8px;"></i>Keyboard Shortcuts</h3>
+                            <button onclick="closeShortcutsModal()" class="cmd-close-btn"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="shortcuts-grid">
+                            <div class="shortcut-group">
+                                <div class="shortcut-group-title">Navigation</div>
+                                <div class="shortcut-item"><span>Overview</span><div><kbd>Alt</kbd><kbd>1</kbd></div></div>
+                                <div class="shortcut-item"><span>Executive Dashboard</span><div><kbd>Alt</kbd><kbd>2</kbd></div></div>
+                                <div class="shortcut-item"><span>Network Map</span><div><kbd>Alt</kbd><kbd>3</kbd></div></div>
+                                <div class="shortcut-item"><span>Route Intelligence</span><div><kbd>Alt</kbd><kbd>4</kbd></div></div>
+                                <div class="shortcut-item"><span>AI Insights</span><div><kbd>Alt</kbd><kbd>5</kbd></div></div>
+                                <div class="shortcut-item"><span>Executive Center</span><div><kbd>Alt</kbd><kbd>6</kbd></div></div>
+                                <div class="shortcut-item"><span>Admin Center</span><div><kbd>Alt</kbd><kbd>7</kbd></div></div>
+                            </div>
+                            <div class="shortcut-group">
+                                <div class="shortcut-group-title">Workspace</div>
+                                <div class="shortcut-item"><span>Command Palette</span><div><kbd>Ctrl</kbd><kbd>K</kbd></div></div>
+                                <div class="shortcut-item"><span>Quick Search</span><div><kbd>Ctrl</kbd><kbd>/</kbd></div></div>
+                                <div class="shortcut-item"><span>Shortcuts Help</span><div><kbd>Shift</kbd><kbd>?</kbd></div></div>
+                                <div class="shortcut-item"><span>Close Overlay</span><div><kbd>Esc</kbd></div></div>
+                                <div class="shortcut-item"><span>Save View</span><div><kbd>Ctrl</kbd><kbd>S</kbd></div></div>
+                                <div class="shortcut-item"><span>Refresh Section</span><div><kbd>Alt</kbd><kbd>R</kbd></div></div>
+                                <div class="shortcut-item"><span>Toggle Sidebar</span><div><kbd>Alt</kbd><kbd>B</kbd></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EXECUTIVE COMMAND CENTER SECTION -->
+                <section class="viewport-section" id="executive-section">
+
+                    <!-- Welcome Banner -->
+                    <div class="welcome-card exec-welcome" style="margin-bottom:1.5rem;">
+                        <div class="welcome-text">
+                            <h2>Executive Command Center</h2>
+                            <p>Enterprise business intelligence, KPI monitoring, financial insights, and strategic decision support for senior management.</p>
+                        </div>
+                        <div class="welcome-icon" style="font-size:2rem; color:var(--accent);">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                    </div>
+
+                    <!-- Reporting Toolbar: Filters + Export Controls -->
+                    <div class="exec-report-toolbar" id="exec-toolbar">
+                        <div class="exec-filter-row">
+                            <div class="exec-filter-group">
+                                <label>Date Range</label>
+                                <select id="exec-filter-date" class="form-control">
+                                    <option value="all">All Time</option>
+                                    <option value="ytd">Year to Date</option>
+                                    <option value="q1">Q1</option>
+                                    <option value="q2">Q2</option>
+                                    <option value="q3">Q3</option>
+                                    <option value="q4">Q4</option>
+                                </select>
+                            </div>
+                            <div class="exec-filter-group">
+                                <label>Region</label>
+                                <select id="exec-filter-region" class="form-control">
+                                    <option value="">All Regions</option>
+                                    <option value="North">North</option>
+                                    <option value="South">South</option>
+                                    <option value="East">East</option>
+                                    <option value="West">West</option>
+                                </select>
+                            </div>
+                            <div class="exec-filter-group">
+                                <label>Transport Partner</label>
+                                <select id="exec-filter-partner" class="form-control">
+                                    <option value="">All Partners</option>
+                                </select>
+                            </div>
+                            <div class="exec-filter-group">
+                                <label>Algorithm</label>
+                                <select id="exec-filter-algo" class="form-control">
+                                    <option value="astar">A* Pathfinding</option>
+                                    <option value="genetic">Genetic Algorithm</option>
+                                    <option value="aco">Ant Colony</option>
+                                </select>
+                            </div>
+                            <div class="exec-filter-group" style="align-self:flex-end;">
+                                <button class="btn btn-primary btn-sm" id="exec-apply-filters" onclick="applyExecFilters()">
+                                    <i class="fa-solid fa-filter"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                        <div class="exec-export-controls">
+                            <button class="btn btn-secondary btn-sm" onclick="exportExecCSV()" title="Export transactions to CSV">
+                                <i class="fa-solid fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="downloadKPIReport()" title="Download KPI summary">
+                                <i class="fa-solid fa-file-arrow-down"></i> KPI Report
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="printExecDashboard()" title="Print executive dashboard">
+                                <i class="fa-solid fa-print"></i> Print
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="loadExecutiveCommandCenter()" title="Refresh all data">
+                                <i class="fa-solid fa-rotate"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Executive Alert Bar -->
+                    <div class="exec-alert-bar" id="exec-alert-bar" style="display:none;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="exec-alert-text">Executive alerts loading...</span>
+                        <button class="exec-alert-close" onclick="document.getElementById('exec-alert-bar').style.display='none'">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Tab Navigation -->
+                    <div class="exec-tab-nav" id="exec-tab-nav">
+                        <button class="exec-tab active" data-tab="exec-overview" onclick="switchExecTab('exec-overview', this)">
+                            <i class="fa-solid fa-gauge-high"></i> Executive Overview
+                        </button>
+                        <button class="exec-tab" data-tab="exec-business" onclick="switchExecTab('exec-business', this)">
+                            <i class="fa-solid fa-briefcase"></i> Business Performance
+                        </button>
+                        <button class="exec-tab" data-tab="exec-financial" onclick="switchExecTab('exec-financial', this)">
+                            <i class="fa-solid fa-dollar-sign"></i> Financial Overview
+                        </button>
+                        <button class="exec-tab" data-tab="exec-operations" onclick="switchExecTab('exec-operations', this)">
+                            <i class="fa-solid fa-gears"></i> Operations Summary
+                        </button>
+                        <button class="exec-tab" data-tab="exec-network" onclick="switchExecTab('exec-network', this)">
+                            <i class="fa-solid fa-diagram-project"></i> Network Performance
+                        </button>
+                        <button class="exec-tab" data-tab="exec-optimization" onclick="switchExecTab('exec-optimization', this)">
+                            <i class="fa-solid fa-bolt"></i> Optimization Summary
+                        </button>
+                        <button class="exec-tab" data-tab="exec-regional" onclick="switchExecTab('exec-regional', this)">
+                            <i class="fa-solid fa-earth-asia"></i> Regional Insights
+                        </button>
+                        <button class="exec-tab" data-tab="exec-strategic" onclick="switchExecTab('exec-strategic', this)">
+                            <i class="fa-solid fa-chess-king"></i> Strategic KPIs
+                        </button>
+                    </div>
+
+                    <!-- ===== TAB PANES ===== -->
+                    <div class="exec-tab-content" id="exec-tab-content">
+
+                        <!-- TAB 1: EXECUTIVE OVERVIEW -->
+                        <div class="exec-tab-pane active" id="exec-overview">
+                            <!-- KPI Command Strip -->
+                            <div class="exec-kpi-command" id="exec-kpi-command">
+                                <div class="exec-kpi-tile" id="ekpi-total-shipments">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Total Shipments</span>
+                                        <span class="exec-kpi-value" id="ekpi-shipments-val">—</span>
+                                        <span class="exec-kpi-delta" id="ekpi-shipments-delta"></span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-green" id="ekpi-sla">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">SLA Compliance</span>
+                                        <span class="exec-kpi-value" id="ekpi-sla-val">—</span>
+                                        <span class="exec-kpi-delta" id="ekpi-sla-delta"></span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-blue" id="ekpi-transit">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-clock"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Avg Transit Time</span>
+                                        <span class="exec-kpi-value" id="ekpi-transit-val">—</span>
+                                        <span class="exec-kpi-delta" id="ekpi-transit-delta"></span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-orange" id="ekpi-cost">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-coins"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Total Logistics Cost</span>
+                                        <span class="exec-kpi-value" id="ekpi-cost-val">—</span>
+                                        <span class="exec-kpi-delta" id="ekpi-cost-delta"></span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-purple" id="ekpi-ontime">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">On-Time Delivery</span>
+                                        <span class="exec-kpi-value" id="ekpi-ontime-val">—</span>
+                                        <span class="exec-kpi-delta" id="ekpi-ontime-delta"></span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-red" id="ekpi-violations">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">SLA Violations</span>
+                                        <span class="exec-kpi-value" id="ekpi-violations-val">—</span>
+                                        <span class="exec-kpi-delta" id="ekpi-violations-delta"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Overview Grid -->
+                            <div class="grid-layout cols-2" style="gap:1.5rem; margin-top:1.5rem; align-items:start;">
+                                <!-- Business Summary -->
+                                <div class="card">
+                                    <div class="card-header"><h3>Enterprise Business Summary</h3></div>
+                                    <div class="card-body" id="exec-business-summary">
+                                        <div class="exec-loading">Loading summary...</div>
+                                    </div>
+                                </div>
+                                <!-- System Health -->
+                                <div class="card">
+                                    <div class="card-header"><h3>Platform Health Status</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Component</th><th>Status</th><th>Latency</th></tr></thead>
+                                            <tbody id="exec-health-table"><tr><td colspan="3" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top & Bottom Performers -->
+                            <div class="grid-layout cols-2" style="gap:1.5rem; margin-top:1.5rem; align-items:start;">
+                                <div class="card">
+                                    <div class="card-header"><h3><i class="fa-solid fa-trophy" style="color:#f59e0b; margin-right:6px;"></i>Top Performing Routes</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Route</th><th>Score</th><th>SLA</th><th>Cost</th></tr></thead>
+                                            <tbody id="exec-top-routes"><tr><td colspan="4" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h3><i class="fa-solid fa-arrow-trend-down" style="color:#ef4444; margin-right:6px;"></i>Bottom Performing Routes</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Route</th><th>Score</th><th>Delay</th><th>Cost</th></tr></thead>
+                                            <tbody id="exec-bottom-routes"><tr><td colspan="4" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: BUSINESS PERFORMANCE -->
+                        <div class="exec-tab-pane" id="exec-business">
+                            <div class="exec-scorecard-grid" id="exec-scorecard-grid">
+                                <!-- Populated dynamically -->
+                                <div class="exec-loading" style="grid-column:1/-1;">Loading scorecards...</div>
+                            </div>
+                            <div class="grid-layout cols-2" style="gap:1.5rem; margin-top:1.5rem; align-items:start;">
+                                <div class="card">
+                                    <div class="card-header"><h3>Performance by Hub</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Hub</th><th>Shipments</th><th>On-Time %</th><th>SLA %</th><th>Avg Cost</th></tr></thead>
+                                            <tbody id="exec-hub-perf-table"><tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h3>Performance by Transport Mode</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Mode</th><th>Shipments</th><th>Avg Transit</th><th>Total Cost</th><th>SLA %</th></tr></thead>
+                                            <tbody id="exec-mode-perf-table"><tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: FINANCIAL OVERVIEW -->
+                        <div class="exec-tab-pane" id="exec-financial">
+                            <div class="exec-kpi-command" id="exec-cost-kpi-strip">
+                                <div class="exec-kpi-tile accent-orange">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Total Logistics Cost</span>
+                                        <span class="exec-kpi-value" id="fcost-total">—</span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-receipt"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Avg Cost / Shipment</span>
+                                        <span class="exec-kpi-value" id="fcost-avg">—</span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-green">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Cost Variance</span>
+                                        <span class="exec-kpi-value" id="fcost-variance">—</span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-blue">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Min Cost Route</span>
+                                        <span class="exec-kpi-value" id="fcost-min-route">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid-layout cols-2" style="gap:1.5rem; margin-top:1.5rem; align-items:start;">
+                                <div class="card">
+                                    <div class="card-header"><h3>Cost Rankings — Top Efficient Routes</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Rank</th><th>Route</th><th>Total Cost</th><th>Avg Cost</th><th>Shipments</th></tr></thead>
+                                            <tbody id="exec-cost-rankings"><tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h3>Cost Trends Over Time</h3></div>
+                                    <div class="card-body">
+                                        <div id="exec-cost-trend-chart" style="height:260px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: OPERATIONS SUMMARY -->
+                        <div class="exec-tab-pane" id="exec-operations">
+                            <div class="grid-layout cols-3" style="gap:1.5rem; margin-bottom:1.5rem;">
+                                <!-- Transit Stats -->
+                                <div class="card">
+                                    <div class="card-header"><h3><i class="fa-solid fa-truck" style="color:var(--accent); margin-right:6px;"></i>Transit Performance</h3></div>
+                                    <div class="card-body">
+                                        <div class="exec-stat-row"><span>Avg Transit Time</span><strong id="ops-transit-avg">—</strong></div>
+                                        <div class="exec-stat-row"><span>Fastest Route</span><strong id="ops-transit-min">—</strong></div>
+                                        <div class="exec-stat-row"><span>Slowest Route</span><strong id="ops-transit-max">—</strong></div>
+                                        <div class="exec-stat-row"><span>On-Time Rate</span><strong id="ops-ontime-rate">—</strong></div>
+                                        <div class="exec-stat-row"><span>Total Shipments</span><strong id="ops-total-shipments">—</strong></div>
+                                    </div>
+                                </div>
+                                <!-- Inventory Health -->
+                                <div class="card">
+                                    <div class="card-header"><h3><i class="fa-solid fa-warehouse" style="color:var(--accent); margin-right:6px;"></i>Inventory Health</h3></div>
+                                    <div class="card-body">
+                                        <div class="exec-stat-row"><span>Total SKUs</span><strong id="ops-inv-skus">—</strong></div>
+                                        <div class="exec-stat-row"><span>Avg Stock Level</span><strong id="ops-inv-stock">—</strong></div>
+                                        <div class="exec-stat-row"><span>Turnover Rate</span><strong id="ops-inv-turnover">—</strong></div>
+                                        <div class="exec-stat-row"><span>Fulfillment Rate</span><strong id="ops-inv-fulfillment">—</strong></div>
+                                        <div class="exec-stat-row"><span>Outliers Detected</span><strong id="ops-inv-outliers">—</strong></div>
+                                    </div>
+                                </div>
+                                <!-- SLA Compliance -->
+                                <div class="card">
+                                    <div class="card-header"><h3><i class="fa-solid fa-shield-halved" style="color:var(--accent); margin-right:6px;"></i>SLA Compliance</h3></div>
+                                    <div class="card-body">
+                                        <div class="exec-stat-row"><span>Compliance Rate</span><strong id="ops-sla-rate" class="text-success">—</strong></div>
+                                        <div class="exec-stat-row"><span>Total SLA Checks</span><strong id="ops-sla-total">—</strong></div>
+                                        <div class="exec-stat-row"><span>Violations</span><strong id="ops-sla-violations" class="text-danger">—</strong></div>
+                                        <div class="exec-stat-row"><span>Critical Breaches</span><strong id="ops-sla-critical" class="text-danger">—</strong></div>
+                                        <div class="exec-stat-row"><span>Best Compliance Hub</span><strong id="ops-sla-best">—</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SLA Violations Table -->
+                            <div class="card">
+                                <div class="card-header"><h3>Recent SLA Violations</h3></div>
+                                <div class="card-body" style="padding:0;">
+                                    <div style="max-height:280px; overflow-y:auto;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Route</th><th>Expected</th><th>Actual</th><th>Delay</th><th>Severity</th></tr></thead>
+                                            <tbody id="exec-sla-violations-table"><tr><td colspan="5" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 5: NETWORK PERFORMANCE -->
+                        <div class="exec-tab-pane" id="exec-network">
+                            <div class="exec-kpi-command" style="margin-bottom:1.5rem;" id="exec-network-kpis">
+                                <div class="exec-kpi-tile accent-blue">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Total Network Nodes</span>
+                                        <span class="exec-kpi-value" id="net-nodes">—</span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-arrows-left-right"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Active Routes</span>
+                                        <span class="exec-kpi-value" id="net-edges">—</span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-orange">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-gauge"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Avg Capacity Utilization</span>
+                                        <span class="exec-kpi-value" id="net-util">—</span>
+                                    </div>
+                                </div>
+                                <div class="exec-kpi-tile accent-red">
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-bottleneck"></i></div>
+                                    <div class="exec-kpi-body">
+                                        <span class="exec-kpi-label">Bottlenecks</span>
+                                        <span class="exec-kpi-value" id="net-bottlenecks">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid-layout cols-2" style="gap:1.5rem; align-items:start;">
+                                <div class="card">
+                                    <div class="card-header"><h3>Route Score Rankings</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Rank</th><th>Route</th><th>Score</th><th>Grade</th></tr></thead>
+                                            <tbody id="exec-route-scores"><tr><td colspan="4" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h3>Capacity Bottleneck Analysis</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>Hub / RC</th><th>Utilization %</th><th>Severity</th></tr></thead>
+                                            <tbody id="exec-bottleneck-table"><tr><td colspan="3" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 6: OPTIMIZATION SUMMARY -->
+                        <div class="exec-tab-pane" id="exec-optimization">
+                            <div class="grid-layout cols-2" style="gap:1.5rem; margin-bottom:1.5rem; align-items:start;">
+                                <!-- Best Optimized Route Card -->
+                                <div class="card">
+                                    <div class="card-header"><h3><i class="fa-solid fa-star" style="color:#f59e0b; margin-right:6px;"></i>Best Optimized Route (A*)</h3></div>
+                                    <div class="card-body" id="exec-best-route-card">
+                                        <div class="exec-loading">Loading A* results...</div>
+                                    </div>
+                                </div>
+                                <!-- System Performance -->
+                                <div class="card">
+                                    <div class="card-header"><h3>Platform Performance Metrics</h3></div>
+                                    <div class="card-body">
+                                        <div class="exec-stat-row"><span>API Avg Latency</span><strong id="opt-api-latency">—</strong></div>
+                                        <div class="exec-stat-row"><span>Request Throughput</span><strong id="opt-throughput">—</strong></div>
+                                        <div class="exec-stat-row"><span>Error Rate</span><strong id="opt-error-rate">—</strong></div>
+                                        <div class="exec-stat-row"><span>Engine Avg Latency</span><strong id="opt-engine-latency">—</strong></div>
+                                        <div class="exec-stat-row"><span>Active Requests</span><strong id="opt-active-req">—</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Algorithm Comparison Table -->
+                            <div class="card">
+                                <div class="card-header"><h3>Optimization Algorithm Comparison</h3></div>
+                                <div class="card-body" style="padding:0;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Algorithm</th>
+                                                <th>Best Route</th>
+                                                <th>Cost</th>
+                                                <th>Transit Time</th>
+                                                <th>Nodes Explored</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exec-algo-comparison">
+                                            <tr><td colspan="6" class="text-center text-muted" style="padding:1rem;">Loading algorithm data...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 7: REGIONAL INSIGHTS -->
+                        <div class="exec-tab-pane" id="exec-regional">
+                            <div class="card" style="margin-bottom:1.5rem;">
+                                <div class="card-header"><h3>Hub Performance by Region</h3></div>
+                                <div class="card-body" style="padding:0;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Hub Name</th>
+                                                <th>Region</th>
+                                                <th>Shipments</th>
+                                                <th>Capacity %</th>
+                                                <th>Avg Distance (km)</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exec-regional-hub-table">
+                                            <tr><td colspan="6" class="text-center text-muted" style="padding:1rem;">Loading regional data...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="grid-layout cols-2" style="gap:1.5rem; align-items:start;">
+                                <div class="card">
+                                    <div class="card-header"><h3>Regional Capacity Distribution</h3></div>
+                                    <div class="card-body">
+                                        <div id="exec-regional-chart" style="height:280px;"></div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h3>Repair Center Performance</h3></div>
+                                    <div class="card-body" style="padding:0;">
+                                        <table class="data-table">
+                                            <thead><tr><th>RC Name</th><th>Nearest Hub</th><th>Distance</th><th>Coverage</th></tr></thead>
+                                            <tbody id="exec-regional-rc-table"><tr><td colspan="4" class="text-center text-muted" style="padding:1rem;">Loading...</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 8: STRATEGIC KPI DASHBOARD -->
+                        <div class="exec-tab-pane" id="exec-strategic">
+                            <!-- Master Scorecard -->
+                            <div class="card" style="margin-bottom:1.5rem;">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-chess-king" style="color:var(--accent); margin-right:6px;"></i>Strategic Master Scorecard</h3>
+                                    <span class="badge" id="exec-scorecard-timestamp"></span>
+                                </div>
+                                <div class="card-body" style="padding:0;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>KPI Category</th>
+                                                <th>Metric</th>
+                                                <th>Value</th>
+                                                <th>Status</th>
+                                                <th>Trend</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="exec-master-scorecard">
+                                            <tr><td colspan="5" class="text-center text-muted" style="padding:1.5rem;">Loading strategic KPIs...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Executive Summary Panel -->
+                            <div class="card">
+                                <div class="card-header"><h3>Executive Summary — Business Intelligence Report</h3></div>
+                                <div class="card-body" id="exec-strategic-summary">
+                                    <div class="exec-loading">Generating executive summary...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- end exec-tab-content -->
+                </section>
+                <!-- END EXECUTIVE COMMAND CENTER SECTION -->
+
+                <section class="viewport-section" id="admin-section">
+                    <div class="welcome-card" style="margin-bottom: 1.5rem;">
+                        <div class="welcome-text">
+                            <h2>Operations & Admin Center</h2>
+                            <p>Monitor system health, inspect API telemetry metrics, view audit logs, and configure active settings.</p>
+                        </div>
+                        <div class="welcome-icon">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                        </div>
+                    </div>
+
+                    <!-- Health & Running Services Cards -->
+                    <div class="grid-layout cols-4" style="margin-bottom: 1.5rem;">
+                        <div class="metric-card">
+                            <span class="metric-label">System Health</span>
+                            <span class="metric-value text-success" id="admin-system-health">UP</span>
+                            <span class="metric-sub">All components operational</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">API Latency</span>
+                            <span class="metric-value" id="admin-api-latency">0.00 ms</span>
+                            <span class="metric-sub">Average response speed</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Active Requests</span>
+                            <span class="metric-value" id="admin-api-requests">0</span>
+                            <span class="metric-sub">Total inbound calls</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Security Alerts</span>
+                            <span class="metric-value text-success" id="admin-security-alerts">0</span>
+                            <span class="metric-sub">Strict RBAC strict mode</span>
+                        </div>
+                    </div>
+
+                    <div class="grid-layout cols-2" style="gap: 1.5rem; margin-bottom: 1.5rem; align-items: start;">
+                        <!-- Running Services Status -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Active Running Services</h3>
+                                <button class="btn btn-secondary btn-sm" onclick="refreshAdminHealth()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Service / Component</th>
+                                            <th>Status</th>
+                                            <th>Detail / Version</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbl-admin-services">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- System Diagnostics & Cache -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Diagnostics & Cache Statistics</h3>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric Parameter</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Memory Usage</td>
+                                            <td id="diagnostics-memory">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Active Error Rate</td>
+                                            <td id="diagnostics-error-rate">0.00%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Telemetry Cache Hits</td>
+                                            <td id="diagnostics-cache-hits">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Telemetry Cache Misses</td>
+                                            <td id="diagnostics-cache-misses">0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid-layout cols-2" style="gap: 1.5rem; margin-bottom: 1.5rem; align-items: start;">
+                        <!-- Security Audit Logs Timeline -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>System Security & Operations Audit Logs</h3>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div style="max-height: 350px; overflow-y: auto;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Timestamp</th>
+                                                <th>Event / User</th>
+                                                <th>Result</th>
+                                                <th>Detail</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbl-admin-audit-logs">
+                                            <!-- Dynamic audit events -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Operations Configuration Center -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Configuration Center</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="form-admin-config" onsubmit="saveAdminConfig(event)">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                        <div>
+                                            <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Optimization Mode</label>
+                                            <select class="form-control" style="width: 100%;" id="config-opt-mode">
+                                                <option value="astar">A* Pathfinding (Recommended)</option>
+                                                <option value="dijkstra">Dijkstra Shortest Path</option>
+                                                <option value="genetic">Genetic Algorithm</option>
+                                                <option value="ant_colony">Ant Colony Optimization</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Logging Threshold</label>
+                                            <select class="form-control" style="width: 100%;" id="config-log-level">
+                                                <option value="info">INFO</option>
+                                                <option value="debug">DEBUG</option>
+                                                <option value="warning">WARNING</option>
+                                                <option value="error">ERROR</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                        <div>
+                                            <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Security Level</label>
+                                            <select class="form-control" style="width: 100%;" id="config-security-level">
+                                                <option value="strict">Strict RBAC Checks</option>
+                                                <option value="standard">Standard Authentication</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Telemetry Cache Timeout</label>
+                                            <select class="form-control" style="width: 100%;" id="config-cache-timeout">
+                                                <option value="5">5.0 Seconds (Default)</option>
+                                                <option value="10">10.0 Seconds</option>
+                                                <option value="30">30.0 Seconds</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; justify-content: flex-end;">
+                                        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-save"></i> Save Configuration</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -1534,6 +2682,10 @@
 
     <!-- Main Client-Side Javascript -->
     <script src="/static/js/api_gateway_integration.js"></script>
+    <script src="/static/js/executive_dashboard.js"></script>
+    <script src="/static/js/workspace.js"></script>
+    <!-- Design System Engine -->
+    <script src="/static/design-system/design_system.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>

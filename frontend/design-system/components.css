@@ -1,0 +1,310 @@
+/* Design System Components
+ * Modern, accessible component styles overriding legacy style rules.
+ */
+
+/* 1. BUTTONS */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+    user-select: none;
+    text-decoration: none;
+    box-shadow: var(--elevation-low);
+}
+
+.btn-primary {
+    background-color: var(--brand-blue);
+    color: #ffffff;
+    border-color: var(--brand-blue-hover);
+}
+
+.btn-primary:hover {
+    background-color: var(--brand-blue-hover);
+    box-shadow: 0 0 12px var(--brand-blue-glow);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background-color: var(--zinc-800);
+    color: var(--text-primary);
+    border-color: var(--zinc-700);
+}
+
+.btn-secondary:hover {
+    background-color: var(--zinc-700);
+    border-color: var(--zinc-600);
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+.btn-success {
+    background-color: var(--success-emerald);
+    color: #ffffff;
+    border-color: var(--success-hover);
+}
+
+.btn-success:hover {
+    background-color: var(--success-hover);
+    box-shadow: 0 0 12px var(--success-glow);
+    transform: translateY(-1px);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. FORMS & INPUTS */
+.form-control, 
+input[type="text"], 
+input[type="number"], 
+input[type="password"], 
+input[type="date"], 
+select, 
+textarea {
+    width: 100%;
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    transition: border-color var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+    box-shadow: var(--elevation-low);
+}
+
+.form-control:focus,
+input[type="text"]:focus, 
+input[type="number"]:focus, 
+input[type="password"]:focus, 
+input[type="date"]:focus, 
+select:focus, 
+textarea:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px var(--brand-blue-glow);
+    outline: none;
+}
+
+/* Native accent color for check/radio/range */
+input[type="checkbox"], 
+input[type="radio"] {
+    accent-color: var(--brand-blue);
+    cursor: pointer;
+    width: 1rem;
+    height: 1rem;
+}
+
+input[type="range"] {
+    accent-color: var(--brand-blue);
+    cursor: pointer;
+    height: 6px;
+    border-radius: var(--radius-full);
+}
+
+/* 3. MODERN CARDS */
+.card, .metric-card, .welcome-card {
+    background: rgba(24, 24, 27, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(63, 63, 70, 0.4);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color var(--transition-normal) ease, box-shadow var(--transition-normal) ease, transform var(--transition-normal) ease;
+    box-shadow: var(--elevation-med);
+}
+
+.card:hover, .metric-card:hover {
+    border-color: rgba(139, 92, 246, 0.3); /* Purple border highlight on hover */
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(139, 92, 246, 0.05);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+    padding: var(--space-4) var(--space-6);
+}
+
+.card-header h3 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.02em;
+}
+
+.card-body {
+    padding: var(--space-6);
+}
+
+/* 4. PREMIUM TABLES */
+.table-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--elevation-med);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-body);
+}
+
+.data-table th {
+    background-color: var(--zinc-900);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 2px solid var(--border-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.data-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    transition: background-color var(--transition-fast) ease, color var(--transition-fast) ease;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+    background-color: rgba(63, 63, 70, 0.2);
+    color: var(--text-primary);
+}
+
+/* 5. BADGES */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.badge.success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.badge.warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.badge.danger {
+    background-color: rgba(244, 63, 94, 0.1);
+    color: var(--danger-color);
+    border-color: rgba(244, 63, 94, 0.2);
+}
+
+.badge.info {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--accent-blue);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* 6. SHIMMERING SKELETONS */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(39, 39, 42, 0.6) 25%,
+        rgba(63, 63, 70, 0.6) 50%,
+        rgba(39, 39, 42, 0.6) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: var(--radius-sm);
+    color: transparent !important;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* 7. DIALOGS & OVERLAYS */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(9, 9, 11, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-container {
+    background: rgba(24, 24, 27, 0.85);
+    border: 1px solid rgba(63, 63, 70, 0.5);
+    border-radius: var(--radius-xl);
+    width: 90%;
+    max-width: 600px;
+    box-shadow: var(--elevation-floating);
+    transform: scale(0.95);
+    transition: transform var(--transition-normal);
+}
+
+.modal-overlay.active .modal-container {
+    transform: scale(1);
+}
+
+/* 8. ACCORDIONS & COLLAPSIBLE PANELS */
+.collapsible-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-normal) ease-out;
+}
+
+.collapsible-content.expanded {
+    max-height: 2000px; /* High enough threshold for tables/content */
+}

@@ -127,7 +127,7 @@ class GraphBuilder:
         logger.info("GraphBuilder: Constructing adjacency list, matrix, neighbor mappings, and routes weights.")
 
         adj_list: Dict[str, List[str]] = {n.node_id: [] for n in nodes}
-        adj_matrix: Dict[str, Dict[str, float]] = {n.node_id: {n2.node_id: float("inf") for n2 in nodes} for n in nodes}
+        adj_matrix: Dict[str, Dict[str, float]] = {n.node_id: {n2.node_id: -1.0 for n2 in nodes} for n in nodes}
         
         # Self-loops in matrix are 0 weight
         for n in nodes:

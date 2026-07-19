@@ -78,11 +78,17 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
-# Initialize repository on application startup
-@app.on_event("startup")
-def startup_event():
+# Initialize repository on application startup using modern lifespan handler
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app):
     logger.info("Application starting up... Initializing repository.")
     repository.initialize()
+    yield
+    logger.info("Application shutting down.")
+
+app.router.lifespan_context = lifespan
 
 # API Endpoints
 @app.get("/api/dataset/status")
@@ -539,9 +545,18 @@ def get_sla_analytics_payload(payload: SLAAnalyticsRequest):
 @app.post("/api/graph-analytics/payload")
 def get_graph_analytics_payload(payload: GraphAnalyticsRequest):
     """Returns comprehensive route graph analytics: nodes, edges, adjacency list, matrix weights, connectivity metrics, and stats."""
+    import math
     try:
         data = GraphEngine.get_graph_payload(payload.filters)
-        return data.model_dump()
+        # Sanitize adjacency_matrix: replace any residual inf/nan with -1.0 for JSON safety
+        raw = data.model_dump()
+        if isinstance(raw.get('adjacency_matrix'), dict):
+            for src in raw['adjacency_matrix']:
+                for dst in raw['adjacency_matrix'][src]:
+                    v = raw['adjacency_matrix'][src][dst]
+                    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                        raw['adjacency_matrix'][src][dst] = -1.0
+        return raw
     except Exception as e:
         logger.error(f"Graph Analytics API Error: Failed retrieving graph analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

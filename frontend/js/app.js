@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("[Observability] Navigation Loaded");
     fetchDatasetStatus();
     initCollapsibleSidebar();
+    if (typeof initWorkspaceGlobalUX === 'function') {
+        initWorkspaceGlobalUX();
+    }
     console.log("[Observability] UI Components Loaded");
 });
 
@@ -105,6 +108,15 @@ function initNavigation() {
             } else if (targetId === "performance-section") {
                 headerTitle.textContent = "Logistics Performance Monitoring";
                 loadLogisticsPerformance();
+            } else if (targetId === "workspace-section") {
+                headerTitle.textContent = "AI Insights Workspace";
+                loadWorkspace();
+            } else if (targetId === "executive-section") {
+                headerTitle.textContent = "Executive Command Center";
+                loadExecutiveCommandCenter();
+            } else if (targetId === "admin-section") {
+                headerTitle.textContent = "Administration & Operations Center";
+                loadAdminCenter();
             }
         });
     });
@@ -3120,6 +3132,200 @@ function clearPerfFilters() {
 
 
 
+// ==========================================
+// ADMINISTRATION & OPERATIONS CENTER (PHASE 33)
+// ==========================================
 
+// API endpoint constants for admin center
+const API_MONITORING_HEALTH    = "/api/v1/monitoring/health";
+const API_MONITORING_METRICS   = "/api/v1/monitoring/metrics";
+const API_MONITORING_DIAG      = "/api/v1/monitoring/diagnostics";
+const API_SECURITY_AUDIT_LOGS  = "/api/v1/security/audit-logs";
 
+/**
+ * Loads the Administration & Operations Center:
+ * Fetches system health, telemetry metrics, and audit logs.
+ */
+async function loadAdminCenter() {
+    console.log("[Observability] Admin Dashboard Loaded");
+    await Promise.allSettled([
+        loadAdminHealth(),
+        loadAdminMetrics(),
+        loadAdminAuditLogs()
+    ]);
+    console.log("[Observability] Operations Center Loaded");
+}
+
+/**
+ * Fetches system health and populates the services table and KPI cards.
+ */
+async function loadAdminHealth() {
+    try {
+        const res = await fetch(API_MONITORING_HEALTH);
+        if (!res.ok) throw new Error("Health check failed");
+        const data = await res.json();
+
+        // Update KPI card — overall health status
+        const healthEl = document.getElementById("admin-system-health");
+        if (healthEl) {
+            const status = data.overall_status || "UNKNOWN";
+            healthEl.textContent = status;
+            healthEl.className = "metric-value " + (status === "UP" ? "text-success" : "text-danger");
+        }
+
+        // Populate services table
+        const tbody = document.getElementById("tbl-admin-services");
+        if (tbody && data.services) {
+            tbody.innerHTML = "";
+            data.services.forEach(svc => {
+                const isUp = svc.status === "UP" || svc.status === "HEALTHY" || svc.status === "OPERATIONAL";
+                const badgeClass = isUp ? "success" : "danger";
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${svc.name || svc.service || "-"}</strong></td>
+                        <td><span class="badge ${badgeClass}">${svc.status || "UNKNOWN"}</span></td>
+                        <td style="font-size: 11px; color: var(--text-muted);">${svc.detail || svc.version || "-"}</td>
+                    </tr>`;
+            });
+        }
+
+        console.log("[Observability] Health Refreshed");
+    } catch (err) {
+        console.error("[Admin] loadAdminHealth Error:", err);
+    }
+}
+
+/**
+ * Fetches telemetry metrics snapshot and populates diagnostics panel + KPI tiles.
+ */
+async function loadAdminMetrics() {
+    try {
+        const res = await fetch(API_MONITORING_METRICS);
+        if (!res.ok) throw new Error("Metrics fetch failed");
+        const data = await res.json();
+
+        // KPI tiles
+        const latencyEl = document.getElementById("admin-api-latency");
+        if (latencyEl && data.api_response_time_avg != null) {
+            latencyEl.textContent = data.api_response_time_avg.toFixed(2) + " ms";
+        }
+        const reqEl = document.getElementById("admin-api-requests");
+        if (reqEl && data.active_requests != null) {
+            reqEl.textContent = data.active_requests;
+        }
+
+        // Diagnostics table
+        const memEl = document.getElementById("diagnostics-memory");
+        if (memEl && data.memory_usage_bytes != null) {
+            memEl.textContent = (data.memory_usage_bytes / (1024 * 1024)).toFixed(1) + " MB";
+        }
+        const errRateEl = document.getElementById("diagnostics-error-rate");
+        if (errRateEl && data.error_rate != null) {
+            errRateEl.textContent = (data.error_rate * 100).toFixed(2) + "%";
+        }
+        const cacheHitsEl = document.getElementById("diagnostics-cache-hits");
+        if (cacheHitsEl && data.cache_hit_ratio != null) {
+            cacheHitsEl.textContent = (data.cache_hit_ratio * 100).toFixed(1) + "%";
+        }
+        const cacheMissEl = document.getElementById("diagnostics-cache-misses");
+        if (cacheMissEl && data.cache_miss_ratio != null) {
+            cacheMissEl.textContent = (data.cache_miss_ratio * 100).toFixed(1) + "%";
+        }
+
+        console.log("[Observability] System Status Updated");
+    } catch (err) {
+        console.error("[Admin] loadAdminMetrics Error:", err);
+    }
+}
+
+/**
+ * Fetches security audit logs and renders them in the audit table.
+ */
+async function loadAdminAuditLogs() {
+    try {
+        const res = await fetch(API_SECURITY_AUDIT_LOGS);
+        if (!res.ok) throw new Error("Audit logs fetch failed");
+        const logs = await res.json();
+
+        const tbody = document.getElementById("tbl-admin-audit-logs");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (!logs || logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" style="padding: 1.5rem;">No audit events recorded.</td></tr>`;
+            return;
+        }
+
+        const STATUS_COLOR = { SUCCESS: "success", FAILED: "danger", PARTIAL: "warning" };
+        const recent = [...logs].reverse().slice(0, 50);
+        recent.forEach(log => {
+            const badgeClass = STATUS_COLOR[log.status] || "";
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">${log.timestamp || "-"}</td>
+                    <td><strong>${log.event_type || "-"}</strong><br/><span style="font-size: 11px; color: var(--text-muted);">${log.user_id || "System"}</span></td>
+                    <td><span class="badge ${badgeClass}">${log.status || "-"}</span></td>
+                    <td style="font-size: 11px; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${(log.detail || "").replace(/"/g, "&quot;")}">${log.detail || "-"}</td>
+                </tr>`;
+        });
+    } catch (err) {
+        console.error("[Admin] loadAdminAuditLogs Error:", err);
+        const tbody = document.getElementById("tbl-admin-audit-logs");
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" style="padding: 1.5rem;">Unable to retrieve audit logs. Insufficient permissions or connection error.</td></tr>`;
+        }
+    }
+}
+
+/**
+ * Refreshes admin health data on demand (triggered by Refresh button).
+ */
+async function refreshAdminHealth() {
+    console.log("[Observability] Health Refreshed");
+    await Promise.allSettled([loadAdminHealth(), loadAdminMetrics()]);
+}
+
+/**
+ * Saves the operational configuration to localStorage and logs the action.
+ */
+function saveAdminConfig(event) {
+    event.preventDefault();
+    const config = {
+        optimization_mode:  document.getElementById("config-opt-mode")?.value,
+        log_level:          document.getElementById("config-log-level")?.value,
+        security_level:     document.getElementById("config-security-level")?.value,
+        cache_timeout:      document.getElementById("config-cache-timeout")?.value
+    };
+    localStorage.setItem("dell_admin_config", JSON.stringify(config));
+    console.log("[Observability] Configuration Loaded", config);
+    alert("Configuration saved successfully.");
+}
+
+/**
+ * Restores previously saved configuration from localStorage on admin section load.
+ */
+function restoreAdminConfig() {
+    try {
+        const saved = JSON.parse(localStorage.getItem("dell_admin_config") || "null");
+        if (!saved) return;
+        if (saved.optimization_mode) {
+            const el = document.getElementById("config-opt-mode");
+            if (el) el.value = saved.optimization_mode;
+        }
+        if (saved.log_level) {
+            const el = document.getElementById("config-log-level");
+            if (el) el.value = saved.log_level;
+        }
+        if (saved.security_level) {
+            const el = document.getElementById("config-security-level");
+            if (el) el.value = saved.security_level;
+        }
+        if (saved.cache_timeout) {
+            const el = document.getElementById("config-cache-timeout");
+            if (el) el.value = saved.cache_timeout;
+        }
+    } catch (e) {
+        // ignore parse errors
+    }
+}
 
