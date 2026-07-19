@@ -26,6 +26,7 @@ from backend.services.inventory_engine import InventoryEngine
 from backend.services.capacity_engine import CapacityEngine
 from backend.services.sla_engine import SLAEngine
 from backend.services.graph_engine import GraphEngine
+from backend.services.geospatial_engine import GeospatialEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -167,6 +168,9 @@ class SLAAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class GraphAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class GeospatialAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -470,6 +474,16 @@ def get_graph_analytics_payload(payload: GraphAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Graph Analytics API Error: Failed retrieving graph analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/geospatial-analytics/payload")
+def get_geospatial_analytics_payload(payload: GeospatialAnalyticsRequest):
+    """Returns comprehensive geographical intelligence payload: haversine distance matrices, nearest mapping arrays, clustering, and coverage indicators."""
+    try:
+        data = GeospatialEngine.get_geospatial_payload(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Geospatial Analytics API Error: Failed retrieving geospatial analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
