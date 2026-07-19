@@ -28,6 +28,7 @@ from backend.services.sla_engine import SLAEngine
 from backend.services.graph_engine import GraphEngine
 from backend.services.geospatial_engine import GeospatialEngine
 from backend.services.shortest_path_engine import ShortestPathEngine
+from backend.services.route_scoring_engine import RouteScoringEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -175,6 +176,9 @@ class GeospatialAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class ShortestPathAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class RouteScoringRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -498,6 +502,16 @@ def get_shortest_path_payload(payload: ShortestPathAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Shortest Path Analytics API Error: Failed retrieving shortest path payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/route-scoring/payload")
+def get_route_scoring_payload(payload: RouteScoringRequest):
+    """Returns comprehensive route scoring analytics: cost ratings, speed scores, utilization index, SLA scores, overall route score, rankings, comparisons, and business insights."""
+    try:
+        data = RouteScoringEngine.get_route_scoring_payload(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Route Scoring API Error: Failed retrieving route scoring payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
