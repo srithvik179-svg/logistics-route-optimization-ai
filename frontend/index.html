@@ -1098,9 +1098,15 @@
                                 <p id="file-details-stats">Size: - | Modified: -</p>
                             </div>
                         </div>
-                        <button class="btn btn-secondary" id="btn-reload" onclick="reloadData()">
-                            <i class="fa-solid fa-arrows-rotate" id="reload-icon"></i> <span id="reload-text">Reload Workbook</span>
-                        </button>
+                        <div style="display:flex; gap:var(--space-2); align-items:center;">
+                            <input type="file" id="dataset-upload-input" accept=".xlsx" style="display:none;" onchange="window.uploadCustomDataset(this.files[0])">
+                            <button class="btn btn-primary" id="btn-upload-custom" onclick="document.getElementById('dataset-upload-input').click()">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Custom Dataset
+                            </button>
+                            <button class="btn btn-secondary" id="btn-reload" onclick="reloadData()">
+                                <i class="fa-solid fa-arrows-rotate" id="reload-icon"></i> <span id="reload-text">Reload Workbook</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Tables and Validation details -->

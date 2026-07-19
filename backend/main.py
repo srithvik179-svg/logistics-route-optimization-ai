@@ -2,7 +2,7 @@ import os
 import uvicorn
 import pandas as pd
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -139,6 +139,35 @@ def reload_dataset():
     except Exception as e:
         logger.error(f"Error reloading dataset: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to reload dataset: {str(e)}")
+
+@app.post("/api/dataset/upload")
+def upload_dataset(file: UploadFile = File(...)):
+    """Receives uploaded Excel spreadsheet file, saves it, and reloads database repository."""
+    try:
+        logger.info(f"Uploading new dataset: {file.filename}")
+        
+        # Ensure target directory exists
+        os.makedirs(os.path.dirname(DEFAULT_DATASET_PATH), exist_ok=True)
+        
+        # Save file to disk overwriting previous
+        with open(DEFAULT_DATASET_PATH, "wb") as f:
+            f.write(file.file.read())
+            
+        # Trigger same reload procedure
+        repository.initialize()
+        loader = DatasetLoader(DEFAULT_DATASET_PATH)
+        metadata = loader.get_metadata()
+        validation_report = DatasetValidator.validate(metadata, repository._sheets)
+        
+        return {
+            "status": "success",
+            "message": "Custom dataset uploaded, saved, and repository reloaded successfully.",
+            "metadata": metadata.model_dump(),
+            "validation_report": validation_report.model_dump() if validation_report else None
+        }
+    except Exception as e:
+        logger.error(f"Error uploading and reloading dataset: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload dataset: {str(e)}")
 
 @app.get("/api/repository/status")
 def get_repository_status():

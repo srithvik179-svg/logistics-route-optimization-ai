@@ -303,7 +303,58 @@ async function reloadData() {
         text.textContent = "Reload Workbook";
     }
 }
+async function uploadCustomDataset(file) {
+    if (!file) return;
+    console.log(`[Upload] Uploading dataset: ${file.name}`);
+    
+    const btn = document.getElementById("btn-upload-custom");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Uploading...`;
+    }
 
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+        const res = await fetch("/api/dataset/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        if (!res.ok) throw new Error(`Upload API returned HTTP ${res.status}`);
+        const data = await res.json();
+        
+        currentReport = data;
+        renderDashboard(data);
+
+        // Fetch repository status concurrently
+        const [repositoryRes, pipelineRes] = await Promise.all([
+            fetch("/api/repository/status"),
+            fetch("/api/pipeline/report")
+        ]);
+        
+        if (repositoryRes.ok) {
+            const repositoryData = await repositoryRes.json();
+            renderRepository(repositoryData);
+        }
+        if (pipelineRes.ok) {
+            const pipelineData = await pipelineRes.json();
+            renderPipeline(pipelineData);
+        }
+
+        alert("Custom Excel dataset uploaded and reloaded successfully!");
+    } catch (err) {
+        console.error("[Upload] Error uploading dataset:", err);
+        alert("Failed to upload custom dataset. Ensure it has the correct schema.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload Custom Dataset`;
+        }
+    }
+}
+window.uploadCustomDataset = uploadCustomDataset;
 // Render dynamic elements in dashboard
 function renderDashboard(data) {
     const metadata = data.metadata;
