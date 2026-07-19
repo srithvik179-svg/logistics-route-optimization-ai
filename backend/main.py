@@ -34,6 +34,7 @@ from backend.services.astar_engine import AStarEngine
 from backend.services.genetic_algorithm_engine import GeneticAlgorithmEngine
 from backend.services.ant_colony_engine import AntColonyEngine
 from backend.services.rl_preparation_engine import RLPreparationEngine
+from backend.services.ai_preparation_engine import AIPreparationEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -208,6 +209,11 @@ class AntColonyRequest(BaseModel):
     iterations: Optional[int] = 10
 
 class RLPreparationRequest(BaseModel):
+    source: str
+    destination: str
+    filters: Dict[str, Any]
+
+class AIDecisionRequest(BaseModel):
     source: str
     destination: str
     filters: Dict[str, Any]
@@ -599,6 +605,18 @@ def get_rl_environment(payload: RLPreparationRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"RL Preparation API Error: Failed retrieving environment setup: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/ai-preparation/decision-support")
+def get_ai_decision_support(payload: AIDecisionRequest):
+    """Returns comprehensive AI decision support contexts: feature matrices, scenario recommendation candidates, and explainability summaries."""
+    try:
+        data = AIPreparationEngine.prepare_decision_support(
+            payload.source, payload.destination, payload.filters
+        )
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"AI Preparation API Error: Failed retrieving decision context: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
