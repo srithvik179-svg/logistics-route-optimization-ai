@@ -30,6 +30,7 @@ from backend.services.geospatial_engine import GeospatialEngine
 from backend.services.shortest_path_engine import ShortestPathEngine
 from backend.services.route_scoring_engine import RouteScoringEngine
 from backend.services.optimization_readiness_engine import OptimizationReadinessEngine
+from backend.services.astar_engine import AStarEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -184,6 +185,10 @@ class RouteScoringRequest(BaseModel):
 
 class OptimizationReadinessRequest(BaseModel):
     filters: Dict[str, Any]
+
+class AStarAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+    heuristic_type: Optional[str] = "great-circle"
 
 # Explorer API Models & Endpoints
 class QueryFilter(BaseModel):
@@ -526,6 +531,16 @@ def get_optimization_readiness_payload(payload: OptimizationReadinessRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Optimization Readiness API Error: Failed retrieving readiness payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/astar-pathfinding/payload")
+def get_astar_payload(payload: AStarAnalyticsRequest):
+    """Returns comprehensive A* optimal routes: optimal paths nested by source/destination, heuristic performance comparison profiles, and search statistics."""
+    try:
+        data = AStarEngine.get_astar_payload(payload.filters, payload.heuristic_type)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"A* Pathfinding API Error: Failed retrieving A* payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
