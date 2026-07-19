@@ -155,6 +155,11 @@ function initNavigation() {
                 if (typeof window.loadExecutiveReportsWorkspace === "function") {
                     window.loadExecutiveReportsWorkspace();
                 }
+            } else if (targetId === "command-center-section") {
+                headerTitle.textContent = "Logistics Command Center Cockpit";
+                if (typeof window.loadCommandCenterWorkspace === "function") {
+                    window.loadCommandCenterWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

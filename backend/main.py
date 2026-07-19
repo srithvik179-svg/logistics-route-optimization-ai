@@ -42,6 +42,7 @@ from backend.services.sla_prediction_service import SLAPredictionService
 from backend.services.risk_forecasting_service import RiskForecastingService
 from backend.orchestrator.workflow_engine import WorkflowEngine
 from backend.services.report_generator import ReportGenerator
+from backend.services.command_center_service import CommandCenterService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -766,6 +767,29 @@ def compile_report_payload(payload: Dict[str, Any] = None):
     except Exception as e:
         logger.error(f"Reports Generation API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/command-center/payload")
+def get_command_center_dashboard():
+    """Returns command center operations cockpit consolidated payload."""
+    try:
+        data = CommandCenterService.get_command_center_payload()
+        return data
+    except Exception as e:
+        logger.error(f"Command Center Dashboard API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/command-center/search")
+def run_command_center_search(payload: Dict[str, Any] = None):
+    """Searches across all shipments, hubs, and corridors based on query parameter."""
+    params = payload if payload else {}
+    query = params.get("query", "")
+    try:
+        data = CommandCenterService.global_search(query)
+        return data
+    except Exception as e:
+        logger.error(f"Command Center Search API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

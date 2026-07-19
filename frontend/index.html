@@ -87,6 +87,17 @@
     <link rel="stylesheet" href="/static/components/executive-reports/ReportHistory/ReportHistory.css">
     <link rel="stylesheet" href="/static/components/executive-reports/ExportPanel/ExportPanel.css">
     <link rel="stylesheet" href="/static/components/executive-reports/ReportTemplates/ReportTemplates.css">
+    <!-- Logistics Command Center Platform -->
+    <link rel="stylesheet" href="/static/pages/command-center/command_center.css">
+    <link rel="stylesheet" href="/static/components/command-center/MissionControl/MissionControl.css">
+    <link rel="stylesheet" href="/static/components/command-center/ActivityFeed/ActivityFeed.css">
+    <link rel="stylesheet" href="/static/components/command-center/AlertCenter/AlertCenter.css">
+    <link rel="stylesheet" href="/static/components/command-center/QuickActions/QuickActions.css">
+    <link rel="stylesheet" href="/static/components/command-center/GlobalSearch/GlobalSearch.css">
+    <link rel="stylesheet" href="/static/components/command-center/NetworkHealth/NetworkHealth.css">
+    <link rel="stylesheet" href="/static/components/command-center/OperationsTimeline/OperationsTimeline.css">
+    <link rel="stylesheet" href="/static/components/command-center/CommandPalette/CommandPalette.css">
+    <link rel="stylesheet" href="/static/components/command-center/NotificationCenter/NotificationCenter.css">
 
 
 
@@ -124,6 +135,12 @@
                         <a href="#" class="nav-link active" data-target="overview-section">
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="command-center-section" id="nav-command-center">
+                            <i class="fa-solid fa-tower-broadcast"></i>
+                            <span>Command Center</span>
                         </a>
                     </li>
                     <li>
@@ -3159,6 +3176,49 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE LOGISTICS COMMAND CENTER -->
+                <section class="viewport-section" id="command-center-section">
+                    <div class="command-center-workspace">
+
+                        <!-- Command Center Welcome Row -->
+                        <div class="command-center-header-row fade-in-slide-up">
+                            <div>
+                                <h2 style="margin:0 0 4px 0; color:#fff; font-size:1.4rem;">
+                                    <i class="fa-solid fa-tower-broadcast text-primary"></i> Logistics Command Center Operations Cockpit
+                                </h2>
+                                <p style="margin:0; font-size:11px; color:var(--text-secondary); line-height:1.4;">
+                                    Intelligent operations dashboard monitoring live transit activities, critical alerts, and overall system health indexes.
+                                </p>
+                            </div>
+                            <!-- Global Search bar container -->
+                            <div id="command-center-search-container"></div>
+                        </div>
+
+                        <!-- Real-Time Mission Control KPIs -->
+                        <div id="command-center-control-container"></div>
+
+                        <!-- Quick actions panel -->
+                        <div id="command-center-actions-container"></div>
+
+                        <!-- Split grids: Alerts & Timeline / Health -->
+                        <div class="command-center-split-grid">
+                            
+                            <!-- Alert Center -->
+                            <div id="command-center-alerts-container"></div>
+
+                            <!-- Right split: Health & Updates -->
+                            <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+                                <!-- Combined health scores -->
+                                <div id="command-center-health-container"></div>
+                                <!-- Continuously updating log updates -->
+                                <div id="command-center-feed-container"></div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3467,6 +3527,15 @@
     <script src="/static/components/executive-reports/PresentationMode/PresentationMode.js"></script>
     <script src="/static/components/executive-reports/ReportHistory/ReportHistory.js"></script>
     <script src="/static/pages/executive-reports/executive_reports.js"></script>
+    <!-- Logistics Command Center Platform -->
+    <script src="/static/components/command-center/MissionControl/MissionControl.js"></script>
+    <script src="/static/components/command-center/ActivityFeed/ActivityFeed.js"></script>
+    <script src="/static/components/command-center/AlertCenter/AlertCenter.js"></script>
+    <script src="/static/components/command-center/QuickActions/QuickActions.js"></script>
+    <script src="/static/components/command-center/GlobalSearch/GlobalSearch.js"></script>
+    <script src="/static/components/command-center/NetworkHealth/NetworkHealth.js"></script>
+    <script src="/static/components/command-center/CommandPalette/CommandPalette.js"></script>
+    <script src="/static/pages/command-center/command_center.js"></script>
 
 
 
