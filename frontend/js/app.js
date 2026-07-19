@@ -26,9 +26,45 @@ let explorerState = {
 let searchDebounceTimer = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+    console.log("[Observability] Layout Initialized");
     initNavigation();
+    console.log("[Observability] Navigation Loaded");
     fetchDatasetStatus();
+    initCollapsibleSidebar();
+    console.log("[Observability] UI Components Loaded");
 });
+
+/**
+ * Collapsible Sidebar logic.
+ */
+function initCollapsibleSidebar() {
+    const toggleBtn = document.getElementById("sidebar-toggle");
+    const sidebar = document.getElementById("sidebar");
+    
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener("click", () => {
+            sidebar.classList.toggle("collapsed");
+            
+            // Flip chevron icon
+            const icon = toggleBtn.querySelector("i");
+            if (sidebar.classList.contains("collapsed")) {
+                icon.className = "fa-solid fa-chevron-right";
+                localStorage.setItem("sidebar_state", "collapsed");
+            } else {
+                icon.className = "fa-solid fa-chevron-left";
+                localStorage.setItem("sidebar_state", "expanded");
+            }
+        });
+        
+        // Restore preferences
+        const savedState = localStorage.getItem("sidebar_state");
+        if (savedState === "collapsed") {
+            sidebar.classList.add("collapsed");
+            const icon = toggleBtn.querySelector("i");
+            if (icon) icon.className = "fa-solid fa-chevron-right";
+        }
+    }
+}
 
 // Setup navigation tabs
 function initNavigation() {
@@ -1257,6 +1293,8 @@ async function loadExecutiveDashboard() {
         if (!biState.dropdownsPopulated) {
             populateFilterPanelDropdowns(data.distributions);
         }
+
+        console.log("[Observability] Dashboard Rendered");
 
     } catch (err) {
         console.error("loadExecutiveDashboard Error:", err);
