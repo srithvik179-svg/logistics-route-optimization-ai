@@ -165,6 +165,11 @@ function initNavigation() {
                 if (typeof window.loadGeospatialWorkspace === "function") {
                     window.loadGeospatialWorkspace();
                 }
+            } else if (targetId === "copilot-section") {
+                headerTitle.textContent = "AI Logistics Copilot Assistant";
+                if (typeof window.loadCopilotWorkspace === "function") {
+                    window.loadCopilotWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

@@ -107,7 +107,14 @@
     <link rel="stylesheet" href="/static/components/MapToolbar/MapToolbar.css">
     <link rel="stylesheet" href="/static/components/Timeline/Timeline.css">
     <link rel="stylesheet" href="/static/components/SpatialSearch/SpatialSearch.css">
-    <link rel="stylesheet" href="/static/components/SavedViews/SavedViews.css">
+    <!-- Enterprise AI Logistics Copilot Workspace -->
+    <link rel="stylesheet" href="/static/pages/copilot/copilot.css">
+    <link rel="stylesheet" href="/static/components/CopilotChat/CopilotChat.css">
+    <link rel="stylesheet" href="/static/components/ConversationHistory/ConversationHistory.css">
+    <link rel="stylesheet" href="/static/components/PromptSuggestions/PromptSuggestions.css">
+    <link rel="stylesheet" href="/static/components/RichResponse/RichResponse.css">
+    <link rel="stylesheet" href="/static/components/RecommendationCard/RecommendationCard.css">
+    <link rel="stylesheet" href="/static/components/ConversationExport/ConversationExport.css">
 
 
 
@@ -157,6 +164,12 @@
                         <a href="#" class="nav-link" data-target="geospatial-section" id="nav-geospatial">
                             <i class="fa-solid fa-earth-americas"></i>
                             <span>Geospatial Intel</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="copilot-section" id="nav-copilot">
+                            <i class="fa-solid fa-headset"></i>
+                            <span>AI Logistics Copilot</span>
                         </a>
                     </li>
                     <li>
@@ -3271,6 +3284,23 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE AI LOGISTICS COPILOT -->
+                <section class="viewport-section" id="copilot-section">
+                    <div class="copilot-workspace-layout fade-in-slide-up">
+                        <!-- Left Main Panel: Chat screen + suggestions -->
+                        <div class="copilot-main-panel">
+                            <div id="copilot-suggestions-container"></div>
+                            <div id="copilot-chat-container"></div>
+                        </div>
+
+                        <!-- Right Control Sidebar -->
+                        <div class="copilot-sidebar-panel">
+                            <div id="copilot-export-container"></div>
+                            <div id="copilot-history-container"></div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3597,7 +3627,14 @@
     <script src="/static/components/Timeline/Timeline.js"></script>
     <script src="/static/components/SpatialSearch/SpatialSearch.js"></script>
     <script src="/static/components/SavedViews/SavedViews.js"></script>
-    <script src="/static/pages/geospatial/geospatial.js"></script>
+    <!-- Enterprise AI Logistics Copilot Workspace -->
+    <script src="/static/components/CopilotChat/CopilotChat.js"></script>
+    <script src="/static/components/ConversationHistory/ConversationHistory.js"></script>
+    <script src="/static/components/PromptSuggestions/PromptSuggestions.js"></script>
+    <script src="/static/components/RichResponse/RichResponse.js"></script>
+    <script src="/static/components/RecommendationCard/RecommendationCard.js"></script>
+    <script src="/static/components/ConversationExport/ConversationExport.js"></script>
+    <script src="/static/pages/copilot/copilot.js"></script>
 
 
 

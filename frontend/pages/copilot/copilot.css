@@ -1,0 +1,26 @@
+/* AI Copilot Layout Grids */
+.copilot-workspace-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--space-6);
+    align-items: start;
+    font-family: sans-serif;
+}
+
+.copilot-main-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.copilot-sidebar-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+@media (max-width: 992px) {
+    .copilot-workspace-layout {
+        grid-template-columns: 1fr;
+    }
+}

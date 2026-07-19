@@ -43,6 +43,8 @@ from backend.services.risk_forecasting_service import RiskForecastingService
 from backend.orchestrator.workflow_engine import WorkflowEngine
 from backend.services.report_generator import ReportGenerator
 from backend.services.command_center_service import CommandCenterService
+from backend.services.copilot_service import CopilotService
+from backend.services.conversation_manager import conversation_manager
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -825,6 +827,70 @@ def run_command_center_search(payload: Dict[str, Any] = None):
 
 
 
+
+@app.post("/api/copilot/message")
+def post_copilot_message(payload: Dict[str, Any]):
+    """Processes user chat message, compiles structured answer, and updates session history."""
+    try:
+        message = payload.get("message", "")
+        filters = payload.get("filters", {})
+        
+        # Load context
+        context = {
+            "filters": filters,
+            "last_route": conversation_manager.get_context("last_route")
+        }
+        
+        # Add user prompt to history
+        conversation_manager.add_message("user", message)
+        
+        # Process and calculate structured answer
+        response_payload = CopilotService.process_prompt(message, context)
+        
+        # Store last routed domain in context memory for context-awareness
+        conversation_manager.update_context("last_route", response_payload.get("route"))
+        
+        # Add assistant response to history
+        assistant_msg = conversation_manager.add_message("assistant", response_payload.get("summary", ""), response_payload)
+        
+        return {
+            "status": "success",
+            "message": assistant_msg
+        }
+    except Exception as e:
+        logger.error(f"Copilot Message API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process message: {str(e)}")
+
+@app.get("/api/copilot/history")
+def get_copilot_history():
+    """Returns full active chat log history."""
+    return {
+        "status": "success",
+        "history": conversation_manager.get_history()
+    }
+
+@app.post("/api/copilot/history/clear")
+def clear_copilot_history():
+    """Clears history logs."""
+    conversation_manager.clear()
+    return {"status": "success", "message": "History cleared"}
+
+@app.post("/api/copilot/message/pin")
+def pin_copilot_message(payload: Dict[str, str]):
+    msg_id = payload.get("message_id", "")
+    pinned = conversation_manager.toggle_pin(msg_id)
+    return {"status": "success", "pinned": pinned}
+
+@app.post("/api/copilot/message/favorite")
+def favorite_copilot_message(payload: Dict[str, str]):
+    msg_id = payload.get("message_id", "")
+    favorite = conversation_manager.toggle_favorite(msg_id)
+    return {"status": "success", "favorite": favorite}
+
+@app.get("/api/copilot/history/export")
+def export_copilot_history():
+    """Returns conversation history in raw JSON format for download/export."""
+    return conversation_manager.get_history()
 
 # Serve Static Frontend Files
 # Path to frontend directory
