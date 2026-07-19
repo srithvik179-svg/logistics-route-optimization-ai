@@ -25,10 +25,15 @@ class APIGatewayMiddleware(BaseHTTPMiddleware):
 
         logger.info(f"Request Received: {request.method} {request.url.path} | Request ID: {req_id}")
 
+        # Record start in collector
+        from backend.monitoring.metrics_collector import MetricsCollector
+        MetricsCollector.record_request_start()
+
         try:
             response = await call_next(request)
         except Exception as e:
-            # Let the exception handler catch it
+            # Record exception trace in collector
+            MetricsCollector.record_exception(str(e))
             raise e
 
         # Wrap successful JSON responses
@@ -75,4 +80,8 @@ class APIGatewayMiddleware(BaseHTTPMiddleware):
 
         exec_time_total = (time.perf_counter() - request.state.start_time) * 1000.0
         logger.info(f"Response Generated: {request.method} {request.url.path} | Status: {response.status_code} | Time: {exec_time_total:.2f} ms")
+        
+        # Record end in collector
+        MetricsCollector.record_request_end(request.url.path, exec_time_total, response.status_code)
+        
         return response
