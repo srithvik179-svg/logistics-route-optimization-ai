@@ -42,6 +42,7 @@ from backend.api.middleware import APIGatewayMiddleware
 from backend.api.router import gateway_router
 from backend.api.exception_handler import http_exception_handler, validation_exception_handler, general_exception_handler
 from fastapi.exceptions import RequestValidationError
+from backend.security.router import security_router
 
 app = FastAPI(
     title="Dell Logistics Route Optimization AI Platform",
@@ -63,6 +64,9 @@ app.add_middleware(APIGatewayMiddleware)
 
 # Register API Gateway metadata router
 app.include_router(gateway_router)
+
+# Register Security router
+app.include_router(security_router)
 
 # Register global API exception handlers
 from starlette.exceptions import HTTPException as StarletteHTTPException
