@@ -21,6 +21,7 @@ from backend.services.geospatial_service import GeospatialService
 from backend.services.route_analysis_service import RouteAnalysisService
 from backend.services.performance_service import PerformanceService
 from backend.services.cost_engine import CostEngine
+from backend.services.transit_engine import TransitEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -147,6 +148,9 @@ class PerformanceRequest(BaseModel):
     filters: Dict[str, Any]
 
 class CostAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class TransitAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -400,6 +404,16 @@ def get_cost_analytics_payload(payload: CostAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Cost Analytics API Error: Failed retrieving cost analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/transit-analytics/payload")
+def get_transit_analytics_payload(payload: TransitAnalyticsRequest):
+    """Returns comprehensive transit analytics: overview, distribution, rankings, trends, and outliers."""
+    try:
+        data = TransitEngine.get_transit_analytics(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Transit Analytics API Error: Failed retrieving transit analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
