@@ -1,0 +1,112 @@
+/* SharedToolbar Styles */
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(24, 24, 27, 0.4);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.widget-title-area h3 {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    color: var(--text-primary);
+}
+.widget-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+}
+.widget-actions-area {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+.widget-timestamp {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+.widget-menu-dropdown {
+    position: relative;
+}
+.widget-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast) ease;
+}
+.widget-menu-btn:hover {
+    background-color: var(--zinc-800);
+    color: var(--text-primary);
+}
+.widget-menu-content {
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--space-1));
+    background: rgba(24, 24, 27, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--elevation-floating);
+    width: 140px;
+    display: none;
+    flex-direction: column;
+    padding: var(--space-1);
+    z-index: 200;
+}
+.widget-menu-content.active {
+    display: flex;
+}
+.widget-menu-content a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: background-color var(--transition-fast) ease, color var(--transition-fast) ease;
+}
+.widget-menu-content a:hover {
+    background-color: var(--zinc-800);
+    color: var(--text-primary);
+}
+/* Collapsed widget state */
+.widget-card.collapsed > *:not(.widget-header) {
+    display: none !important;
+}
+.widget-card.collapsed {
+    min-height: auto !important;
+}
+/* Fullscreen widget state */
+.widget-card.fullscreen {
+    position: fixed !important;
+    top: 5% !important;
+    left: 5% !important;
+    width: 90% !important;
+    height: 90% !important;
+    z-index: 10000 !important;
+    background: rgba(9, 9, 11, 0.95) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+.widget-card.fullscreen .card-body {
+    height: calc(100% - 60px) !important;
+    overflow-y: auto !important;
+}
+.widget-card.fullscreen .plotly-graph-div,
+.widget-card.fullscreen [id^='chart-'],
+.widget-card.fullscreen [id^='exec-'] {
+    height: 100% !important;
+    width: 100% !important;
+}

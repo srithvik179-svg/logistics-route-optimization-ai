@@ -22,6 +22,15 @@
     <link rel="stylesheet" href="/static/components/common/EmptyState/EmptyState.css">
     <link rel="stylesheet" href="/static/components/common/ErrorState/ErrorState.css">
     <link rel="stylesheet" href="/static/components/common/EnhancedTable/EnhancedTable.css">
+    <!-- Analytics Workspace Components -->
+    <link rel="stylesheet" href="/static/components/analytics/FilterBar/FilterBar.css">
+    <link rel="stylesheet" href="/static/components/analytics/SharedToolbar/SharedToolbar.css">
+    <link rel="stylesheet" href="/static/components/analytics/ExpandablePanel/ExpandablePanel.css">
+    <link rel="stylesheet" href="/static/components/analytics/Widget/Widget.css">
+    <link rel="stylesheet" href="/static/components/analytics/DashboardGrid/DashboardGrid.css">
+    <link rel="stylesheet" href="/static/components/analytics/AnalyticsCard/AnalyticsCard.css">
+    <link rel="stylesheet" href="/static/components/analytics/AnalyticsWorkspace/AnalyticsWorkspace.css">
+
 
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
@@ -236,6 +245,8 @@
 
             <!-- Dashboard Content -->
             <div class="content-viewport">
+                <!-- Global FilterBar container -->
+                <div id="global-filterbar-container"></div>
                 
                 <!-- 1. OVERVIEW SECTION -->
                 <section id="overview-section" class="viewport-section active">
@@ -415,72 +426,15 @@
                 <!-- EXECUTIVE DASHBOARD SECTION -->
                 <section id="dashboard-section" class="viewport-section">
                     
-                    <!-- BI Interactive Header & Filters Button -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h2 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; margin: 0;">Interactive Intelligence Controls</h2>
+                    <!-- Layout Toolbar -->
+                    <div class="layout-preference-toolbar glass-panel">
+                        <div class="layout-selector-wrapper">
+                            <label for="workspace-layout-pref"><i class="fa-solid fa-table-cells-large text-primary"></i> Workspace Profile:</label>
+                            <select id="workspace-layout-pref" class="form-control"></select>
+                        </div>
                         <div style="display: flex; gap: 0.75rem;">
-                            <button class="btn btn-secondary btn-sm" id="btn-export-kpis" onclick="exportKPIs()"><i class="fa-solid fa-file-export"></i> Export KPIs</button>
-                            <button class="btn btn-secondary btn-sm" id="btn-export-csv" onclick="exportFilteredCSV()"><i class="fa-solid fa-download"></i> Export Data CSV</button>
-                            <button class="btn btn-primary btn-sm" id="btn-toggle-filters" onclick="toggleFilterPanel()"><i class="fa-solid fa-filter"></i> Toggle Filter Panel</button>
-                        </div>
-                    </div>
-
-                    <!-- Collapsable Filter Panel -->
-                    <div class="card" id="bi-filter-panel" style="margin-bottom: 1.5rem; display: none;">
-                        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 0.75rem 1.25rem;">
-                            <h3><i class="fa-solid fa-sliders text-primary"></i> Global Analytics Filters</h3>
-                        </div>
-                        <div class="card-body" style="padding: 1.25rem;">
-                            <div class="grid-layout cols-4" style="gap: 1rem; margin-bottom: 1rem;">
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Start Date</label>
-                                    <input type="date" id="filter-start-date" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">End Date</label>
-                                    <input type="date" id="filter-end-date" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Hub (Origin/Destination)</label>
-                                    <select id="filter-hub" class="form-control"><option value="">All Hubs</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Repair Center</label>
-                                    <select id="filter-rc" class="form-control"><option value="">All Centers</option></select>
-                                </div>
-                            </div>
-                            <div class="grid-layout cols-4" style="gap: 1rem; margin-bottom: 1rem;">
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Logistics Partner</label>
-                                    <select id="filter-partner" class="form-control"><option value="">All Partners</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Part Category</label>
-                                    <select id="filter-category" class="form-control"><option value="">All Categories</option></select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Priority</label>
-                                    <select id="filter-priority" class="form-control">
-                                        <option value="">All Priorities</option>
-                                        <option value="High Priority">High Priority</option>
-                                        <option value="Medium Priority">Medium Priority</option>
-                                        <option value="Low Priority">Low Priority</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label" style="font-size: 12px; margin-bottom: 4px;">Flow Type</label>
-                                    <select id="filter-flow-type" class="form-control">
-                                        <option value="">All Flow Types</option>
-                                        <option value="Hub-to-Hub Transfer">Hub-to-Hub Transfer</option>
-                                        <option value="Outbound to TPR">Outbound to TPR</option>
-                                        <option value="Standard Delivery">Standard Delivery</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                                <button class="btn btn-secondary btn-sm" onclick="clearBIFilters()"><i class="fa-solid fa-trash-can"></i> Reset Filters</button>
-                                <button class="btn btn-primary btn-sm" onclick="applyBIFilters()"><i class="fa-solid fa-filter"></i> Apply Global Filters</button>
-                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="window.DashboardGrid.saveNewLayoutPrompt()"><i class="fa-solid fa-floppy-disk"></i> Save Layout As...</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.DashboardGrid.saveLayout()"><i class="fa-solid fa-check"></i> Save Current Layout</button>
                         </div>
                     </div>
                     
@@ -637,84 +591,93 @@
                         </div>
                     </div>
 
-                    <!-- Comparison Analytics Card -->
-                    <div class="card" style="margin-top: 1.5rem;">
-                        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-                            <h3><i class="fa-solid fa-code-compare text-primary"></i> Side-by-Side Entity Comparison</h3>
-                            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                <select id="compare-entity-type" class="form-control form-control-sm" style="width: auto;" onchange="onCompareTypeChange()">
-                                    <option value="hub">Hub vs Hub</option>
-                                    <option value="rc">Repair Center vs Repair Center</option>
-                                    <option value="partner">Partner vs Partner</option>
-                                    <option value="priority">Priority vs Priority</option>
-                                    <option value="flow_type">Flow Type vs Flow Type</option>
-                                </select>
-                                <select id="compare-entity-a" class="form-control form-control-sm" style="width: auto;"></select>
-                                <span style="color: var(--text-muted);">vs</span>
-                                <select id="compare-entity-b" class="form-control form-control-sm" style="width: auto;"></select>
-                                <button class="btn btn-primary btn-sm" onclick="runEntityComparison()"><i class="fa-solid fa-magnifying-glass-chart"></i> Compare</button>
-                            </div>
-                        </div>
-                        <div class="card-body" id="comparison-results-body" style="padding: 1.5rem; display: none;">
-                            <div class="grid-layout cols-2" style="gap: 2rem;">
-                                <!-- Entity A Card -->
-                                <div class="comparison-entity-card" id="compare-card-a">
-                                    <h4 class="entity-title" style="margin: 0 0 1rem 0; font-size: 16px; color: var(--text-color);">Entity A</h4>
-                                    <div class="comparison-stats-list">
-                                        <div class="comp-stat-row"><span>Total Shipments</span><strong class="val-shipments">-</strong></div>
-                                        <div class="comp-stat-row"><span>Total Cost</span><strong class="val-cost">-</strong></div>
-                                        <div class="comp-stat-row"><span>Average Cost</span><strong class="val-avg-cost">-</strong></div>
-                                        <div class="comp-stat-row"><span>SLA Met Rate</span><strong class="val-sla-rate">-</strong></div>
-                                        <div class="comp-stat-row"><span>Avg Transit Days</span><strong class="val-transit">-</strong></div>
-                                    </div>
-                                </div>
-                                <!-- Entity B Card -->
-                                <div class="comparison-entity-card" id="compare-card-b">
-                                    <h4 class="entity-title" style="margin: 0 0 1rem 0; font-size: 16px; color: var(--text-color);">Entity B</h4>
-                                    <div class="comparison-stats-list">
-                                        <div class="comp-stat-row"><span>Total Shipments</span><strong class="val-shipments">-</strong></div>
-                                        <div class="comp-stat-row"><span>Total Cost</span><strong class="val-cost">-</strong></div>
-                                        <div class="comp-stat-row"><span>Average Cost</span><strong class="val-avg-cost">-</strong></div>
-                                        <div class="comp-stat-row"><span>SLA Met Rate</span><strong class="val-sla-rate">-</strong></div>
-                                        <div class="comp-stat-row"><span>Avg Transit Days</span><strong class="val-transit">-</strong></div>
-                                    </div>
+                    <!-- Draggable Resizable Dashboard Grid Container -->
+                    <div class="dashboard-grid-container" id="analytics-dashboard-grid">
+                        
+                        <!-- Widget 1: Side-by-Side Comparison -->
+                        <div class="widget-card" id="widget-entity-comparison" style="grid-column: span 3;">
+                            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                                <h3><i class="fa-solid fa-code-compare text-primary"></i> Side-by-Side Entity Comparison</h3>
+                                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                    <select id="compare-entity-type" class="form-control form-control-sm" style="width: auto;" onchange="onCompareTypeChange()">
+                                        <option value="hub">Hub vs Hub</option>
+                                        <option value="rc">Repair Center vs Repair Center</option>
+                                        <option value="partner">Partner vs Partner</option>
+                                        <option value="priority">Priority vs Priority</option>
+                                        <option value="flow_type">Flow Type vs Flow Type</option>
+                                    </select>
+                                    <select id="compare-entity-a" class="form-control form-control-sm" style="width: auto;"></select>
+                                    <span style="color: var(--text-muted);">vs</span>
+                                    <select id="compare-entity-b" class="form-control form-control-sm" style="width: auto;"></select>
+                                    <button class="btn btn-primary btn-sm" onclick="runEntityComparison()"><i class="fa-solid fa-magnifying-glass-chart"></i> Compare</button>
                                 </div>
                             </div>
+                            <div class="card-body" id="comparison-results-body" style="padding: 1.5rem; display: none;">
+                                <div class="grid-layout cols-2" style="gap: 2rem;">
+                                    <!-- Entity A Card -->
+                                    <div class="comparison-entity-card" id="compare-card-a">
+                                        <h4 class="entity-title" style="margin: 0 0 1rem 0; font-size: 16px; color: var(--text-color);">Entity A</h4>
+                                        <div class="comparison-stats-list">
+                                            <div class="comp-stat-row"><span>Total Shipments</span><strong class="val-shipments">-</strong></div>
+                                            <div class="comp-stat-row"><span>Total Cost</span><strong class="val-cost">-</strong></div>
+                                            <div class="comp-stat-row"><span>Average Cost</span><strong class="val-avg-cost">-</strong></div>
+                                            <div class="comp-stat-row"><span>SLA Met Rate</span><strong class="val-sla-rate">-</strong></div>
+                                            <div class="comp-stat-row"><span>Avg Transit Days</span><strong class="val-transit">-</strong></div>
+                                        </div>
+                                    </div>
+                                    <!-- Entity B Card -->
+                                    <div class="comparison-entity-card" id="compare-card-b">
+                                        <h4 class="entity-title" style="margin: 0 0 1rem 0; font-size: 16px; color: var(--text-color);">Entity B</h4>
+                                        <div class="comparison-stats-list">
+                                            <div class="comp-stat-row"><span>Total Shipments</span><strong class="val-shipments">-</strong></div>
+                                            <div class="comp-stat-row"><span>Total Cost</span><strong class="val-cost">-</strong></div>
+                                            <div class="comp-stat-row"><span>Average Cost</span><strong class="val-avg-cost">-</strong></div>
+                                            <div class="comp-stat-row"><span>SLA Met Rate</span><strong class="val-sla-rate">-</strong></div>
+                                            <div class="comp-stat-row"><span>Avg Transit Days</span><strong class="val-transit">-</strong></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Plots Container: Plotly plots -->
-                    <div class="grid-layout cols-2" style="margin-top: 1.5rem; gap: 1.5rem;">
-                        <div class="card">
+                        <!-- Widget 2: Shipment Volume & Cost Time Series -->
+                        <div class="widget-card" id="widget-chart-time-series" style="grid-column: span 2;">
                             <div class="card-header"><h3>Shipment Volume & Cost Time Series</h3></div>
                             <div class="card-body" style="padding: 0.5rem;"><div id="chart-time-series" style="height: 300px; width: 100%;"></div></div>
                         </div>
-                        <div class="card">
+
+                        <!-- Widget 3: Flow Type Distribution -->
+                        <div class="widget-card" id="widget-chart-flow-type">
                             <div class="card-header"><h3>Flow Type Distribution</h3></div>
                             <div class="card-body" style="padding: 0.5rem;"><div id="chart-flow-type" style="height: 300px; width: 100%;"></div></div>
                         </div>
-                        <div class="card">
+
+                        <!-- Widget 4: SLA & Priority Distributions -->
+                        <div class="widget-card" id="widget-chart-sla-priority">
                             <div class="card-header"><h3>SLA & Priority Distributions</h3></div>
                             <div class="card-body" style="padding: 0.5rem;"><div id="chart-sla-prio" style="height: 300px; width: 100%;"></div></div>
                         </div>
-                        <div class="card">
+
+                        <!-- Widget 5: Part Category Distribution -->
+                        <div class="widget-card" id="widget-chart-part-category">
                             <div class="card-header"><h3>Part Category Distribution</h3></div>
                             <div class="card-body" style="padding: 0.5rem;"><div id="chart-part-cat" style="height: 300px; width: 100%;"></div></div>
                         </div>
-                        <div class="card">
+
+                        <!-- Widget 6: Logistics Cost Distribution -->
+                        <div class="widget-card" id="widget-chart-cost-dist">
                             <div class="card-header"><h3>Logistics Cost Distribution</h3></div>
                             <div class="card-body" style="padding: 0.5rem;"><div id="chart-cost-dist" style="height: 300px; width: 100%;"></div></div>
                         </div>
-                        <div class="card">
+
+                        <!-- Widget 7: Hub Types & Service Coverage -->
+                        <div class="widget-card" id="widget-chart-hub-tpr" style="grid-column: span 3;">
                             <div class="card-header"><h3>Hub Types & Service Coverage</h3></div>
                             <div class="card-body" style="padding: 0.5rem;"><div id="chart-hub-tpr" style="height: 300px; width: 100%;"></div></div>
                         </div>
-                    </div>
 
-                    <!-- Top & Bottom Performers Grid -->
-                    <div class="grid-layout cols-2" style="margin-top: 1.5rem; gap: 1.5rem;">
-                        <!-- Top Performers Card -->
-                        <div class="card">
+                        <!-- Widget 8: Top Performing Assets -->
+                        <div class="widget-card" id="widget-top-performers">
                             <div class="card-header"><h3><i class="fa-solid fa-trophy text-success"></i> Top Performing Assets</h3></div>
                             <div class="card-body" style="padding: 1rem;">
                                 <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -734,8 +697,8 @@
                             </div>
                         </div>
 
-                        <!-- Bottom Performers Card -->
-                        <div class="card">
+                        <!-- Widget 9: Bottom Performing Assets -->
+                        <div class="widget-card" id="widget-bottom-performers">
                             <div class="card-header"><h3><i class="fa-solid fa-triangle-exclamation text-danger"></i> Bottom Performing Assets</h3></div>
                             <div class="card-body" style="padding: 1rem;">
                                 <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -754,114 +717,114 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Interactive Data Table (Filtered Transactions) -->
-                    <div class="card" style="margin-top: 1.5rem;">
-                        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-                            <h3><i class="fa-solid fa-list-check text-primary"></i> Filtered Transaction Records</h3>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <input type="text" id="bi-table-search" class="form-control form-control-sm" placeholder="Search filtered records..." oninput="debounceBISearch()" style="width: 200px;">
+                        <!-- Widget 10: Transaction Records -->
+                        <div class="widget-card" id="widget-transaction-records" style="grid-column: span 3;">
+                            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                                <h3><i class="fa-solid fa-list-check text-primary"></i> Filtered Transaction Records</h3>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <input type="text" id="bi-table-search" class="form-control form-control-sm" placeholder="Search filtered records..." oninput="debounceBISearch()" style="width: 200px;">
+                                </div>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="data-table interactive-table">
+                                        <thead>
+                                            <tr>
+                                                <th onclick="sortBITable('Transaction_ID')">Tx ID <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Order_Date')">Order Date <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Delivery_Date')">Delivery Date <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Origin_Hub')">Origin <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Destination_Hub')">Destination <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Part_Number')">Part No <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Quantity')">Qty <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('SLA_Status')">SLA <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Shipment_Cost')">Cost <i class="fa-solid fa-sort"></i></th>
+                                                <th onclick="sortBITable('Route_Distance')">Distance <i class="fa-solid fa-sort"></i></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bi-table-body">
+                                            <!-- Dynamic filtered rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="table-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); font-size: 13px;">
+                                    <div id="bi-table-pagination-summary">Showing 0-0 of 0 records</div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button class="btn btn-secondary btn-sm" id="btn-bi-prev" onclick="changeBIPage(-1)" disabled><i class="fa-solid fa-angle-left"></i> Previous</button>
+                                        <button class="btn btn-secondary btn-sm" id="btn-bi-next" onclick="changeBIPage(1)" disabled>Next <i class="fa-solid fa-angle-right"></i></button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body" style="padding: 0;">
-                            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-                                <table class="data-table interactive-table">
-                                    <thead>
-                                        <tr>
-                                            <th onclick="sortBITable('Transaction_ID')">Tx ID <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Order_Date')">Order Date <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Delivery_Date')">Delivery Date <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Origin_Hub')">Origin <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Destination_Hub')">Destination <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Part_Number')">Part No <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Quantity')">Qty <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('SLA_Status')">SLA <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Shipment_Cost')">Cost <i class="fa-solid fa-sort"></i></th>
-                                            <th onclick="sortBITable('Route_Distance')">Distance <i class="fa-solid fa-sort"></i></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="bi-table-body">
-                                        <!-- Dynamic filtered rows -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="table-footer" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; border-top: 1px solid var(--border-color); font-size: 13px;">
-                                <div id="bi-table-pagination-summary">Showing 0-0 of 0 records</div>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <button class="btn btn-secondary btn-sm" id="btn-bi-prev" onclick="changeBIPage(-1)" disabled><i class="fa-solid fa-angle-left"></i> Previous</button>
-                                    <button class="btn btn-secondary btn-sm" id="btn-bi-next" onclick="changeBIPage(1)" disabled>Next <i class="fa-solid fa-angle-right"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Summary tables grid -->
-                    <div class="card" style="margin-top: 1.5rem;">
-                        <div class="card-header"><h3>Descriptive Analytics Breakdown Summary</h3></div>
-                        <div class="card-body" style="padding: 0;">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; padding: 1.5rem;">
-                                <!-- Shipments by Flow Type Table -->
-                                <div class="table-card">
-                                    <h4>Shipments by Flow Type</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>Flow Type</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
-                                        <tbody id="tbl-flow-types"></tbody>
-                                    </table>
-                                </div>
+                        <!-- Widget 11: Descriptive Breakdown Summaries -->
+                        <div class="widget-card" id="widget-descriptive-breakdowns" style="grid-column: span 3;">
+                            <div class="card-header"><h3>Descriptive Analytics Breakdown Summary</h3></div>
+                            <div class="card-body" style="padding: 0;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; padding: 1.5rem;">
+                                    <!-- Shipments by Flow Type Table -->
+                                    <div class="table-card">
+                                        <h4>Shipments by Flow Type</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>Flow Type</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                            <tbody id="tbl-flow-types"></tbody>
+                                        </table>
+                                    </div>
 
-                                <!-- Shipments by Priority Table -->
-                                <div class="table-card">
-                                    <h4>Shipments by Priority</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>Priority</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
-                                        <tbody id="tbl-priorities"></tbody>
-                                    </table>
-                                </div>
+                                    <!-- Shipments by Priority Table -->
+                                    <div class="table-card">
+                                        <h4>Shipments by Priority</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>Priority</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                            <tbody id="tbl-priorities"></tbody>
+                                        </table>
+                                    </div>
 
-                                <!-- Shipments by Logistics Partner Table -->
-                                <div class="table-card">
-                                    <h4>Shipments by Logistics Partner</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>Logistics Partner</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
-                                        <tbody id="tbl-partners"></tbody>
-                                    </table>
-                                </div>
+                                    <!-- Shipments by Logistics Partner Table -->
+                                    <div class="table-card">
+                                        <h4>Shipments by Logistics Partner</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>Logistics Partner</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                            <tbody id="tbl-partners"></tbody>
+                                        </table>
+                                    </div>
 
-                                <!-- Shipments by Part Category Table -->
-                                <div class="table-card">
-                                    <h4>Shipments by Part Category</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>Part Category</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
-                                        <tbody id="tbl-categories"></tbody>
-                                    </table>
-                                </div>
+                                    <!-- Shipments by Part Category Table -->
+                                    <div class="table-card">
+                                        <h4>Shipments by Part Category</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>Part Category</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                            <tbody id="tbl-categories"></tbody>
+                                        </table>
+                                    </div>
 
-                                <!-- Shipments by SLA Status Table -->
-                                <div class="table-card">
-                                    <h4>Shipments by SLA Status</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>SLA Status</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
-                                        <tbody id="tbl-sla-statuses"></tbody>
-                                    </table>
-                                </div>
+                                    <!-- Shipments by SLA Status Table -->
+                                    <div class="table-card">
+                                        <h4>Shipments by SLA Status</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>SLA Status</th><th class="text-right">Count</th><th class="text-right">Cost</th></tr></thead>
+                                            <tbody id="tbl-sla-statuses"></tbody>
+                                        </table>
+                                    </div>
 
-                                <!-- Hub Types Table -->
-                                <div class="table-card">
-                                    <h4>Hub Types Distribution</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>Hub Type</th><th class="text-right">Hub Count</th></tr></thead>
-                                        <tbody id="tbl-hub-types"></tbody>
-                                    </table>
-                                </div>
+                                    <!-- Hub Types Table -->
+                                    <div class="table-card">
+                                        <h4>Hub Types Distribution</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>Hub Type</th><th class="text-right">Hub Count</th></tr></thead>
+                                            <tbody id="tbl-hub-types"></tbody>
+                                        </table>
+                                    </div>
 
-                                <!-- Repair Center Locations Table -->
-                                <div class="table-card">
-                                    <h4>Repair Center Coverage</h4>
-                                    <table class="data-table compact-table">
-                                        <thead><tr><th>Region</th><th class="text-right">Center Count</th></tr></thead>
-                                        <tbody id="tbl-tpr-locations"></tbody>
-                                    </table>
+                                    <!-- Repair Center Locations Table -->
+                                    <div class="table-card">
+                                        <h4>Repair Center Coverage</h4>
+                                        <table class="data-table compact-table">
+                                            <thead><tr><th>Region</th><th class="text-right">Center Count</th></tr></thead>
+                                            <tbody id="tbl-tpr-locations"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -3069,8 +3032,17 @@
     <script src="/static/components/common/EmptyState/EmptyState.js"></script>
     <script src="/static/components/common/ErrorState/ErrorState.js"></script>
     <script src="/static/components/common/EnhancedTable/EnhancedTable.js"></script>
+    <!-- Analytics Workspace Components -->
+    <script src="/static/components/analytics/FilterBar/FilterBar.js"></script>
+    <script src="/static/components/analytics/SharedToolbar/SharedToolbar.js"></script>
+    <script src="/static/components/analytics/ExpandablePanel/ExpandablePanel.js"></script>
+    <script src="/static/components/analytics/Widget/Widget.js"></script>
+    <script src="/static/components/analytics/DashboardGrid/DashboardGrid.js"></script>
+    <script src="/static/components/analytics/AnalyticsCard/AnalyticsCard.js"></script>
+    <script src="/static/components/analytics/AnalyticsWorkspace/AnalyticsWorkspace.js"></script>
     
     <script src="/static/js/api_gateway_integration.js"></script>
+
     <script src="/static/js/executive_dashboard.js"></script>
     <script src="/static/js/workspace.js"></script>
 

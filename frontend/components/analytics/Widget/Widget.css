@@ -1,0 +1,43 @@
+/* Widget Styles */
+.widget-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: rgba(24, 24, 27, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: visible !important;
+    transition: transform var(--transition-fast) ease, border-color var(--transition-fast) ease;
+}
+.widget-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+}
+.widget-card.dragging {
+    opacity: 0.4;
+    border: 2px dashed var(--brand-blue) !important;
+}
+.widget-card.drag-over {
+    border: 2px solid var(--brand-blue) !important;
+    box-shadow: 0 0 15px var(--brand-blue-glow);
+}
+.widget-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: se-resize;
+    z-index: 100;
+    background: linear-gradient(135deg, transparent 50%, var(--text-muted) 50%);
+    border-radius: 0 0 var(--radius-lg) 0;
+    opacity: 0.5;
+    transition: opacity var(--transition-fast) ease;
+}
+.widget-card:hover .widget-resize-handle {
+    opacity: 1;
+}
+.widget-resize-handle:hover {
+    background: linear-gradient(135deg, transparent 50%, var(--brand-blue) 50%);
+}

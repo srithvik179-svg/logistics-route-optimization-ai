@@ -1,0 +1,29 @@
+/* AnalyticsCard Styles */
+.metric-card.glass-panel {
+    background: rgba(24, 24, 27, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--elevation-med);
+    transition: transform var(--transition-fast) ease, border-color var(--transition-fast) ease;
+}
+.metric-card.glass-panel:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    transform: translateY(-2px);
+}
+.metric-value {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+}
+.kpi-trend {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+}
+.kpi-trend.up {
+    color: var(--success-color);
+}
+.kpi-trend.down {
+    color: var(--danger-color);
+}

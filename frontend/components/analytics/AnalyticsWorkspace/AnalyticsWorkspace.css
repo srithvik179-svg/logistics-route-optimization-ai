@@ -1,0 +1,10 @@
+/* AnalyticsWorkspace Styles */
+.analytics-workspace-panel {
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+.layout-preference-toolbar {
+    margin-bottom: var(--space-4);
+}
