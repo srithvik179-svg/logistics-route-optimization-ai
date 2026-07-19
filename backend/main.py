@@ -27,6 +27,7 @@ from backend.services.capacity_engine import CapacityEngine
 from backend.services.sla_engine import SLAEngine
 from backend.services.graph_engine import GraphEngine
 from backend.services.geospatial_engine import GeospatialEngine
+from backend.services.shortest_path_engine import ShortestPathEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -171,6 +172,9 @@ class GraphAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class GeospatialAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class ShortestPathAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -484,6 +488,16 @@ def get_geospatial_analytics_payload(payload: GeospatialAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Geospatial Analytics API Error: Failed retrieving geospatial analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/shortest-path-analytics/payload")
+def get_shortest_path_payload(payload: ShortestPathAnalyticsRequest):
+    """Returns comprehensive shortest path routing calculations: Dijkstra shortest distances/costs/transit times, BFS hops path results, accessibility list, and traversal benchmarks."""
+    try:
+        data = ShortestPathEngine.get_shortest_path_payload(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Shortest Path Analytics API Error: Failed retrieving shortest path payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
