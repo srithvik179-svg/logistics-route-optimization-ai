@@ -23,6 +23,7 @@ from backend.services.performance_service import PerformanceService
 from backend.services.cost_engine import CostEngine
 from backend.services.transit_engine import TransitEngine
 from backend.services.inventory_engine import InventoryEngine
+from backend.services.capacity_engine import CapacityEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -155,6 +156,9 @@ class TransitAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class InventoryAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class CapacityAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -428,6 +432,16 @@ def get_inventory_analytics_payload(payload: InventoryAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Inventory Analytics API Error: Failed retrieving inventory analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/capacity-analytics/payload")
+def get_capacity_analytics_payload(payload: CapacityAnalyticsRequest):
+    """Returns comprehensive capacity analytics: overview, hubs analysis, repair centers analysis, regional capacity breakdowns, bottlenecks, and trends."""
+    try:
+        data = CapacityEngine.get_capacity_analytics(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Capacity Analytics API Error: Failed retrieving capacity analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
