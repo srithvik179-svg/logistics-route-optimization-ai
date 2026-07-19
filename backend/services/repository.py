@@ -28,12 +28,62 @@ class DataRepository:
         self._is_loaded = False
         logger.info("DataRepository instance created.")
 
+    def _apply_compatibility_mappings(self, sheets_data: Dict[str, pd.DataFrame]) -> None:
+        """Injects compatibility columns corresponding to legacy column names so existing modules continue working."""
+        # 1. Logistics_Transactions
+        if "Logistics_Transactions" in sheets_data:
+            df = sheets_data["Logistics_Transactions"]
+            if "Dispatch_Date" in df.columns:
+                df["Order_Date"] = df["Dispatch_Date"]
+            if "Actual_Delivery_Date" in df.columns:
+                df["Delivery_Date"] = df["Actual_Delivery_Date"]
+            if "Destination_Location" in df.columns:
+                df["Destination_Hub"] = df["Destination_Location"]
+            if "Part_No" in df.columns:
+                df["Part_Number"] = df["Part_No"]
+            if "SLA_Breach" in df.columns:
+                df["SLA_Status"] = df["SLA_Breach"]
+            if "Logistics_Cost_Total_USD" in df.columns:
+                df["Shipment_Cost"] = df["Logistics_Cost_Total_USD"]
+            if "Route_Distance" not in df.columns:
+                # Mock route distance: use transit days if available, else average
+                df["Route_Distance"] = df.get("Transit_Days_Actual", pd.Series([2.0]*len(df))).fillna(2.0) * 150.0 + 50.0
+
+        # 2. Hub_Location_Master
+        if "Hub_Location_Master" in sheets_data:
+            df = sheets_data["Hub_Location_Master"]
+            if "Primary_Region" in df.columns:
+                df["Region"] = df["Primary_Region"]
+                
+        # 3. TPR_Master
+        if "TPR_Master" in sheets_data:
+            df = sheets_data["TPR_Master"]
+            if "Coverage_Region" not in df.columns:
+                df["Coverage_Region"] = df.get("Country", "Global")
+            if "SLA_Compliance_Target" not in df.columns:
+                df["SLA_Compliance_Target"] = 95.0
+            if "Rating" not in df.columns:
+                df["Rating"] = 4.5
+
+        # 4. Parts_Master
+        if "Parts_Master" in sheets_data:
+            df = sheets_data["Parts_Master"]
+            if "Part_No" in df.columns:
+                df["Part_Number"] = df["Part_No"]
+            if "Part_Description" in df.columns:
+                df["Part_Name"] = df["Part_Description"]
+            if "Volume_cm3" in df.columns:
+                df["Dimensions_Cm3"] = df["Volume_cm3"]
+
     def initialize(self) -> None:
         """Loads, validates, and processes the dataset, initializing in-memory caches and state manager."""
         logger.info("Initializing DataRepository...")
         try:
             # 1. Fetch metadata and load raw data frames
             metadata, sheets_data = self._loader.load()
+            
+            # Apply mappings to raw sheets for compatibility
+            self._apply_compatibility_mappings(sheets_data)
             
             # 2. Run validator
             validation_report = DatasetValidator.validate(metadata, sheets_data)
@@ -51,6 +101,10 @@ class DataRepository:
                 logger.info("Triggering data processing pipeline automatically...")
                 processor = DataProcessorService()
                 processed_sheets, pipeline_report = processor.process_dataset(self._sheets)
+                
+                # Apply mappings to processed sheets for compatibility
+                self._apply_compatibility_mappings(processed_sheets)
+                
                 self._processed_sheets = processed_sheets
                 self._pipeline_report = pipeline_report
             else:

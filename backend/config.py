@@ -22,19 +22,18 @@ REQUIRED_SHEETS = [
     "Summary_Dashboard"
 ]
 
-# Expected Columns per Sheet
+# Expected Columns per Sheet (Based on actual Dell FutureMinds dataset schema)
 EXPECTED_COLUMNS: Dict[str, List[str]] = {
     "Logistics_Transactions": [
         "Transaction_ID",
-        "Order_Date",
-        "Delivery_Date",
+        "Dispatch_Date",
+        "Actual_Delivery_Date",
         "Origin_Hub",
-        "Destination_Hub",
-        "Part_Number",
+        "Destination_Location",
+        "Part_No",
         "Quantity",
-        "SLA_Status",
-        "Shipment_Cost",
-        "Route_Distance"
+        "SLA_Breach",
+        "Logistics_Cost_Total_USD"
     ],
     "Hub_Location_Master": [
         "Hub_ID",
@@ -42,41 +41,34 @@ EXPECTED_COLUMNS: Dict[str, List[str]] = {
         "Latitude",
         "Longitude",
         "City",
-        "Region"
+        "Primary_Region"
     ],
     "TPR_Master": [
         "TPR_ID",
-        "TPR_Name",
-        "Coverage_Region",
-        "SLA_Compliance_Target",
-        "Rating"
+        "TPR_Name"
     ],
     "Parts_Master": [
-        "Part_Number",
-        "Part_Name",
+        "Part_No",
+        "Part_Description",
         "Category",
         "Weight_Kg",
-        "Dimensions_Cm3"
+        "Volume_cm3"
     ],
-    "Summary_Dashboard": [
-        "Metric_Name",
-        "Value"
-    ]
+    "Summary_Dashboard": []
 }
 
 # Column Data Types (for validation)
 COLUMN_TYPES: Dict[str, Dict[str, str]] = {
     "Logistics_Transactions": {
         "Transaction_ID": "object",
-        "Order_Date": "datetime",
-        "Delivery_Date": "datetime",
+        "Dispatch_Date": "datetime",
+        "Actual_Delivery_Date": "datetime",
         "Origin_Hub": "object",
-        "Destination_Hub": "object",
-        "Part_Number": "object",
+        "Destination_Location": "object",
+        "Part_No": "object",
         "Quantity": "numeric",
-        "SLA_Status": "object",
-        "Shipment_Cost": "numeric",
-        "Route_Distance": "numeric"
+        "SLA_Breach": "object",
+        "Logistics_Cost_Total_USD": "numeric"
     },
     "Hub_Location_Master": {
         "Hub_ID": "object",
@@ -84,26 +76,20 @@ COLUMN_TYPES: Dict[str, Dict[str, str]] = {
         "Latitude": "numeric",
         "Longitude": "numeric",
         "City": "object",
-        "Region": "object"
+        "Primary_Region": "object"
     },
     "TPR_Master": {
         "TPR_ID": "object",
-        "TPR_Name": "object",
-        "Coverage_Region": "object",
-        "SLA_Compliance_Target": "numeric",
-        "Rating": "numeric"
+        "TPR_Name": "object"
     },
     "Parts_Master": {
-        "Part_Number": "object",
-        "Part_Name": "object",
+        "Part_No": "object",
+        "Part_Description": "object",
         "Category": "object",
         "Weight_Kg": "numeric",
-        "Dimensions_Cm3": "numeric"
+        "Volume_cm3": "numeric"
     },
-    "Summary_Dashboard": {
-        "Metric_Name": "object",
-        "Value": "object"
-    }
+    "Summary_Dashboard": {}
 }
 
 class SLAConfig:

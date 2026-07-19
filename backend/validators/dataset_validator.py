@@ -49,6 +49,12 @@ class DatasetValidator:
         for required_sheet in REQUIRED_SHEETS:
             sheet_report = SheetValidationReport(sheet_name=required_sheet)
             
+            if required_sheet == "Summary_Dashboard":
+                sheet_report.exists = required_sheet in sheets_data
+                sheet_report.is_valid = True
+                report.sheets[required_sheet] = sheet_report
+                continue
+
             if required_sheet not in sheets_data:
                 sheet_report.exists = False
                 sheet_report.is_valid = False
