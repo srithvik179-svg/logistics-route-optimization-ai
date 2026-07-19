@@ -130,6 +130,11 @@ function initNavigation() {
                 if (typeof window.loadCorridorWorkspace === "function") {
                     window.loadCorridorWorkspace();
                 }
+            } else if (targetId === "optimization-section") {
+                headerTitle.textContent = "Cost Optimization & What-If Simulation";
+                if (typeof window.loadCostOptimizationWorkspace === "function") {
+                    window.loadCostOptimizationWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

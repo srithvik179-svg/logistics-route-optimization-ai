@@ -1,0 +1,8 @@
+/* SavingsDashboard Styles */
+.metric-card {
+    transition: transform var(--transition-fast) ease, border-color var(--transition-fast) ease;
+}
+.metric-card:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+}

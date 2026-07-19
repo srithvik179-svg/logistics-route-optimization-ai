@@ -1,0 +1,9 @@
+/* FinancialCharts Styles */
+.sim-chart-div {
+    width: 100%;
+    min-height: 250px;
+    background: rgba(9, 9, 11, 0.4);
+    border: 1px solid rgba(63, 63, 70, 0.3);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-4);
+}

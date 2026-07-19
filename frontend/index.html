@@ -46,6 +46,14 @@
     <link rel="stylesheet" href="/static/components/corridor-intelligence/BottleneckPanel/BottleneckPanel.css">
     <link rel="stylesheet" href="/static/components/corridor-intelligence/RecommendationPanel/RecommendationPanel.css">
     <link rel="stylesheet" href="/static/components/corridor-intelligence/CorridorTable/CorridorTable.css">
+    <!-- Cost Optimization Simulator Components -->
+    <link rel="stylesheet" href="/static/pages/cost-optimization/cost_optimization.css">
+    <link rel="stylesheet" href="/static/components/ScenarioBuilder/ScenarioBuilder.css">
+    <link rel="stylesheet" href="/static/components/SavingsDashboard/SavingsDashboard.css">
+    <link rel="stylesheet" href="/static/components/ScenarioComparison/ScenarioComparison.css">
+    <link rel="stylesheet" href="/static/components/FinancialCharts/FinancialCharts.css">
+    <link rel="stylesheet" href="/static/components/SimulationHistory/SimulationHistory.css">
+
 
 
 
@@ -136,6 +144,12 @@
                         <a href="#" class="nav-link" data-target="corridor-section" id="nav-corridor">
                             <i class="fa-solid fa-diagram-project"></i>
                             <span>Corridor Intelligence</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="optimization-section" id="nav-optimization">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>Cost Optimization</span>
                         </a>
                     </li>
                     <li>
@@ -2900,6 +2914,42 @@
 
                     </div>
                 </section>
+                
+                <!-- AI COST OPTIMIZATION SIMULATOR SECTION -->
+                <section class="viewport-section" id="optimization-section">
+                    <div class="sim-workspace-grid">
+                        
+                        <!-- Left Panel: Parameter Overrides and Simulation History -->
+                        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+                            <div id="sim-builder-panel"></div>
+                            <div id="sim-history-panel"></div>
+                        </div>
+
+                        <!-- Right Panel: Financial KPI metrics scoreboard, side comparison, Plotly charts, suggestions -->
+                        <div class="sim-right-panel">
+                            
+                            <!-- Financial KPI metrics scorecard dashboard -->
+                            <div id="sim-savings-dashboard"></div>
+
+                            <!-- Exporter Actions Toolbar -->
+                            <div class="sim-actions-toolbar" id="sim-actions-toolbar">
+                                <button class="btn btn-secondary btn-sm" onclick="window.exportSimulationCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                                <button class="btn btn-secondary btn-sm" onclick="window.exportSimulationPDF()"><i class="fa-solid fa-file-pdf"></i> Export Executive Report</button>
+                            </div>
+
+                            <!-- Comparison table panel -->
+                            <div id="sim-comparison-panel"></div>
+
+                            <!-- Financial Charts comparison dashboard -->
+                            <div id="sim-charts-panel"></div>
+
+                            <!-- AI suggestions dashboard panel -->
+                            <div id="sim-recommendations-panel"></div>
+
+                        </div>
+                        
+                    </div>
+                </section>
 
             </div>
         </main>
@@ -3171,6 +3221,14 @@
     <script src="/static/components/corridor-intelligence/RecommendationPanel/RecommendationPanel.js"></script>
     <script src="/static/components/corridor-intelligence/CorridorTable/CorridorTable.js"></script>
     <script src="/static/pages/corridor-intelligence/corridor_intelligence.js"></script>
+    <!-- Cost Optimization Simulator Components -->
+    <script src="/static/components/ScenarioBuilder/ScenarioBuilder.js"></script>
+    <script src="/static/components/SavingsDashboard/SavingsDashboard.js"></script>
+    <script src="/static/components/ScenarioComparison/ScenarioComparison.js"></script>
+    <script src="/static/components/FinancialCharts/FinancialCharts.js"></script>
+    <script src="/static/components/SimulationHistory/SimulationHistory.js"></script>
+    <script src="/static/pages/cost-optimization/cost_optimization.js"></script>
+
 
 
     

@@ -1,0 +1,7 @@
+/* ScenarioComparison Styles */
+.data-table th, .data-table td {
+    padding: var(--space-3) var(--space-4) !important;
+}
+.text-right {
+    text-align: right;
+}

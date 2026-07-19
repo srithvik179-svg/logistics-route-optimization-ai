@@ -36,6 +36,7 @@ from backend.services.ant_colony_engine import AntColonyEngine
 from backend.services.rl_preparation_engine import RLPreparationEngine
 from backend.services.ai_preparation_engine import AIPreparationEngine
 from backend.services.corridor_service import CorridorService
+from backend.services.simulation_service import SimulationService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -670,6 +671,19 @@ def get_corridor_intelligence_payload(payload: Dict[str, Any] = None):
     except Exception as e:
         logger.error(f"Corridor Intelligence API Error: Failed retrieving corridor data: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/cost-optimization/simulate")
+def run_cost_simulation(payload: Dict[str, Any] = None):
+    """Runs What-If operational simulations and returns baseline comparisons and recommendations."""
+    filters = payload.get("filters", {}) if payload else {}
+    scenarios = payload.get("scenarios", {}) if payload else {}
+    try:
+        data = SimulationService.get_simulation_payload(filters, scenarios)
+        return data
+    except Exception as e:
+        logger.error(f"Cost Simulation API Error: Failed running simulation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # Serve Static Frontend Files
