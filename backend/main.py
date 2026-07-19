@@ -22,6 +22,7 @@ from backend.services.route_analysis_service import RouteAnalysisService
 from backend.services.performance_service import PerformanceService
 from backend.services.cost_engine import CostEngine
 from backend.services.transit_engine import TransitEngine
+from backend.services.inventory_engine import InventoryEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -151,6 +152,9 @@ class CostAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class TransitAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class InventoryAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -414,6 +418,16 @@ def get_transit_analytics_payload(payload: TransitAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Transit Analytics API Error: Failed retrieving transit analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/inventory-analytics/payload")
+def get_inventory_analytics_payload(payload: InventoryAnalyticsRequest):
+    """Returns comprehensive inventory analytics: overview, movement, stock levels, utilization, rankings, and outliers."""
+    try:
+        data = InventoryEngine.get_inventory_payload(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Inventory Analytics API Error: Failed retrieving inventory analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
