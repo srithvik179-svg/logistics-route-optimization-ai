@@ -40,6 +40,7 @@ from backend.services.simulation_service import SimulationService
 from backend.services.reverse_logistics_service import ReverseLogisticsService
 from backend.services.sla_prediction_service import SLAPredictionService
 from backend.services.risk_forecasting_service import RiskForecastingService
+from backend.orchestrator.workflow_engine import WorkflowEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -719,6 +720,28 @@ def get_risk_forecast_payload(payload: Dict[str, Any] = None):
     except Exception as e:
         logger.error(f"Risk Forecast API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/orchestrator/dashboard")
+def get_orchestrator_dashboard():
+    """Returns metadata for the AI Orchestrator workspace dashboard."""
+    try:
+        data = WorkflowEngine.get_dashboard_payload()
+        return data
+    except Exception as e:
+        logger.error(f"Orchestrator Dashboard API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/orchestrator/run")
+def run_orchestrator_workflow(payload: Dict[str, Any] = None):
+    """Executes multi-agent orchestrator workflows, aggregates data, and resolves conflict recommendations."""
+    params = payload if payload else {}
+    try:
+        data = WorkflowEngine.run_optimization_workflow(params)
+        return data
+    except Exception as e:
+        logger.error(f"Orchestrator Run API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

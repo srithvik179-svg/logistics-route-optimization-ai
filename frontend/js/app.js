@@ -145,6 +145,11 @@ function initNavigation() {
                 if (typeof window.loadSLAPredictionWorkspace === "function") {
                     window.loadSLAPredictionWorkspace();
                 }
+            } else if (targetId === "orchestrator-section") {
+                headerTitle.textContent = "Multi-Agent AI Decision Orchestrator";
+                if (typeof window.loadAIOrchestratorWorkspace === "function") {
+                    window.loadAIOrchestratorWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

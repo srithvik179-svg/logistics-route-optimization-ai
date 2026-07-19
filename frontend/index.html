@@ -70,6 +70,14 @@
     <link rel="stylesheet" href="/static/components/sla-prediction/ForecastTimeline/ForecastTimeline.css">
     <link rel="stylesheet" href="/static/components/sla-prediction/AlertCenter/AlertCenter.css">
     <link rel="stylesheet" href="/static/components/sla-prediction/RecommendationPanel/RecommendationPanel.css">
+    <!-- AI Orchestrator Platform -->
+    <link rel="stylesheet" href="/static/pages/ai-orchestrator/ai_orchestrator.css">
+    <link rel="stylesheet" href="/static/components/ai-orchestrator/AgentCards/AgentCards.css">
+    <link rel="stylesheet" href="/static/components/ai-orchestrator/WorkflowViewer/WorkflowViewer.css">
+    <link rel="stylesheet" href="/static/components/ai-orchestrator/ExecutionTimeline/ExecutionTimeline.css">
+    <link rel="stylesheet" href="/static/components/ai-orchestrator/DecisionPanel/DecisionPanel.css">
+    <link rel="stylesheet" href="/static/components/ai-orchestrator/WorkflowHistory/WorkflowHistory.css">
+    <link rel="stylesheet" href="/static/components/ai-orchestrator/AgentHealth/AgentHealth.css">
 
 
 
@@ -179,6 +187,12 @@
                         <a href="#" class="nav-link" data-target="sla-section" id="nav-sla">
                             <i class="fa-solid fa-hourglass-half"></i>
                             <span>SLA Prediction</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="orchestrator-section" id="nav-orchestrator">
+                            <i class="fa-solid fa-network-wired"></i>
+                            <span>AI Orchestrator</span>
                         </a>
                     </li>
                     <li>
@@ -3054,6 +3068,44 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE MULTI-AGENT AI ORCHESTRATOR -->
+                <section class="viewport-section" id="orchestrator-section">
+                    <div class="orchestrator-workspace">
+
+                        <!-- Main Run Header Action Card -->
+                        <div class="card glass-panel fade-in-slide-up" style="border:1px solid rgba(59, 130, 246, 0.4); background:rgba(59, 130, 246, 0.05); padding:var(--space-4); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-3);">
+                            <div>
+                                <h2 style="margin:0 0 4px 0; color:#fff; font-size:1.4rem;"><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Multi-Agent Decision Orchestrator Cockpit</h2>
+                                <p style="margin:0; font-size:11px; color:var(--text-secondary); line-height:1.4;">Coordinates every active logistics intelligence agent, executes validation paths, aggregates metrics, and resolves route/cost trade-off conflicts.</p>
+                            </div>
+                            <button class="btn btn-primary" id="trigger-workflow-btn" onclick="window.triggerOrchestratorWorkflow()">
+                                <i class="fa-solid fa-bolt"></i> Run Optimization Workflow
+                            </button>
+                        </div>
+
+                        <!-- Executive KPI Scorecards -->
+                        <div id="orchestrator-dashboard"></div>
+
+                        <!-- Workflow Planner Node Graph -->
+                        <div id="orchestrator-flow-viewer"></div>
+
+                        <!-- Timeline & Decision Columns -->
+                        <div class="orchestrator-timeline-decision-grid">
+                            <!-- Latency Breakdown Bar Chart -->
+                            <div id="orchestrator-latency-timeline"></div>
+                            <!-- Decision trade-off analysis -->
+                            <div id="orchestrator-decision-panel"></div>
+                        </div>
+
+                        <!-- Registry and History Split -->
+                        <div class="orchestrator-row-grid">
+                            <div id="orchestrator-agent-cards"></div>
+                            <div id="orchestrator-history"></div>
+                        </div>
+
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3348,6 +3400,13 @@
     <script src="/static/components/sla-prediction/AlertCenter/AlertCenter.js"></script>
     <script src="/static/components/sla-prediction/RecommendationPanel/RecommendationPanel.js"></script>
     <script src="/static/pages/sla-prediction/sla_prediction.js"></script>
+    <!-- AI Orchestrator Platform -->
+    <script src="/static/components/ai-orchestrator/AgentCards/AgentCards.js"></script>
+    <script src="/static/components/ai-orchestrator/WorkflowViewer/WorkflowViewer.js"></script>
+    <script src="/static/components/ai-orchestrator/ExecutionTimeline/ExecutionTimeline.js"></script>
+    <script src="/static/components/ai-orchestrator/DecisionPanel/DecisionPanel.js"></script>
+    <script src="/static/components/ai-orchestrator/WorkflowHistory/WorkflowHistory.js"></script>
+    <script src="/static/pages/ai-orchestrator/ai_orchestrator.js"></script>
 
 
 
