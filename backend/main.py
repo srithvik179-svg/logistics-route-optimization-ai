@@ -31,6 +31,7 @@ from backend.services.shortest_path_engine import ShortestPathEngine
 from backend.services.route_scoring_engine import RouteScoringEngine
 from backend.services.optimization_readiness_engine import OptimizationReadinessEngine
 from backend.services.astar_engine import AStarEngine
+from backend.services.genetic_algorithm_engine import GeneticAlgorithmEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -189,6 +190,13 @@ class OptimizationReadinessRequest(BaseModel):
 class AStarAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
     heuristic_type: Optional[str] = "great-circle"
+
+class GeneticAlgorithmRequest(BaseModel):
+    source: str
+    destination: str
+    filters: Dict[str, Any]
+    population_size: Optional[int] = 30
+    generations: Optional[int] = 20
 
 # Explorer API Models & Endpoints
 class QueryFilter(BaseModel):
@@ -541,6 +549,18 @@ def get_astar_payload(payload: AStarAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"A* Pathfinding API Error: Failed retrieving A* payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/genetic-algorithm/optimize")
+def get_genetic_optimization(payload: GeneticAlgorithmRequest):
+    """Returns comprehensive Genetic Algorithm optimized routes: optimal route chromosome, best fitness over generations, and execution stats."""
+    try:
+        data = GeneticAlgorithmEngine.optimize_route(
+            payload.source, payload.destination, payload.filters, payload.population_size, payload.generations
+        )
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Genetic Algorithm API Error: Failed retrieving optimized route: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
