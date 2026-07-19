@@ -38,6 +38,11 @@ from backend.services.ai_preparation_engine import AIPreparationEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
+from backend.api.middleware import APIGatewayMiddleware
+from backend.api.router import gateway_router
+from backend.api.exception_handler import http_exception_handler, validation_exception_handler, general_exception_handler
+from fastapi.exceptions import RequestValidationError
+
 app = FastAPI(
     title="Dell Logistics Route Optimization AI Platform",
     description="Backend API for loading, validating, and managing route optimization datasets.",
@@ -52,6 +57,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API Gateway middleware
+app.add_middleware(APIGatewayMiddleware)
+
+# Register API Gateway metadata router
+app.include_router(gateway_router)
+
+# Register global API exception handlers
+from starlette.exceptions import HTTPException as StarletteHTTPException
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 # Initialize repository on application startup
 @app.on_event("startup")
