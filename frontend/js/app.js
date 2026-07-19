@@ -108,11 +108,51 @@ async function fetchDatasetStatus() {
         renderRepository(repositoryData);
         renderPipeline(pipelineData);
         
+        // Load real-time system monitoring details
+        await loadSystemMonitoring();
+        
     } catch (error) {
         console.error("API Connection Error:", error);
         apiIndicator.className = "status-indicator";
         apiIndicator.querySelector(".status-text").textContent = "API Offline";
         renderOfflineState();
+    }
+}
+
+/**
+ * Fetches health data from Phase 28 Enterprise Monitoring service and updates Overview cards.
+ */
+async function loadSystemMonitoring() {
+    try {
+        const report = await fetch("/api/v1/monitoring/health").then(r => r.json());
+        const moduleList = document.querySelector(".modules-card .module-list");
+        if (!moduleList) return;
+
+        moduleList.innerHTML = "";
+        report.services.forEach(svc => {
+            const isUp = svc.status === "UP";
+            const li = document.createElement("li");
+            li.className = `module-item ${isUp ? "active" : "disabled"}`;
+            li.innerHTML = `
+                <span class="module-status ${isUp ? "active" : "degraded"}">
+                    <i class="fa-solid ${isUp ? "fa-circle-check" : "fa-circle-exclamation"}"></i>
+                </span>
+                <div class="module-info">
+                    <h4>${svc.name}</h4>
+                    <p>${svc.detail} (Latency: ${svc.response_time_ms} ms)</p>
+                </div>
+            `;
+            moduleList.appendChild(li);
+        });
+
+        // Also update overview badge at top of overview section
+        const badge = document.getElementById("overview-badge");
+        if (badge) {
+            badge.textContent = report.overall_status;
+            badge.className = `badge ${report.overall_status === "UP" ? "success" : "warning"}`;
+        }
+    } catch (err) {
+        console.error("loadSystemMonitoring Error:", err);
     }
 }
 
