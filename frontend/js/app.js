@@ -1295,6 +1295,7 @@ async function loadExecutiveDashboard() {
         }
 
         console.log("[Observability] Dashboard Rendered");
+        console.log("[Observability] Dashboard Updated");
 
     } catch (err) {
         console.error("loadExecutiveDashboard Error:", err);
@@ -1411,6 +1412,7 @@ function renderDashboardPerformers(perf) {
 }
 
 function renderDashboardCharts(data) {
+    console.log("[Observability] Visualization Loaded");
     const defaultLayoutProps = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
@@ -1559,6 +1561,7 @@ function renderDashboardCharts(data) {
         marker: { color: '#10b981' }
     };
     Plotly.newPlot('chart-hub-tpr', [hubTrace], defaultLayoutProps, { responsive: true, displayModeBar: false });
+    console.log("[Observability] Charts Rendered");
 }
 
 // ==========================================
@@ -1631,6 +1634,7 @@ function clearBIFilters() {
 }
 
 function applyBIFilters() {
+    console.log("[Observability] Filters Applied");
     logger.info("Filter Applied event logged.");
     
     biState.filters.start_date = document.getElementById("filter-start-date").value;
@@ -2261,6 +2265,7 @@ function populateMapDropdowns(data) {
 }
 
 function applyMapFilters() {
+    console.log("[Observability] Filters Applied");
     console.log("Filters Applied event logged.");
     
     mapState.filters.start_date = document.getElementById("map-filter-start-date").value;
@@ -2721,6 +2726,7 @@ function closeRouteDetailsModal() {
 }
 
 function applyRouteFilters() {
+    console.log("[Observability] Filters Applied");
     console.log("Filters Applied event logged.");
     
     routeState.filters.start_date = document.getElementById("route-filter-start-date").value;
@@ -3066,6 +3072,7 @@ function switchPerfTab(tabName) {
 }
 
 function applyPerfFilters() {
+    console.log("[Observability] Filters Applied");
     console.log("Filters Applied event logged.");
     
     perfState.filters.start_date = document.getElementById("perf-filter-start-date").value;
