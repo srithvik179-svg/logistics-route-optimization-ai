@@ -1,0 +1,16 @@
+/* ReverseMap Styles */
+.reverse-map-container {
+    width: 100%;
+    height: 380px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(63, 63, 70, 0.4);
+}
+.hub-tooltip {
+    background: rgba(9,9,11,0.85) !important;
+    border: 1px solid rgba(59,130,246,0.4) !important;
+    color: #d4d4d8 !important;
+    font-size: 9px !important;
+    padding: 2px 5px !important;
+    border-radius: 4px !important;
+}

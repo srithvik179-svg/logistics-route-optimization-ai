@@ -135,6 +135,11 @@ function initNavigation() {
                 if (typeof window.loadCostOptimizationWorkspace === "function") {
                     window.loadCostOptimizationWorkspace();
                 }
+            } else if (targetId === "reverse-section") {
+                headerTitle.textContent = "Reverse Logistics Intelligence Platform";
+                if (typeof window.loadReverseLogisticsWorkspace === "function") {
+                    window.loadReverseLogisticsWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

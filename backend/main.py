@@ -37,6 +37,7 @@ from backend.services.rl_preparation_engine import RLPreparationEngine
 from backend.services.ai_preparation_engine import AIPreparationEngine
 from backend.services.corridor_service import CorridorService
 from backend.services.simulation_service import SimulationService
+from backend.services.reverse_logistics_service import ReverseLogisticsService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -683,6 +684,18 @@ def run_cost_simulation(payload: Dict[str, Any] = None):
     except Exception as e:
         logger.error(f"Cost Simulation API Error: Failed running simulation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/reverse-logistics/payload")
+def get_reverse_logistics_payload(payload: Dict[str, Any] = None):
+    """Returns comprehensive reverse logistics analytics, returns list, and AI recovery tips."""
+    filters = payload.get("filters", {}) if payload else {}
+    try:
+        data = ReverseLogisticsService.get_reverse_logistics(filters)
+        return data
+    except Exception as e:
+        logger.error(f"Reverse Logistics API Error: Failed retrieving returns payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

@@ -53,6 +53,14 @@
     <link rel="stylesheet" href="/static/components/ScenarioComparison/ScenarioComparison.css">
     <link rel="stylesheet" href="/static/components/FinancialCharts/FinancialCharts.css">
     <link rel="stylesheet" href="/static/components/SimulationHistory/SimulationHistory.css">
+    <!-- Reverse Logistics Platform Components -->
+    <link rel="stylesheet" href="/static/pages/reverse-logistics/reverse_logistics.css">
+    <link rel="stylesheet" href="/static/components/reverse-logistics/ReverseDashboard/ReverseDashboard.css">
+    <link rel="stylesheet" href="/static/components/reverse-logistics/ReverseMap/ReverseMap.css">
+    <link rel="stylesheet" href="/static/components/reverse-logistics/ReturnTracker/ReturnTracker.css">
+    <link rel="stylesheet" href="/static/components/reverse-logistics/RecoveryPanel/RecoveryPanel.css">
+    <link rel="stylesheet" href="/static/components/reverse-logistics/RefurbishmentPanel/RefurbishmentPanel.css">
+    <link rel="stylesheet" href="/static/components/reverse-logistics/RecyclingCenter/RecyclingCenter.css">
 
 
 
@@ -150,6 +158,12 @@
                         <a href="#" class="nav-link" data-target="optimization-section" id="nav-optimization">
                             <i class="fa-solid fa-calculator"></i>
                             <span>Cost Optimization</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="reverse-section" id="nav-reverse">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Reverse Logistics</span>
                         </a>
                     </li>
                     <li>
@@ -2951,6 +2965,40 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE REVERSE LOGISTICS INTELLIGENCE PLATFORM -->
+                <section class="viewport-section" id="reverse-section">
+                    <div class="rl-workspace">
+
+                        <!-- Executive KPI Scorecards -->
+                        <div id="rl-dashboard"></div>
+
+                        <!-- Map + AI Recovery Split -->
+                        <div class="rl-map-recs-grid">
+                            <!-- Leaflet Reverse Flow Map -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-map-location-dot text-primary"></i> Reverse Shipment Flow Map</h3>
+                                </div>
+                                <div class="card-body" style="padding:0;">
+                                    <div id="rl-map" class="reverse-map-container"></div>
+                                </div>
+                            </div>
+                            <!-- AI Recovery Recommendations -->
+                            <div id="rl-recovery-panel"></div>
+                        </div>
+
+                        <!-- Refurbishment Queue + Recycling Center -->
+                        <div class="rl-refurb-recycle-grid">
+                            <div id="rl-refurb-panel"></div>
+                            <div id="rl-recycling-panel"></div>
+                        </div>
+
+                        <!-- Return Tracker Table -->
+                        <div id="rl-tracker"></div>
+
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3228,6 +3276,14 @@
     <script src="/static/components/FinancialCharts/FinancialCharts.js"></script>
     <script src="/static/components/SimulationHistory/SimulationHistory.js"></script>
     <script src="/static/pages/cost-optimization/cost_optimization.js"></script>
+    <!-- Reverse Logistics Platform Components -->
+    <script src="/static/components/reverse-logistics/ReverseDashboard/ReverseDashboard.js"></script>
+    <script src="/static/components/reverse-logistics/ReverseMap/ReverseMap.js"></script>
+    <script src="/static/components/reverse-logistics/ReturnTracker/ReturnTracker.js"></script>
+    <script src="/static/components/reverse-logistics/RecoveryPanel/RecoveryPanel.js"></script>
+    <script src="/static/components/reverse-logistics/RefurbishmentPanel/RefurbishmentPanel.js"></script>
+    <script src="/static/components/reverse-logistics/RecyclingCenter/RecyclingCenter.js"></script>
+    <script src="/static/pages/reverse-logistics/reverse_logistics.js"></script>
 
 
 

@@ -1,0 +1,4 @@
+/* ReverseDashboard Styles */
+.metric-card .metric-label { font-size: var(--font-size-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.metric-card .metric-value { font-size: 1.6rem; font-weight: 700; line-height: 1.2; margin: var(--space-1) 0; }
+.metric-card .metric-sub { font-size: 10px; color: var(--text-secondary); }
