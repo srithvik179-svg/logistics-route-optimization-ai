@@ -105,3 +105,24 @@ COLUMN_TYPES: Dict[str, Dict[str, str]] = {
         "Value": "object"
     }
 }
+
+class SLAConfig:
+    """Holds configuration parameters defining service level agreements.
+    
+    Can be updated or overridden by future AI agents or admin settings.
+    """
+    # Max allowed transit time in days
+    TRANSIT_TIME_LIMIT: float = 3.0
+    
+    # Max allowed end-to-end delivery time in days
+    DELIVERY_TIME_LIMIT: float = 4.0
+    
+    # Max allowed processing time at repair centers or intermediate nodes
+    PROCESSING_TIME_LIMIT: float = 2.0
+    
+    # Max allowed hub handling delay
+    HUB_HANDLING_TIME_LIMIT: float = 1.0
+    
+    # Max allowed repair center processing delay
+    RC_PROCESSING_TIME_LIMIT: float = 3.0
+

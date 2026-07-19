@@ -24,6 +24,7 @@ from backend.services.cost_engine import CostEngine
 from backend.services.transit_engine import TransitEngine
 from backend.services.inventory_engine import InventoryEngine
 from backend.services.capacity_engine import CapacityEngine
+from backend.services.sla_engine import SLAEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -159,6 +160,9 @@ class InventoryAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 class CapacityAnalyticsRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class SLAAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -442,6 +446,16 @@ def get_capacity_analytics_payload(payload: CapacityAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"Capacity Analytics API Error: Failed retrieving capacity analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sla-analytics/payload")
+def get_sla_analytics_payload(payload: SLAAnalyticsRequest):
+    """Returns comprehensive SLA compliance analytics: overview metrics, breakdowns, violations list, rankings, and trends."""
+    try:
+        data = SLAEngine.get_sla_payload(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"SLA Analytics API Error: Failed retrieving SLA analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
