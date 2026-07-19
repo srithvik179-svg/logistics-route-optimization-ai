@@ -38,6 +38,8 @@ from backend.services.ai_preparation_engine import AIPreparationEngine
 from backend.services.corridor_service import CorridorService
 from backend.services.simulation_service import SimulationService
 from backend.services.reverse_logistics_service import ReverseLogisticsService
+from backend.services.sla_prediction_service import SLAPredictionService
+from backend.services.risk_forecasting_service import RiskForecastingService
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -695,6 +697,29 @@ def get_reverse_logistics_payload(payload: Dict[str, Any] = None):
     except Exception as e:
         logger.error(f"Reverse Logistics API Error: Failed retrieving returns payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sla-prediction/payload")
+def get_sla_prediction_payload(payload: Dict[str, Any] = None):
+    """Returns SLA breach predictions, risk scores, alerts, and AI recommendations."""
+    filters = payload.get("filters", {}) if payload else {}
+    try:
+        data = SLAPredictionService.get_prediction_payload(filters)
+        return data
+    except Exception as e:
+        logger.error(f"SLA Prediction API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sla-prediction/forecast")
+def get_risk_forecast_payload(payload: Dict[str, Any] = None):
+    """Returns 7-day rolling risk timeline and corridor forecasts."""
+    filters = payload.get("filters", {}) if payload else {}
+    try:
+        data = RiskForecastingService.get_forecast_payload(filters)
+        return data
+    except Exception as e:
+        logger.error(f"Risk Forecast API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 

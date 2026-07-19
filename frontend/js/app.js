@@ -140,6 +140,11 @@ function initNavigation() {
                 if (typeof window.loadReverseLogisticsWorkspace === "function") {
                     window.loadReverseLogisticsWorkspace();
                 }
+            } else if (targetId === "sla-section") {
+                headerTitle.textContent = "SLA Breach Prediction & Risk Forecasting";
+                if (typeof window.loadSLAPredictionWorkspace === "function") {
+                    window.loadSLAPredictionWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();

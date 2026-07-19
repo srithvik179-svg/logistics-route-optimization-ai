@@ -61,6 +61,15 @@
     <link rel="stylesheet" href="/static/components/reverse-logistics/RecoveryPanel/RecoveryPanel.css">
     <link rel="stylesheet" href="/static/components/reverse-logistics/RefurbishmentPanel/RefurbishmentPanel.css">
     <link rel="stylesheet" href="/static/components/reverse-logistics/RecyclingCenter/RecyclingCenter.css">
+    <!-- SLA Breach Prediction Platform -->
+    <link rel="stylesheet" href="/static/pages/sla-prediction/sla_prediction.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/PredictionDashboard/PredictionDashboard.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/RiskHeatmap/RiskHeatmap.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/ShipmentRiskTable/ShipmentRiskTable.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/HubRiskPanel/HubRiskPanel.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/ForecastTimeline/ForecastTimeline.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/AlertCenter/AlertCenter.css">
+    <link rel="stylesheet" href="/static/components/sla-prediction/RecommendationPanel/RecommendationPanel.css">
 
 
 
@@ -164,6 +173,12 @@
                         <a href="#" class="nav-link" data-target="reverse-section" id="nav-reverse">
                             <i class="fa-solid fa-rotate-left"></i>
                             <span>Reverse Logistics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="sla-section" id="nav-sla">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                            <span>SLA Prediction</span>
                         </a>
                     </li>
                     <li>
@@ -2999,6 +3014,46 @@
                     </div>
                 </section>
 
+                <!-- ENTERPRISE SLA BREACH PREDICTION & RISK FORECASTING PLATFORM -->
+                <section class="viewport-section" id="sla-section">
+                    <div class="sla-workspace">
+
+                        <!-- Executive KPI Scorecards -->
+                        <div id="sla-dashboard"></div>
+
+                        <!-- Map + Alerts Split -->
+                        <div class="sla-map-alert-grid">
+                            <!-- Leaflet SLA Risk Map -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-map-location-dot text-primary"></i> SLA Risk Map Layer</h3>
+                                </div>
+                                <div class="card-body" style="padding:0;">
+                                    <div id="sla-risk-map" class="sla-risk-map-container"></div>
+                                </div>
+                            </div>
+                            <!-- Proactive Risk Alerts -->
+                            <div id="sla-alert-center"></div>
+                        </div>
+
+                        <!-- Forecast Timeline -->
+                        <div id="sla-forecast-timeline"></div>
+
+                        <!-- Analytics & Delay Line Charts Panel -->
+                        <div id="sla-charts-panel" class="sla-charts-grid"></div>
+
+                        <!-- Hub Risk Matrix & AI Risk Recommendations -->
+                        <div class="sla-hub-rec-grid">
+                            <div id="sla-hub-panel"></div>
+                            <div id="sla-rec-panel"></div>
+                        </div>
+
+                        <!-- Shipment Risk Table -->
+                        <div id="sla-tracker"></div>
+
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -3284,6 +3339,15 @@
     <script src="/static/components/reverse-logistics/RefurbishmentPanel/RefurbishmentPanel.js"></script>
     <script src="/static/components/reverse-logistics/RecyclingCenter/RecyclingCenter.js"></script>
     <script src="/static/pages/reverse-logistics/reverse_logistics.js"></script>
+    <!-- SLA Breach Prediction Platform -->
+    <script src="/static/components/sla-prediction/PredictionDashboard/PredictionDashboard.js"></script>
+    <script src="/static/components/sla-prediction/RiskHeatmap/RiskHeatmap.js"></script>
+    <script src="/static/components/sla-prediction/ShipmentRiskTable/ShipmentRiskTable.js"></script>
+    <script src="/static/components/sla-prediction/HubRiskPanel/HubRiskPanel.js"></script>
+    <script src="/static/components/sla-prediction/ForecastTimeline/ForecastTimeline.js"></script>
+    <script src="/static/components/sla-prediction/AlertCenter/AlertCenter.js"></script>
+    <script src="/static/components/sla-prediction/RecommendationPanel/RecommendationPanel.js"></script>
+    <script src="/static/pages/sla-prediction/sla_prediction.js"></script>
 
 
 
