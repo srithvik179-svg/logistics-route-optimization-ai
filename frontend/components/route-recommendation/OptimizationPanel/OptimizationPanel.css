@@ -1,0 +1,21 @@
+/* OptimizationPanel Styles */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+.form-label {
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.form-control {
+    background-color: rgba(9, 9, 11, 0.4) !important;
+    border-color: rgba(63, 63, 70, 0.4) !important;
+    color: var(--text-primary) !important;
+}
+.form-control:focus {
+    border-color: var(--brand-blue) !important;
+    box-shadow: 0 0 8px var(--brand-blue-glow);
+}

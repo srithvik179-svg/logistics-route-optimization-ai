@@ -1,0 +1,36 @@
+/* route_recommendation Page Styles */
+.recommendation-workspace-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--space-6);
+    align-items: start;
+    margin-top: var(--space-6);
+}
+@media (max-width: 1024px) {
+    .recommendation-workspace-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.map-playback-container {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: var(--space-6);
+}
+.rec-right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+/* Actions Toolbar overlay */
+.rec-actions-toolbar {
+    display: none;
+    justify-content: flex-end;
+    align-items: center;
+    background: rgba(24, 24, 27, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}

@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="/static/components/analytics/DashboardGrid/DashboardGrid.css">
     <link rel="stylesheet" href="/static/components/analytics/AnalyticsCard/AnalyticsCard.css">
     <link rel="stylesheet" href="/static/components/analytics/AnalyticsWorkspace/AnalyticsWorkspace.css">
+    <!-- AI Route Recommendation Components -->
+    <link rel="stylesheet" href="/static/pages/route-recommendation/route_recommendation.css">
+    <link rel="stylesheet" href="/static/components/route-recommendation/OptimizationPanel/OptimizationPanel.css">
+    <link rel="stylesheet" href="/static/components/route-recommendation/RecommendationCard/RecommendationCard.css">
+    <link rel="stylesheet" href="/static/components/route-recommendation/DecisionExplanation/DecisionExplanation.css">
+    <link rel="stylesheet" href="/static/components/route-recommendation/ComparisonTable/ComparisonTable.css">
+    <link rel="stylesheet" href="/static/components/route-recommendation/RoutePlayback/RoutePlayback.css">
+    <link rel="stylesheet" href="/static/components/route-recommendation/RecommendationHistory/RecommendationHistory.css">
+
 
 
     <!-- Plotly.js CDN -->
@@ -106,6 +115,12 @@
                         <a href="#" class="nav-link" data-target="workspace-section" id="nav-workspace">
                             <i class="fa-solid fa-brain"></i>
                             <span>AI Insights</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="recommendation-section" id="nav-recommendation">
+                            <i class="fa-solid fa-compass-drafting"></i>
+                            <span>AI Routing Center</span>
                         </a>
                     </li>
                     <li>
@@ -2785,6 +2800,56 @@
                         </div>
                     </div>
                 </section>
+                
+                <!-- AI ROUTE RECOMMENDATION SECTION -->
+                <section class="viewport-section" id="recommendation-section">
+                    
+                    <div class="recommendation-workspace-grid">
+                        
+                        <!-- Left Panel: Inputs and History -->
+                        <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+                            <div id="rec-inputs-panel"></div>
+                            <div id="rec-history-panel"></div>
+                        </div>
+                        
+                        <!-- Right Panel: Map, Playback, Scorecard, Explanation, Comparison -->
+                        <div class="rec-right-panel">
+                            
+                            <!-- Leaflet Map viewport and animated playback controls overlay -->
+                            <div class="map-playback-container">
+                                <div id="recommendation-map" class="recommendation-map"></div>
+                                <div class="playback-controls-overlay">
+                                    <button onclick="window.RoutePlayback.togglePlay()"><i class="fa-solid fa-play" id="pb-play-icon"></i> Play/Pause</button>
+                                    <button onclick="window.RoutePlayback.stop()"><i class="fa-solid fa-stop"></i> Stop</button>
+                                    <span class="pb-status" id="pb-step-info">Playback stopped</span>
+                                    <select onchange="window.RoutePlayback.setSpeed(parseInt(this.value))">
+                                        <option value="600">0.5x Speed</option>
+                                        <option value="300" selected>1.0x Speed</option>
+                                        <option value="150">2.0x Speed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Decision actions toolbar: Accept & Exports -->
+                            <div class="rec-actions-toolbar" id="rec-actions-toolbar">
+                                <button class="btn btn-secondary btn-sm" onclick="window.exportRecommendationCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                                <button class="btn btn-secondary btn-sm" onclick="window.exportRecommendationPDF()"><i class="fa-solid fa-file-pdf"></i> Export printable Report</button>
+                                <button class="btn btn-primary btn-sm" onclick="window.acceptRecommendation()"><i class="fa-solid fa-circle-check"></i> Accept Recommendation</button>
+                            </div>
+
+                            <!-- Route Scorecard details panel -->
+                            <div id="rec-scorecard-panel"></div>
+                            
+                            <!-- AI Decision Explanation panel -->
+                            <div id="rec-explanation-panel"></div>
+                            
+                            <!-- Comparison table panel -->
+                            <div id="rec-comparison-panel"></div>
+                            
+                        </div>
+                        
+                    </div>
+                </section>
 
             </div>
         </main>
@@ -3040,6 +3105,15 @@
     <script src="/static/components/analytics/DashboardGrid/DashboardGrid.js"></script>
     <script src="/static/components/analytics/AnalyticsCard/AnalyticsCard.js"></script>
     <script src="/static/components/analytics/AnalyticsWorkspace/AnalyticsWorkspace.js"></script>
+    <!-- AI Route Recommendation Components -->
+    <script src="/static/components/route-recommendation/OptimizationPanel/OptimizationPanel.js"></script>
+    <script src="/static/components/route-recommendation/RecommendationCard/RecommendationCard.js"></script>
+    <script src="/static/components/route-recommendation/DecisionExplanation/DecisionExplanation.js"></script>
+    <script src="/static/components/route-recommendation/ComparisonTable/ComparisonTable.js"></script>
+    <script src="/static/components/route-recommendation/RoutePlayback/RoutePlayback.js"></script>
+    <script src="/static/components/route-recommendation/RecommendationHistory/RecommendationHistory.js"></script>
+    <script src="/static/pages/route-recommendation/route_recommendation.js"></script>
+
     
     <script src="/static/js/api_gateway_integration.js"></script>
 

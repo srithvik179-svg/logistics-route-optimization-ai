@@ -120,6 +120,11 @@ function initNavigation() {
             } else if (targetId === "workspace-section") {
                 headerTitle.textContent = "AI Insights Workspace";
                 loadWorkspace();
+            } else if (targetId === "recommendation-section") {
+                headerTitle.textContent = "AI Route Recommendation Workspace";
+                if (typeof window.loadRecommendationWorkspace === "function") {
+                    window.loadRecommendationWorkspace();
+                }
             } else if (targetId === "executive-section") {
                 headerTitle.textContent = "Executive Command Center";
                 loadExecutiveCommandCenter();
