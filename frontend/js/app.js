@@ -2065,6 +2065,8 @@ async function loadNetworkMap() {
         if (!mapState.dropdownsPopulated) {
             populateMapDropdowns(payload);
         }
+
+        console.log("[Observability] Optimization Layer Loaded");
         
     } catch (err) {
         console.error("loadNetworkMap Error:", err);
@@ -2112,6 +2114,8 @@ function initLeafletMap() {
     };
     mapState.legendControl.addTo(mapState.map);
     
+    console.log("[Observability] Map Initialized");
+
     // 5. Wire log on popup open
     mapState.map.on("popupopen", function(e) {
         console.log("Popup Opened event logged.");
@@ -2218,6 +2222,9 @@ function renderMapLayers(data) {
         mapState.flowsGroup.addLayer(line);
     });
     console.log("Flows Rendered event logged.");
+    
+    console.log("[Observability] Locations Loaded");
+    console.log("[Observability] Routes Rendered");
 }
 
 function updateMapSummaryPanel(sum) {
