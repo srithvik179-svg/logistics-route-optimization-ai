@@ -18,6 +18,11 @@
     <link rel="stylesheet" href="/static/design-system/components.css">
     <link rel="stylesheet" href="/static/css/auth.css">
     <link rel="stylesheet" href="/static/design-system/command_center.css">
+    <link rel="stylesheet" href="/static/components/common/LoadingSkeleton/LoadingSkeleton.css">
+    <link rel="stylesheet" href="/static/components/common/EmptyState/EmptyState.css">
+    <link rel="stylesheet" href="/static/components/common/ErrorState/ErrorState.css">
+    <link rel="stylesheet" href="/static/components/common/EnhancedTable/EnhancedTable.css">
+
     <!-- Plotly.js CDN -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <!-- Leaflet.js Mapping CDNs -->
@@ -3056,9 +3061,19 @@
     </div>
 
     <!-- Main Client-Side Javascript -->
+    <!-- Stabilizing Utilities & Components -->
+    <script src="/static/utils/validators/validators.js"></script>
+    <script src="/static/utils/formatters/formatters.js"></script>
+    <script src="/static/components/common/SafeValue/SafeValue.js"></script>
+    <script src="/static/components/common/LoadingSkeleton/LoadingSkeleton.js"></script>
+    <script src="/static/components/common/EmptyState/EmptyState.js"></script>
+    <script src="/static/components/common/ErrorState/ErrorState.js"></script>
+    <script src="/static/components/common/EnhancedTable/EnhancedTable.js"></script>
+    
     <script src="/static/js/api_gateway_integration.js"></script>
     <script src="/static/js/executive_dashboard.js"></script>
     <script src="/static/js/workspace.js"></script>
+
     <!-- Design System Engine -->
     <script src="/static/design-system/design_system.js"></script>
     <!-- Authentication Experience -->

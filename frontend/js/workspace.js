@@ -1309,17 +1309,7 @@ function clickNav(sectionId) {
 // FORMATTERS
 // ============================================================
 
-const wsNum  = v => v == null ? '—' : Number(v).toLocaleString();
-const wsDays = v => v == null ? '—' : `${Number(v).toFixed(1)} days`;
-const wsCurr = v => {
-    if (v == null) return '—';
-    const n = Number(v);
-    if (n >= 1e7) return '₹' + (n / 1e7).toFixed(2) + 'Cr';
-    if (n >= 1e5) return '₹' + (n / 1e5).toFixed(2) + 'L';
-    return '₹' + n.toFixed(2);
-};
-const wsPct  = v => {
-    if (v == null) return '—';
-    const n = Number(v);
-    return (n <= 1 ? n * 100 : n).toFixed(1) + '%';
-};
+const wsNum  = v => window.Formatters.safeNumber(v);
+const wsDays = v => window.Formatters.safeDuration(v);
+const wsCurr = v => window.Formatters.safeCurrency(v);
+const wsPct  = v => window.Formatters.safePercentage(v);

@@ -1,0 +1,36 @@
+/* Enhanced Table Styles */
+.enhanced-data-table th {
+    position: relative;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: col-resize;
+    user-select: none;
+    background: transparent;
+    transition: background-color var(--transition-fast) ease;
+    z-index: 50;
+}
+.resize-handle:hover,
+.resize-handle:active {
+    background-color: var(--brand-blue);
+    width: 6px;
+}
+.data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 var(--border-color);
+}
+.table-container {
+    max-height: 480px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}

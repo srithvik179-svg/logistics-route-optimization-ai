@@ -1,0 +1,30 @@
+/* Error State Styles */
+.error-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+    background: rgba(244, 63, 94, 0.05);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    border-radius: var(--radius-lg);
+    margin: var(--space-4) 0;
+}
+.error-state-icon {
+    font-size: 2.5rem;
+    color: var(--danger-color);
+    margin-bottom: var(--space-4);
+}
+.error-state-title {
+    font-family: var(--font-heading);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+}
+.error-state-desc {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    max-width: 320px;
+}

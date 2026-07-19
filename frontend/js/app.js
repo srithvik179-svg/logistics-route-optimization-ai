@@ -938,6 +938,7 @@ function renderExplorerTable() {
         });
         tbody.appendChild(tr);
     });
+    window.EnhancedTable.init(tbody.closest("table"));
 }
 
 function onHeaderClick(colName) {
@@ -1923,6 +1924,7 @@ function renderBITable() {
         `;
         tbody.appendChild(tr);
     });
+    window.EnhancedTable.init(tbody.closest("table"));
     
     const tot = biState.filteredTransactions.length;
     document.getElementById("bi-table-pagination-summary").textContent = `Showing ${startIdx + 1}-${Math.min(endIdx, tot)} of ${tot} records`;
@@ -2063,9 +2065,10 @@ async function loadNetworkMap() {
             mapState.map.invalidateSize();
         }, 100);
     }
-    
+     window.LoadingSkeleton.showMapOverlay("network-map", true);
     try {
         const payload = await fetchGeospatialNetwork();
+        window.LoadingSkeleton.showMapOverlay("network-map", false);
         
         // Populate Summary Stats panel
         updateMapSummaryPanel(payload.summary);
@@ -2077,12 +2080,13 @@ async function loadNetworkMap() {
         if (!mapState.dropdownsPopulated) {
             populateMapDropdowns(payload);
         }
-
+        
         console.log("[Observability] Optimization Layer Loaded");
         
     } catch (err) {
         console.error("loadNetworkMap Error:", err);
-        alert("Failed loading geospatial network map payload.");
+        window.LoadingSkeleton.showMapOverlay("network-map", false);
+        window.ErrorState.renderMapError("network-map", "Failed loading geospatial network map details.", () => loadNetworkMap());
     }
 }
 
@@ -2378,7 +2382,8 @@ async function loadRouteIntelligence() {
         
     } catch (err) {
         console.error("loadRouteIntelligence Error:", err);
-        alert("Failed loading route intelligence analytics.");
+        window.ErrorState.renderTableError("routes-table-body", 9, "Connection Error", "Failed to fetch route records.", () => loadRouteIntelligence());
+        window.ErrorState.renderTableError("flows-table-body", 5, "Connection Error", "Failed to fetch flow analysis.", () => loadRouteIntelligence());
     }
 }
 
@@ -2580,7 +2585,9 @@ function renderRouteTable(routes) {
         
         const complMet = r.status_dist["MET"] || 0;
         const complMissed = r.status_dist["MISSED"] || 0;
-        const complianceRate = ((complMet / r.shipment_count) * 100.0).toFixed(0);
+        const complianceRate = r.shipment_count > 0 
+            ? ((complMet / r.shipment_count) * 100.0).toFixed(0) 
+            : 0;
         
         const complianceColor = complianceRate >= 80 ? "text-success" : complianceRate >= 50 ? "text-warning" : "text-danger";
         
@@ -2602,6 +2609,7 @@ function renderRouteTable(routes) {
         
         tbody.appendChild(tr);
     });
+    window.EnhancedTable.init(tbody.closest("table"));
 }
 
 function renderFlowAnalysis(flows) {
@@ -2639,6 +2647,7 @@ function renderFlowAnalysis(flows) {
         
         tbody.appendChild(tr);
     });
+    window.EnhancedTable.init(tbody.closest("table"));
 }
 
 function showRouteDetailsModal(origin, dest) {
@@ -2660,7 +2669,9 @@ function showRouteDetailsModal(origin, dest) {
     
     const metCount = r.status_dist["MET"] || 0;
     const missedCount = r.status_dist["MISSED"] || 0;
-    const metPct = ((metCount / r.shipment_count) * 100.0).toFixed(0);
+    const metPct = r.shipment_count > 0 
+        ? ((metCount / r.shipment_count) * 100.0).toFixed(0) 
+        : 0;
     
     document.getElementById("route-modal-sla-met").textContent = `${metCount} shipments`;
     document.getElementById("route-modal-sla-missed").textContent = `${missedCount} shipments`;
@@ -2825,7 +2836,8 @@ async function loadLogisticsPerformance() {
         
     } catch (err) {
         console.error("loadLogisticsPerformance Error:", err);
-        alert("Failed loading logistics performance monitoring dashboards.");
+        window.ErrorState.renderTableError("tbl-perf-hub-scorecard", 5, "Connection Error", "Failed to fetch hub performance scores.", () => loadLogisticsPerformance());
+        window.ErrorState.renderTableError("tbl-perf-rc-scorecard", 5, "Connection Error", "Failed to fetch center performance scores.", () => loadLogisticsPerformance());
     }
 }
 
@@ -2840,16 +2852,17 @@ async function fetchPerformanceData() {
 }
 
 function updatePerfOverviewPanel(kpis) {
-    document.getElementById("kpi-perf-transit").textContent = `${kpis.avg_transit_time} Days`;
-    document.getElementById("kpi-perf-cost").textContent = `$${kpis.avg_logistics_cost.toFixed(2)}`;
-    document.getElementById("kpi-perf-route-util").textContent = `${kpis.avg_route_utilization}%`;
-    document.getElementById("kpi-perf-delay").textContent = `${kpis.avg_shipment_delay} Days`;
-    document.getElementById("kpi-perf-hub-util").textContent = `${kpis.avg_hub_utilization}%`;
-    document.getElementById("kpi-perf-rc-util").textContent = `${kpis.avg_rc_utilization}%`;
-    document.getElementById("kpi-perf-otd").textContent = `${kpis.on_time_delivery_pct}%`;
-    document.getElementById("kpi-perf-delayed-pct").textContent = `${kpis.delayed_shipment_pct}%`;
-    document.getElementById("kpi-perf-day-vol").textContent = kpis.avg_shipments_per_day;
-    document.getElementById("kpi-perf-route-vol").textContent = kpis.avg_shipments_per_route;
+    kpis = kpis || {};
+    document.getElementById("kpi-perf-transit").textContent = window.Formatters.safeDuration(kpis.avg_transit_time);
+    document.getElementById("kpi-perf-cost").textContent = window.Formatters.safeCurrency(kpis.avg_logistics_cost);
+    document.getElementById("kpi-perf-route-util").textContent = window.Formatters.safePercentage(kpis.avg_route_utilization);
+    document.getElementById("kpi-perf-delay").textContent = window.Formatters.safeDuration(kpis.avg_shipment_delay);
+    document.getElementById("kpi-perf-hub-util").textContent = window.Formatters.safePercentage(kpis.avg_hub_utilization);
+    document.getElementById("kpi-perf-rc-util").textContent = window.Formatters.safePercentage(kpis.avg_rc_utilization);
+    document.getElementById("kpi-perf-otd").textContent = window.Formatters.safePercentage(kpis.on_time_delivery_pct);
+    document.getElementById("kpi-perf-delayed-pct").textContent = window.Formatters.safePercentage(kpis.delayed_shipment_pct);
+    document.getElementById("kpi-perf-day-vol").textContent = window.Formatters.safeNumber(kpis.avg_shipments_per_day);
+    document.getElementById("kpi-perf-route-vol").textContent = window.Formatters.safeNumber(kpis.avg_shipments_per_route);
     
     console.log("KPIs Calculated event logged.");
 }

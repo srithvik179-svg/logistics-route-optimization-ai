@@ -940,42 +940,32 @@ function setDelta(id, value, threshold, higherIsBetter) {
 }
 
 function fmtNum(val) {
-    if (val == null) return "—";
-    return Number(val).toLocaleString();
+    return window.Formatters.safeNumber(val);
 }
 
 function fmtCurrency(val) {
-    if (val == null) return "—";
-    const n = Number(val);
-    if (n >= 1e7) return "₹" + (n / 1e7).toFixed(2) + "Cr";
-    if (n >= 1e5) return "₹" + (n / 1e5).toFixed(2) + "L";
-    return "₹" + n.toFixed(2);
+    return window.Formatters.safeCurrency(val);
 }
 
 function fmtPct(val) {
-    if (val == null) return "—";
-    const n = Number(val);
-    // Handle both 0.95 (fraction) and 95 (percentage) forms
-    const pct = n <= 1 ? n * 100 : n;
-    return pct.toFixed(1) + "%";
+    return window.Formatters.safePercentage(val);
 }
 
 function fmtDays(val) {
-    if (val == null) return "—";
-    return Number(val).toFixed(1) + " days";
+    return window.Formatters.safeDuration(val);
 }
 
 function fmtMs(val) {
-    if (val == null) return "—";
+    if (!window.Validators.isValidNumber(val)) return "—";
     return Number(val).toFixed(2) + " ms";
 }
 
 function fmtKm(val) {
-    if (val == null) return "—";
-    return Number(val).toFixed(1) + " km";
+    return window.Formatters.safeDistance(val);
 }
 
 function fmtScore(val) {
-    if (val == null) return "—";
+    if (!window.Validators.isValidNumber(val)) return "—";
     return Number(val).toFixed(1) + " / 100";
 }
+
