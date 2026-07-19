@@ -20,6 +20,7 @@ from backend.services.bi_service import BIService
 from backend.services.geospatial_service import GeospatialService
 from backend.services.route_analysis_service import RouteAnalysisService
 from backend.services.performance_service import PerformanceService
+from backend.services.cost_engine import CostEngine
 from backend.config import DEFAULT_DATASET_PATH
 from backend.validators.dataset_validator import DatasetValidator
 
@@ -143,6 +144,9 @@ class RouteAnalysisRequest(BaseModel):
     filters: Dict[str, Any]
 
 class PerformanceRequest(BaseModel):
+    filters: Dict[str, Any]
+
+class CostAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
 # Explorer API Models & Endpoints
@@ -386,6 +390,16 @@ def get_performance_payload(payload: PerformanceRequest):
         return data
     except Exception as e:
         logger.error(f"Performance Monitoring API Error: Failed retrieving performance payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/cost-analytics/payload")
+def get_cost_analytics_payload(payload: CostAnalyticsRequest):
+    """Returns comprehensive cost analytics: overview metrics, breakdowns, variance, rankings, and trends."""
+    try:
+        data = CostEngine.get_cost_analytics(payload.filters)
+        return data.model_dump()
+    except Exception as e:
+        logger.error(f"Cost Analytics API Error: Failed retrieving cost analytics payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Serve Static Frontend Files
