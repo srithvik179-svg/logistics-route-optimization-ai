@@ -511,6 +511,55 @@ def get_geospatial_network(payload: GeospatialNetworkRequest):
         logger.error(f"Geospatial API Error: Failed retrieving map network payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/geospatial-network/payload")
+def get_geospatial_network_payload(payload: Dict[str, Any] = None):
+    """Fallback endpoint for legacy route-recommendation, cost-optimization, and corridor intelligence."""
+    params = payload if payload else {}
+    filters = params.get("filters", {})
+    try:
+        net_data = GeospatialService.get_network_payload(filters)
+        
+        # Build nodes list
+        nodes = []
+        for h in net_data.get("hubs", []):
+            nodes.append({
+                "id": h.get("id"),
+                "latitude": h.get("lat"),
+                "longitude": h.get("lon"),
+                "city": h.get("city"),
+                "state": h.get("state"),
+                "region": h.get("region"),
+                "type": h.get("type")
+            })
+        for rc in net_data.get("repair_centers", []):
+            nodes.append({
+                "id": rc.get("id"),
+                "latitude": rc.get("lat"),
+                "longitude": rc.get("lon"),
+                "city": rc.get("city"),
+                "state": rc.get("state"),
+                "region": rc.get("region"),
+                "type": rc.get("type")
+            })
+            
+        # Build routes list
+        routes = []
+        for f in net_data.get("flows", []):
+            routes.append({
+                "origin": f.get("origin"),
+                "destination": f.get("destination"),
+                "corridor": f.get("corridor")
+            })
+            
+        return {
+            "status": "success",
+            "nodes": nodes,
+            "routes": routes
+        }
+    except Exception as e:
+        logger.error(f"Geospatial Network Payload API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/route-analysis/payload")
 def get_route_analysis_payload(payload: RouteAnalysisRequest):
     """Returns dynamically analyzed route metrics, bottlenecks, and graph data."""

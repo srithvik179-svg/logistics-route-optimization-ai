@@ -21,6 +21,28 @@
 
         // 3. Populate Closed Lanes selector choices from network graph
         try {
+            const checkRes = await fetch("/api/dataset/status");
+            let isValid = false;
+            if (checkRes.ok) {
+                const statusData = await checkRes.json();
+                isValid = !!(statusData.validation_report && statusData.validation_report.is_valid);
+            }
+
+            if (!isValid) {
+                const simPanel = document.getElementById("sim-builder-panel");
+                if (simPanel) {
+                    simPanel.innerHTML = `
+                        <div class="card glass-panel text-center" style="padding: 1.5rem; border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 8px;">
+                            <i class="fa-solid fa-database text-danger" style="font-size: 1.5rem; margin-bottom: 0.5rem; opacity: 0.8;"></i>
+                            <h5 style="color:#fff; margin-bottom: 0.25rem;">No Dataset Loaded</h5>
+                            <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 0.75rem;">Please upload the Dell FutureMinds dataset to run cost optimizations.</p>
+                            <button class="btn btn-primary btn-sm" onclick="navigateToDataset()" style="font-size: 10px; padding:2px 8px;">Go to Import Screen</button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
             const res = await fetch("/api/geospatial-network/payload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -43,6 +65,16 @@
             window.ScenarioBuilder.populateCorridors(corridors);
         } catch (err) {
             console.error("[CostOptimization] Population Error:", err);
+            const simPanel = document.getElementById("sim-builder-panel");
+            if (simPanel) {
+                simPanel.innerHTML = `
+                    <div class="card glass-panel text-center" style="padding: 1rem; border: 1px solid rgba(239, 68, 68, 0.4);">
+                        <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 1.2rem; margin-bottom: 0.25rem;"></i>
+                        <h6 style="color:#fff; margin-bottom: 0.25rem;">Failed to load corridors</h6>
+                        <button class="btn btn-secondary btn-sm" onclick="loadCostWorkspace()" style="font-size: 9px; padding: 2px 6px;">Retry</button>
+                    </div>
+                `;
+            }
         }
 
         // Render empty states

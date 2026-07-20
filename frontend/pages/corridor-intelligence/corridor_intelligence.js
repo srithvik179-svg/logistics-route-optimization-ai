@@ -30,6 +30,29 @@
         window.LoadingSkeleton.showMapOverlay("corridor-heatmap-map", true);
 
         try {
+            const checkRes = await fetch("/api/dataset/status");
+            let isValid = false;
+            if (checkRes.ok) {
+                const statusData = await checkRes.json();
+                isValid = !!(statusData.validation_report && statusData.validation_report.is_valid);
+            }
+
+            if (!isValid) {
+                window.LoadingSkeleton.showMapOverlay("corridor-heatmap-map", false);
+                const mapOverlay = document.getElementById("corridor-heatmap-map");
+                if (mapOverlay) {
+                    mapOverlay.innerHTML = `
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted); padding:2rem; text-align:center;">
+                            <i class="fa-solid fa-database text-danger" style="font-size: 2.5rem; margin-bottom: 1rem; opacity:0.8;"></i>
+                            <h4 style="color:#fff; margin-bottom:0.5rem;">No Dataset Loaded</h4>
+                            <p style="font-size: 12px; margin-bottom: 1rem;">Please upload the Dell FutureMinds dataset to view corridors.</p>
+                            <button class="btn btn-primary btn-sm" onclick="navigateToDataset()">Go to Import Screen</button>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
             // First fetch nodes layout
             const netRes = await fetch("/api/geospatial-network/payload", {
                 method: "POST",
@@ -70,7 +93,17 @@
         } catch (err) {
             console.error("[CorridorIntelligence] Load Error:", err);
             window.LoadingSkeleton.showMapOverlay("corridor-heatmap-map", false);
-            alert("Connection error loading corridor intelligence data.");
+            const mapOverlay = document.getElementById("corridor-heatmap-map");
+            if (mapOverlay) {
+                mapOverlay.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text-muted); padding:2rem; text-align:center;">
+                        <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 2.5rem; margin-bottom: 1rem; opacity:0.8;"></i>
+                        <h4 style="color:#fff; margin-bottom:0.5rem;">Failed to load corridors</h4>
+                        <p style="font-size: 12px; margin-bottom: 1rem;">Service connectivity issue detected.</p>
+                        <button class="btn btn-secondary btn-sm" onclick="loadCorridorData()">Retry</button>
+                    </div>
+                `;
+            }
         }
     }
 

@@ -160,7 +160,91 @@ const wsGet  = (url)           => wsFetch(url, 'GET');
 // TAB 1: INSIGHT OVERVIEW
 // ============================================================
 
+// ============================================================
+// DATASET STATUS HELPERS & ERROR HANDLING
+// ============================================================
+
+async function checkDatasetStatus() {
+    try {
+        const res = await fetch("/api/dataset/status");
+        if (!res.ok) return false;
+        const data = await res.json();
+        return !!(data.validation_report && data.validation_report.is_valid);
+    } catch (e) {
+        return false;
+    }
+}
+
+function showEmptyDatasetState(containerIds) {
+    containerIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `
+            <div class="card glass-panel text-center" style="padding: 2rem; border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 8px; margin: 10px 0;">
+                <i class="fa-solid fa-database text-danger" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.8;"></i>
+                <h4 style="color:#fff; margin-bottom: 0.5rem;">No Dataset Loaded</h4>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">Please upload or import the Dell FutureMinds dataset to populate analytics dashboard widgets.</p>
+                <button class="btn btn-primary btn-sm" onclick="navigateToDataset()">Go to Import Screen</button>
+            </div>
+        `;
+    });
+}
+
+function showErrorState(containerIds, retryFnName) {
+    containerIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `
+            <div class="card glass-panel text-center" style="padding: 1.5rem; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; margin: 10px 0;">
+                <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                <h5 style="color:#fff; margin-bottom: 0.25rem;">Failed to load widgets</h5>
+                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem;">Service connectivity issue detected.</p>
+                <button class="btn btn-secondary btn-sm" onclick="${retryFnName}()" style="padding: 2px 8px; font-size: 10px;">
+                    <i class="fa-solid fa-rotate-right"></i> Retry
+                </button>
+            </div>
+        `;
+    });
+}
+
 async function loadInsightOverview() {
+    const containers = ['ws-highlight-strip', 'ws-opp-cards', 'ws-risk-cards', 'ws-trend-cards'];
+    
+    // Renders loading skeletons initially
+    containers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px; padding:10px; width:100%;">
+                    <div style="height:15px; width:40%; background:rgba(255,255,255,0.05); border-radius:4px;" class="skeleton-pulse"></div>
+                    <div style="height:25px; width:80%; background:rgba(255,255,255,0.05); border-radius:4px;" class="skeleton-pulse"></div>
+                </div>
+            `;
+        }
+    });
+
+    if (!document.getElementById("skeleton-animation-styles")) {
+        const style = document.createElement("style");
+        style.id = "skeleton-animation-styles";
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 0.6; }
+                50% { opacity: 0.3; }
+                100% { opacity: 0.6; }
+            }
+            .skeleton-pulse {
+                animation: pulse 1.5s infinite ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const isValid = await checkDatasetStatus();
+    if (!isValid) {
+        showEmptyDatasetState(containers);
+        return;
+    }
+
     try {
         const [dashRes, scoringRes, slaRes, biRes] = await Promise.allSettled([
             wsGet('/api/analytics/dashboard'),
@@ -169,30 +253,47 @@ async function loadInsightOverview() {
             wsPost('/api/bi/dashboard', { filters: {} }),
         ]);
 
+        let success = false;
+
         // --- Executive Highlights ---
-        if (dashRes.status === 'fulfilled') {
+        if (dashRes.status === 'fulfilled' && dashRes.value) {
             renderExecutiveHighlights(dashRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-highlight-strip'], 'loadInsightOverview');
         }
 
         // --- Opportunities (from route scoring: high-score routes) ---
-        if (scoringRes.status === 'fulfilled') {
+        if (scoringRes.status === 'fulfilled' && scoringRes.value) {
             renderOpportunityCards(scoringRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-opp-cards'], 'loadInsightOverview');
         }
 
         // --- Risks (from SLA violations + bottlenecks) ---
-        if (slaRes.status === 'fulfilled') {
+        if (slaRes.status === 'fulfilled' && slaRes.value) {
             renderRiskCards(slaRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-risk-cards'], 'loadInsightOverview');
         }
 
         // --- Business Trends ---
-        if (biRes.status === 'fulfilled') {
+        if (biRes.status === 'fulfilled' && biRes.value) {
             renderBusinessTrends(biRes.value, dashRes.status === 'fulfilled' ? dashRes.value : null);
+            success = true;
+        } else {
+            showErrorState(['ws-trend-cards'], 'loadInsightOverview');
         }
 
-        initCollapsibles();
-        console.log('[Observability] Insights Updated');
+        if (success) {
+            initCollapsibles();
+            console.log('[Observability] Insights Updated');
+        }
     } catch (err) {
         console.error('[Workspace] loadInsightOverview:', err);
+        showErrorState(containers, 'loadInsightOverview');
     }
 }
 
@@ -383,6 +484,23 @@ function renderBusinessTrends(bi, dash) {
 // ============================================================
 
 async function loadDecisionSupport() {
+    const containers = ['ws-top-performers', 'ws-bottom-performers', 'ws-opt-comparison', 'ws-sla-trend-chart'];
+
+    // Skeletons
+    document.querySelectorAll('#ws-top-performers, #ws-bottom-performers, #ws-opt-comparison').forEach(el => {
+        el.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:1.5rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading rankings...</td></tr>`;
+    });
+    const trendEl = document.getElementById("ws-sla-trend-chart");
+    if (trendEl) {
+        trendEl.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;"></i></div>`;
+    }
+
+    const isValid = await checkDatasetStatus();
+    if (!isValid) {
+        showEmptyDatasetState(containers);
+        return;
+    }
+
     try {
         const [scoringRes, slaRes, astarRes, costRes] = await Promise.allSettled([
             wsPost('/api/route-scoring/payload', { filters: {} }),
@@ -391,22 +509,38 @@ async function loadDecisionSupport() {
             wsPost('/api/cost-analytics/payload', { filters: {} }),
         ]);
 
+        let success = false;
+
         // Top & Bottom Performers
-        if (scoringRes.status === 'fulfilled') {
+        if (scoringRes.status === 'fulfilled' && scoringRes.value) {
             renderPerformanceTables(scoringRes.value, slaRes.status === 'fulfilled' ? slaRes.value : null);
+            success = true;
+        } else {
+            showErrorState(['ws-top-performers', 'ws-bottom-performers'], 'loadDecisionSupport');
         }
 
         // Optimization Comparison
-        renderOptimizationComparison(astarRes.status === 'fulfilled' ? astarRes.value : null);
-
-        // SLA Trend Chart
-        if (slaRes.status === 'fulfilled') {
-            renderSLATrendChart(slaRes.value);
+        if (astarRes.status === 'fulfilled' && astarRes.value) {
+            renderOptimizationComparison(astarRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-opt-comparison'], 'loadDecisionSupport');
         }
 
-        console.log('[Observability] Insights Updated');
+        // SLA Trend Chart
+        if (slaRes.status === 'fulfilled' && slaRes.value) {
+            renderSLATrendChart(slaRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-sla-trend-chart'], 'loadDecisionSupport');
+        }
+
+        if (success) {
+            console.log('[Observability] Insights Updated');
+        }
     } catch (err) {
         console.error('[Workspace] loadDecisionSupport:', err);
+        showErrorState(containers, 'loadDecisionSupport');
     }
 }
 
@@ -521,7 +655,13 @@ function renderSLATrendChart(slaData) {
 
 async function loadOperationalAlerts() {
     const feed = document.getElementById('ws-alert-feed');
-    if (feed) feed.innerHTML = '<div class="exec-loading">Scanning for alerts...</div>';
+    if (feed) feed.innerHTML = '<div class="exec-loading"><i class="fa-solid fa-spinner fa-spin"></i> Scanning for alerts...</div>';
+
+    const isValid = await checkDatasetStatus();
+    if (!isValid) {
+        showEmptyDatasetState(['ws-alert-feed']);
+        return;
+    }
 
     try {
         const [slaRes, capacityRes] = await Promise.allSettled([
@@ -531,7 +671,7 @@ async function loadOperationalAlerts() {
 
         wsAllAlerts = [];
 
-        if (slaRes.status === 'fulfilled') {
+        if (slaRes.status === 'fulfilled' && slaRes.value) {
             const violations = slaRes.value.violations ?? slaRes.value.sla_violations ?? [];
             violations.forEach(v => {
                 wsAllAlerts.push({
@@ -562,7 +702,7 @@ async function loadOperationalAlerts() {
             }
         }
 
-        if (capacityRes.status === 'fulfilled') {
+        if (capacityRes.status === 'fulfilled' && capacityRes.value) {
             const bottlenecks = capacityRes.value.bottlenecks ?? [];
             bottlenecks.forEach(b => {
                 const util = b.utilization_rate ?? b.utilization ?? 0;
@@ -617,7 +757,7 @@ async function loadOperationalAlerts() {
         console.log('[Observability] Insights Updated');
     } catch (err) {
         console.error('[Workspace] loadOperationalAlerts:', err);
-        if (feed) feed.innerHTML = '<div class="exec-loading text-danger">Failed to load alerts.</div>';
+        showErrorState(['ws-alert-feed'], 'loadOperationalAlerts');
     }
 }
 
@@ -660,6 +800,20 @@ function filterAlerts(severity) {
 // ============================================================
 
 async function loadAnalyticsWorkspace() {
+    const containers = ['ws-kpi-strip', 'ws-cost-panel-content', 'ws-transit-panel-content', 'ws-inventory-panel-content', 'ws-network-panel-content'];
+
+    // Skeletons
+    containers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = `<div style="padding:1rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>`;
+    });
+
+    const isValid = await checkDatasetStatus();
+    if (!isValid) {
+        showEmptyDatasetState(containers);
+        return;
+    }
+
     try {
         const [dashRes, costRes, transitRes, inventoryRes, capacityRes] = await Promise.allSettled([
             wsGet('/api/analytics/dashboard'),
@@ -669,20 +823,51 @@ async function loadAnalyticsWorkspace() {
             wsPost('/api/capacity-analytics/payload', { filters: {} }),
         ]);
 
+        let success = false;
+
         // KPI strip
-        if (dashRes.status === 'fulfilled') {
+        if (dashRes.status === 'fulfilled' && dashRes.value) {
             renderWsKpiStrip(dashRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-kpi-strip'], 'loadAnalyticsWorkspace');
         }
 
-        if (costRes.status === 'fulfilled') renderCostPanel(costRes.value);
-        if (transitRes.status === 'fulfilled') renderTransitPanel(transitRes.value);
-        if (inventoryRes.status === 'fulfilled') renderInventoryPanel(inventoryRes.value);
-        if (capacityRes.status === 'fulfilled') renderNetworkPanel(capacityRes.value);
+        if (costRes.status === 'fulfilled' && costRes.value) {
+            renderCostPanel(costRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-cost-panel-content'], 'loadAnalyticsWorkspace');
+        }
 
-        initCollapsibles();
-        console.log('[Observability] Insights Updated');
+        if (transitRes.status === 'fulfilled' && transitRes.value) {
+            renderTransitPanel(transitRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-transit-panel-content'], 'loadAnalyticsWorkspace');
+        }
+
+        if (inventoryRes.status === 'fulfilled' && inventoryRes.value) {
+            renderInventoryPanel(inventoryRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-inventory-panel-content'], 'loadAnalyticsWorkspace');
+        }
+
+        if (capacityRes.status === 'fulfilled' && capacityRes.value) {
+            renderNetworkPanel(capacityRes.value);
+            success = true;
+        } else {
+            showErrorState(['ws-network-panel-content'], 'loadAnalyticsWorkspace');
+        }
+
+        if (success) {
+            initCollapsibles();
+            console.log('[Observability] Insights Updated');
+        }
     } catch (err) {
         console.error('[Workspace] loadAnalyticsWorkspace:', err);
+        showErrorState(containers, 'loadAnalyticsWorkspace');
     }
 }
 

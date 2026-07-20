@@ -47,3 +47,783 @@ INFO:     127.0.0.1:62943 - "POST /api/copilot/message HTTP/1.1" 200 OK
 [2026-07-20 04:50:53,213] [INFO] [sla_prediction_service.py:20] - SLAPredictionService: Building SLA breach prediction payload.
 [2026-07-20 04:50:53,380] [INFO] [middleware.py:82] - Response Generated: POST /api/copilot/message | Status: 200 | Time: 168.29 ms
 INFO:     127.0.0.1:62945 - "POST /api/copilot/message HTTP/1.1" 200 OK
+[2026-07-20 04:52:06,203] [INFO] [middleware.py:26] - Request Received: POST /api/route-analysis/payload | Request ID: d9800a55-1326-4e9f-8264-b151795c82e5
+[2026-07-20 04:52:06,205] [INFO] [route_analysis_service.py:22] - RouteAnalysisService: Analyzing network. Filters: {'start_date': '', 'end_date': '', 'hub': '', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': ''}
+[2026-07-20 04:52:06,205] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:06,307] [INFO] [route_analysis_service.py:185] - RouteAnalysisService: Routes Loaded event logged. Mapped 12 routes.
+[2026-07-20 04:52:06,316] [INFO] [route_analysis_service.py:281] - RouteAnalysisService: Network Graph Built event logged.
+[2026-07-20 04:52:06,316] [INFO] [route_analysis_service.py:290] - RouteAnalysisService: Heatmap Generated event logged.
+[2026-07-20 04:52:06,325] [INFO] [middleware.py:82] - Response Generated: POST /api/route-analysis/payload | Status: 200 | Time: 122.25 ms
+INFO:     127.0.0.1:62954 - "POST /api/route-analysis/payload HTTP/1.1" 200 OK
+[2026-07-20 04:52:08,117] [INFO] [middleware.py:26] - Request Received: POST /api/performance/payload | Request ID: c6340e1d-492d-4b9d-9c26-97c2e741d0fb
+[2026-07-20 04:52:08,120] [INFO] [performance_service.py:22] - PerformanceService: Calculating performance metrics. Filters: {'start_date': '', 'end_date': '', 'hub': '', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:52:08,120] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:08,163] [INFO] [performance_service.py:132] - PerformanceService: KPIs Calculated event logged.
+[2026-07-20 04:52:08,174] [INFO] [performance_service.py:203] - PerformanceService: Scorecards Generated event logged.
+[2026-07-20 04:52:08,318] [INFO] [performance_service.py:321] - PerformanceService: Performance Dashboard Loaded event logged.
+[2026-07-20 04:52:08,322] [INFO] [middleware.py:82] - Response Generated: POST /api/performance/payload | Status: 200 | Time: 204.73 ms
+INFO:     127.0.0.1:62954 - "POST /api/performance/payload HTTP/1.1" 200 OK
+[2026-07-20 04:52:10,191] [INFO] [middleware.py:26] - Request Received: GET /api/explorer/datasets | Request ID: 4033da22-258d-4af6-83e7-7f0ca93f101e
+[2026-07-20 04:52:10,193] [INFO] [repository.py:139] - Repository Access: list_available_sheets
+[2026-07-20 04:52:10,193] [INFO] [middleware.py:82] - Response Generated: GET /api/explorer/datasets | Status: 200 | Time: 2.67 ms
+INFO:     127.0.0.1:62954 - "GET /api/explorer/datasets HTTP/1.1" 200 OK
+[2026-07-20 04:52:21,243] [INFO] [middleware.py:26] - Request Received: POST /api/dataset/upload | Request ID: 18818b44-4457-4905-bee2-3d8f1dfbfe66
+[2026-07-20 04:52:21,245] [INFO] [main.py:149] - Uploading new dataset: Logistics_Route_Optimization_Dataset.xlsx
+[2026-07-20 04:52:21,246] [INFO] [repository.py:80] - Initializing DataRepository...
+[2026-07-20 04:52:21,282] [INFO] [dataset_loader.py:47] - Dataset detected and verified. Sheets found: ['Logistics_Transactions', 'Hub_Location_Master', 'TPR_Master', 'Parts_Master', 'Summary_Dashboard']
+[2026-07-20 04:52:21,282] [INFO] [dataset_loader.py:67] - Opening workbook: /Users/rithviks/.gemini/antigravity/scratch/logistics-route-optimizer/data/Dell_Logistics_Route_Optimization.xlsx
+[2026-07-20 04:52:21,528] [INFO] [dataset_loader.py:75] - Successfully loaded sheet 'Logistics_Transactions' with 1800 rows and 49 columns.
+[2026-07-20 04:52:21,529] [INFO] [dataset_loader.py:75] - Successfully loaded sheet 'Hub_Location_Master' with 12 rows and 11 columns.
+[2026-07-20 04:52:21,530] [INFO] [dataset_loader.py:75] - Successfully loaded sheet 'TPR_Master' with 8 rows and 11 columns.
+[2026-07-20 04:52:21,536] [INFO] [dataset_loader.py:75] - Successfully loaded sheet 'Parts_Master' with 178 rows and 11 columns.
+[2026-07-20 04:52:21,538] [INFO] [dataset_loader.py:75] - Successfully loaded sheet 'Summary_Dashboard' with 40 rows and 2 columns.
+[2026-07-20 04:52:21,539] [INFO] [dataset_validator.py:27] - Starting dataset validation...
+[2026-07-20 04:52:21,546] [INFO] [dataset_validator.py:153] - Dataset validation completed. Overall Validity: True
+[2026-07-20 04:52:21,546] [INFO] [repository.py:101] - Triggering data processing pipeline automatically...
+[2026-07-20 04:52:21,546] [INFO] [pipeline.py:17] - DataProcessingPipeline instantiated.
+[2026-07-20 04:52:21,546] [INFO] [data_processor.py:24] - Pipeline Started: processing dataset.
+[2026-07-20 04:52:21,837] [INFO] [pipeline.py:42] - Running processing pipeline on sheet 'Logistics_Transactions' (rows=1800, quality=98.21)
+[2026-07-20 04:52:21,968] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Dispatch_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,969] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Hub1_Arrival_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,971] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Hub2_Arrival_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,972] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'TPR_Arrival_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,974] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Expected_Delivery_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,975] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Actual_Delivery_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,977] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Order_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,978] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Delivery_Date' in 'Logistics_Transactions'.
+[2026-07-20 04:52:21,978] [INFO] [pipeline.py:75] - Finished processing sheet 'Logistics_Transactions' in 431.85 ms. Status: SUCCESS
+[2026-07-20 04:52:21,979] [INFO] [pipeline.py:42] - Running processing pipeline on sheet 'Hub_Location_Master' (rows=12, quality=100.0)
+[2026-07-20 04:52:21,981] [INFO] [pipeline.py:75] - Finished processing sheet 'Hub_Location_Master' in 2.43 ms. Status: SUCCESS
+[2026-07-20 04:52:21,981] [INFO] [pipeline.py:42] - Running processing pipeline on sheet 'TPR_Master' (rows=8, quality=100.0)
+[2026-07-20 04:52:21,983] [INFO] [pipeline.py:75] - Finished processing sheet 'TPR_Master' in 2.5 ms. Status: SUCCESS
+[2026-07-20 04:52:21,984] [INFO] [pipeline.py:42] - Running processing pipeline on sheet 'Parts_Master' (rows=178, quality=100.0)
+[2026-07-20 04:52:21,996] [INFO] [date_processor.py:60] - DateProcessor: Successfully processed and enriched date column 'Lead_Time_Days' in 'Parts_Master'.
+[2026-07-20 04:52:21,996] [INFO] [pipeline.py:75] - Finished processing sheet 'Parts_Master' in 12.65 ms. Status: SUCCESS
+[2026-07-20 04:52:21,996] [INFO] [pipeline.py:42] - Running processing pipeline on sheet 'Summary_Dashboard' (rows=40, quality=85.0)
+[2026-07-20 04:52:21,996] [INFO] [duplicate_processor.py:29] - DuplicateProcessor: Removed 2 duplicate rows from 'Summary_Dashboard'.
+[2026-07-20 04:52:21,997] [INFO] [pipeline.py:75] - Finished processing sheet 'Summary_Dashboard' in 0.84 ms. Status: SUCCESS
+[2026-07-20 04:52:21,997] [INFO] [data_processor.py:78] - Pipeline Finished: Processed 5 sheets in 450.58 ms. Status: SUCCESS, Quality Score: 96.64
+[2026-07-20 04:52:21,997] [INFO] [repository.py:122] - Repository Initialized. State: Loaded=True, Health=HEALTHY
+[2026-07-20 04:52:22,017] [INFO] [dataset_loader.py:47] - Dataset detected and verified. Sheets found: ['Logistics_Transactions', 'Hub_Location_Master', 'TPR_Master', 'Parts_Master', 'Summary_Dashboard']
+[2026-07-20 04:52:22,017] [INFO] [dataset_validator.py:27] - Starting dataset validation...
+[2026-07-20 04:52:22,023] [INFO] [dataset_validator.py:153] - Dataset validation completed. Overall Validity: True
+[2026-07-20 04:52:22,024] [INFO] [middleware.py:82] - Response Generated: POST /api/dataset/upload | Status: 200 | Time: 781.54 ms
+INFO:     127.0.0.1:62956 - "POST /api/dataset/upload HTTP/1.1" 200 OK
+[2026-07-20 04:52:22,032] [INFO] [middleware.py:26] - Request Received: GET /api/repository/status | Request ID: ccedb8a1-cf2a-4e68-91c4-ed7caa60c8d4
+[2026-07-20 04:52:22,033] [INFO] [repository.py:139] - Repository Access: list_available_sheets
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 04:52:22,033] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 04:52:22,033] [INFO] [middleware.py:26] - Request Received: GET /api/pipeline/report | Request ID: 58ed13ff-65b9-4203-b248-a723ea1667a6
+[2026-07-20 04:52:22,033] [INFO] [middleware.py:82] - Response Generated: GET /api/repository/status | Status: 200 | Time: 1.26 ms
+INFO:     127.0.0.1:62956 - "GET /api/repository/status HTTP/1.1" 200 OK
+[2026-07-20 04:52:22,034] [INFO] [middleware.py:82] - Response Generated: GET /api/pipeline/report | Status: 200 | Time: 0.80 ms
+INFO:     127.0.0.1:62958 - "GET /api/pipeline/report HTTP/1.1" 200 OK
+[2026-07-20 04:52:28,030] [INFO] [middleware.py:26] - Request Received: GET /api/explorer/datasets | Request ID: f8cf95e7-800d-4991-84a9-323ae472305f
+[2026-07-20 04:52:28,031] [INFO] [repository.py:139] - Repository Access: list_available_sheets
+[2026-07-20 04:52:28,032] [INFO] [middleware.py:82] - Response Generated: GET /api/explorer/datasets | Status: 200 | Time: 1.77 ms
+INFO:     127.0.0.1:62960 - "GET /api/explorer/datasets HTTP/1.1" 200 OK
+[2026-07-20 04:52:30,474] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: 67ae6261-2d84-4b01-8331-71298c7feb9d
+[2026-07-20 04:52:30,475] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 04:52:30,476] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:30,476] [INFO] [middleware.py:26] - Request Received: POST /api/route-scoring/payload | Request ID: 65f8af04-f447-46f9-8076-9eb0d53f9ab0
+[2026-07-20 04:52:30,476] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:52:30,476] [INFO] [middleware.py:26] - Request Received: POST /api/sla-analytics/payload | Request ID: 93777c38-b345-4fae-bdbd-9086e8296731
+[2026-07-20 04:52:30,480] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: 9eb7211a-8aec-43b5-b029-ac046218700e
+[2026-07-20 04:52:30,556] [INFO] [route_scoring_engine.py:52] - RouteScoringEngine: Route Scoring Engine Started. Filters: {}
+[2026-07-20 04:52:30,556] [INFO] [sla_engine.py:61] - SLAEngine: SLA Engine Started. Filters: {}
+[2026-07-20 04:52:30,556] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 04:52:30,556] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 04:52:30,556] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:30,556] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:30,557] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:30,557] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 04:52:30,617] [INFO] [sla_statistics.py:30] - SLAStatistics: Computing SLA overview metrics.
+[2026-07-20 04:52:30,619] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:52:30,648] [INFO] [sla_engine.py:108] - SLAEngine: Compliance Calculated.
+[2026-07-20 04:52:30,659] [INFO] [sla_statistics.py:86] - SLAStatistics: Generating dimensional SLA breakdowns.
+[2026-07-20 04:52:30,675] [INFO] [graph_builder.py:34] - GraphBuilder: Building graph nodes and edges.
+[2026-07-20 04:52:30,741] [INFO] [graph_builder.py:117] - GraphBuilder: Generated 20 nodes and 240 edges.
+[2026-07-20 04:52:30,745] [INFO] [graph_engine.py:94] - GraphEngine: Nodes Generated.
+[2026-07-20 04:52:30,745] [INFO] [graph_engine.py:95] - GraphEngine: Edges Generated.
+[2026-07-20 04:52:30,745] [INFO] [graph_builder.py:127] - GraphBuilder: Constructing adjacency list, matrix, neighbor mappings, and routes weights.
+[2026-07-20 04:52:30,745] [INFO] [graph_statistics.py:32] - GraphStatistics: Computing topological statistics.
+[2026-07-20 04:52:30,745] [INFO] [graph_statistics.py:120] - GraphStatistics: Graph Statistics Generated.
+[2026-07-20 04:52:30,745] [INFO] [graph_engine.py:102] - GraphEngine: Graph Statistics Generated.
+[2026-07-20 04:52:30,745] [INFO] [graph_analysis.py:33] - GraphAnalysisService: Analyzing graph connectivity.
+[2026-07-20 04:52:30,786] [INFO] [graph_engine.py:123] - GraphEngine: Graph Cached.
+[2026-07-20 04:52:30,786] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:30,787] [INFO] [route_scoring_engine.py:98] - RouteScoringEngine: Route Scores Calculated.
+[2026-07-20 04:52:30,788] [INFO] [route_scoring_engine.py:102] - RouteScoringEngine: Business Rankings Generated.
+[2026-07-20 04:52:30,794] [INFO] [route_scoring_engine.py:106] - RouteScoringEngine: Comparison Analysis Completed.
+[2026-07-20 04:52:30,794] [INFO] [route_scoring_engine.py:126] - RouteScoringEngine: Route Score Cache Updated.
+[2026-07-20 04:52:30,802] [INFO] [middleware.py:82] - Response Generated: POST /api/route-scoring/payload | Status: 200 | Time: 326.24 ms
+INFO:     127.0.0.1:62963 - "POST /api/route-scoring/payload HTTP/1.1" 200 OK
+[2026-07-20 04:52:30,804] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 04:52:30,805] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:52:30,806] [INFO] [sla_violations.py:34] - SLAViolationService: Scanning for SLA violations.
+[2026-07-20 04:52:30,807] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 326.14 ms
+INFO:     127.0.0.1:62966 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:52:30,814] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 04:52:30,817] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:52:30,818] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 344.32 ms
+INFO:     127.0.0.1:62960 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:52:30,821] [INFO] [sla_violations.py:101] - SLAViolationService: Violations Detected.
+[2026-07-20 04:52:30,821] [INFO] [sla_engine.py:115] - SLAEngine: Violations Detected.
+[2026-07-20 04:52:30,821] [INFO] [sla_rankings.py:29] - SLARankingService: Generating rankings (top_n=5).
+[2026-07-20 04:52:30,821] [INFO] [sla_rankings.py:53] - SLARankingService: Rankings Generated.
+[2026-07-20 04:52:30,821] [INFO] [sla_engine.py:119] - SLAEngine: Rankings Generated.
+[2026-07-20 04:52:30,821] [INFO] [sla_trends.py:30] - SLATrendsService: Generating SLA trend datasets.
+[2026-07-20 04:52:30,846] [INFO] [sla_trends.py:53] - SLATrendsService: Trend Datasets Generated.
+[2026-07-20 04:52:30,846] [INFO] [sla_engine.py:123] - SLAEngine: Trend Datasets Generated.
+[2026-07-20 04:52:30,851] [INFO] [middleware.py:82] - Response Generated: POST /api/sla-analytics/payload | Status: 200 | Time: 374.21 ms
+INFO:     127.0.0.1:62965 - "POST /api/sla-analytics/payload HTTP/1.1" 200 OK
+[2026-07-20 04:52:31,310] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: 62d7bdb5-3c4e-4840-9d34-a9b3e631e1ff
+[2026-07-20 04:52:31,311] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 04:52:31,311] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:31,312] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 04:52:31,319] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:52:31,336] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: 6bb319d3-11d2-441c-8ab3-eb84eba13137
+[2026-07-20 04:52:31,364] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 04:52:31,365] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:31,366] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:52:31,429] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 04:52:31,454] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:52:31,454] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 144.20 ms
+INFO:     127.0.0.1:62965 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:52:31,461] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 04:52:31,461] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:52:31,461] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 125.04 ms
+INFO:     127.0.0.1:62960 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:52:32,023] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 708e8ee3-9d04-4701-beff-94e758dbbdcf
+[2026-07-20 04:52:32,024] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': '', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:52:32,025] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:32,109] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:52:32,110] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:52:32,145] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 12 route paths compiled.
+[2026-07-20 04:52:32,147] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:52:32,148] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 124.98 ms
+INFO:     127.0.0.1:62960 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:52:32,459] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: 251f43ff-9831-422f-a0db-8226d23546fb
+[2026-07-20 04:52:32,461] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 04:52:32,462] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:32,462] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 04:52:32,464] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: 00df6adc-ebe3-4325-b207-e6fb928932d6
+[2026-07-20 04:52:32,465] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 04:52:32,465] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:32,465] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:52:32,491] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:52:32,597] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 04:52:32,599] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:52:32,600] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 140.25 ms
+INFO:     127.0.0.1:62960 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:52:32,603] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 04:52:32,603] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:52:32,603] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 139.25 ms
+INFO:     127.0.0.1:62965 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:52:38,361] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: ee560c35-4c0c-4004-a805-bd3f588eed71
+[2026-07-20 04:52:38,364] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:52:38,364] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:38,442] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:52:38,443] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:52:38,446] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 1 route paths compiled.
+[2026-07-20 04:52:38,446] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:52:38,447] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 85.44 ms
+INFO:     127.0.0.1:62968 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:52:46,545] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: bf63a6bd-c870-4cb7-9061-372706db00c1
+[2026-07-20 04:52:46,548] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': 'TPR-BLR-01', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:52:46,548] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:46,604] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:52:46,605] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:52:46,605] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:52:46,605] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:52:46,606] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 60.71 ms
+INFO:     127.0.0.1:62970 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:52:52,776] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 63002695-082f-49e5-bdfc-29e5741d6ef1
+[2026-07-20 04:52:52,780] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': 'TPR-BLR-02', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:52:52,780] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:52,835] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:52:52,836] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:52:52,836] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:52:52,836] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:52:52,837] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 61.42 ms
+INFO:     127.0.0.1:62973 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:52:56,179] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 6d5c471d-9262-4164-b853-948d835518cf
+[2026-07-20 04:52:56,182] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': 'TPR-KUL-01', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:52:56,182] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:52:56,238] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:52:56,239] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:52:56,239] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:52:56,239] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:52:56,240] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 60.97 ms
+INFO:     127.0.0.1:62973 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:53:00,975] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: a7b02202-b5c2-426f-8165-c36f63ce846b
+[2026-07-20 04:53:00,979] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': 'TPR-MUM-01', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:53:00,980] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:53:01,035] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:53:01,036] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:53:01,036] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:53:01,037] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:53:01,037] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 61.93 ms
+INFO:     127.0.0.1:62973 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:53:05,928] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 119bf82d-3400-4b85-933e-661d656fc49b
+[2026-07-20 04:53:05,930] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:53:05,930] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:53:05,985] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:53:05,986] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:53:05,990] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 1 route paths compiled.
+[2026-07-20 04:53:05,990] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:53:05,991] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 63.09 ms
+INFO:     127.0.0.1:62973 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:53:44,260] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 9c4b29f6-6c03-4c4e-8ad6-c35b32516e7e
+[2026-07-20 04:53:44,265] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': 'TPR-BLR-02', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:53:44,266] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:53:44,341] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:53:44,342] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:53:44,342] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:53:44,342] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:53:44,343] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 83.24 ms
+INFO:     127.0.0.1:62977 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:53:55,084] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 3952a6c8-e055-4978-8fd0-96def2b1caa8
+[2026-07-20 04:53:55,087] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': 'TPR-BLR-02', 'part_category': '', 'partner': 'Swift LogiCo', 'priority': '', 'status': ''}
+[2026-07-20 04:53:55,087] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:53:55,141] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:53:55,141] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:53:55,141] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:53:55,142] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:53:55,142] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 58.77 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:53:59,029] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 97e6cc7e-2566-40f0-8e84-ffedba31c89b
+[2026-07-20 04:53:59,031] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': '', 'partner': 'Swift LogiCo', 'priority': '', 'status': ''}
+[2026-07-20 04:53:59,031] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:53:59,087] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:53:59,088] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:53:59,088] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:53:59,088] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:53:59,089] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 59.42 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:54:01,608] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 5b241ec4-5fe1-4d3a-9e33-f659d6e9dfa9
+[2026-07-20 04:54:01,612] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': 'Electronics', 'partner': 'Swift LogiCo', 'priority': '', 'status': ''}
+[2026-07-20 04:54:01,612] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:01,669] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:54:01,670] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:54:01,670] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:54:01,670] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:54:01,671] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 63.29 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:54:04,193] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 1e4bb95f-0083-482e-b417-13efc3adfe4f
+[2026-07-20 04:54:04,196] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': 'Electronics', 'partner': 'LoneStar Delivery', 'priority': '', 'status': ''}
+[2026-07-20 04:54:04,196] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:04,251] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:54:04,252] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:54:04,252] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:54:04,252] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:54:04,253] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 60.25 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:54:06,027] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 978fabe4-9fbe-4562-876e-1821462424b4
+[2026-07-20 04:54:06,029] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': 'Electronics', 'partner': 'LoneStar Delivery', 'priority': 'Medium Priority', 'status': ''}
+[2026-07-20 04:54:06,029] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:06,085] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:54:06,086] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:54:06,086] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:54:06,086] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:54:06,087] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 59.95 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:54:07,810] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: a98166f1-9567-4d89-9c44-bb549e584805
+[2026-07-20 04:54:07,812] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': 'HUB-BLR', 'repair_center': '', 'part_category': 'Electronics', 'partner': 'LoneStar Delivery', 'priority': 'Medium Priority', 'status': 'MET'}
+[2026-07-20 04:54:07,812] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:07,868] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:54:07,869] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:54:07,869] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 0 route paths compiled.
+[2026-07-20 04:54:07,870] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:54:07,870] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 61.35 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:54:10,446] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial/network | Request ID: 1a3aa3e0-f04b-4fe8-b37b-c53cea600237
+[2026-07-20 04:54:10,447] [INFO] [geospatial_service.py:43] - GeospatialService: Generating network map data. Filters: {'start_date': '', 'end_date': '', 'hub': '', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:54:10,448] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:10,525] [INFO] [geospatial_service.py:136] - GeospatialService: Markers Generated - 12 Hubs mapped.
+[2026-07-20 04:54:10,526] [INFO] [geospatial_service.py:176] - GeospatialService: Markers Generated - 8 Repair Centers mapped.
+[2026-07-20 04:54:10,560] [INFO] [geospatial_service.py:240] - GeospatialService: Flows Rendered - 12 route paths compiled.
+[2026-07-20 04:54:10,562] [INFO] [main.py:508] - Map Loaded event logged via API.
+[2026-07-20 04:54:10,562] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial/network | Status: 200 | Time: 116.67 ms
+INFO:     127.0.0.1:62979 - "POST /api/geospatial/network HTTP/1.1" 200 OK
+[2026-07-20 04:54:31,510] [INFO] [middleware.py:26] - Request Received: POST /api/route-analysis/payload | Request ID: 769d41d8-0eb9-42e3-a2bc-fae97b1dcba2
+[2026-07-20 04:54:31,511] [INFO] [route_analysis_service.py:22] - RouteAnalysisService: Analyzing network. Filters: {'start_date': '', 'end_date': '', 'hub': '', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': ''}
+[2026-07-20 04:54:31,511] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:31,615] [INFO] [route_analysis_service.py:185] - RouteAnalysisService: Routes Loaded event logged. Mapped 12 routes.
+[2026-07-20 04:54:31,624] [INFO] [route_analysis_service.py:281] - RouteAnalysisService: Network Graph Built event logged.
+[2026-07-20 04:54:31,624] [INFO] [route_analysis_service.py:290] - RouteAnalysisService: Heatmap Generated event logged.
+[2026-07-20 04:54:31,633] [INFO] [middleware.py:82] - Response Generated: POST /api/route-analysis/payload | Status: 200 | Time: 123.12 ms
+INFO:     127.0.0.1:62987 - "POST /api/route-analysis/payload HTTP/1.1" 200 OK
+[2026-07-20 04:54:33,391] [INFO] [middleware.py:26] - Request Received: POST /api/performance/payload | Request ID: f182283b-b2a8-492c-905c-2b958567eb65
+[2026-07-20 04:54:33,392] [INFO] [performance_service.py:22] - PerformanceService: Calculating performance metrics. Filters: {'start_date': '', 'end_date': '', 'hub': '', 'repair_center': '', 'part_category': '', 'partner': '', 'priority': '', 'status': ''}
+[2026-07-20 04:54:33,392] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:54:33,453] [INFO] [performance_service.py:132] - PerformanceService: KPIs Calculated event logged.
+[2026-07-20 04:54:33,465] [INFO] [performance_service.py:203] - PerformanceService: Scorecards Generated event logged.
+[2026-07-20 04:54:33,624] [INFO] [performance_service.py:321] - PerformanceService: Performance Dashboard Loaded event logged.
+[2026-07-20 04:54:33,628] [INFO] [middleware.py:82] - Response Generated: POST /api/performance/payload | Status: 200 | Time: 237.38 ms
+INFO:     127.0.0.1:62987 - "POST /api/performance/payload HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62989 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62989 - "GET /static/pages/sla-prediction/sla_prediction.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/sla-prediction/PredictionDashboard/PredictionDashboard.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/sla-prediction/HubRiskPanel/HubRiskPanel.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/sla-prediction/ShipmentRiskTable/ShipmentRiskTable.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/sla-prediction/AlertCenter/AlertCenter.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/sla-prediction/RiskHeatmap/RiskHeatmap.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/pages/ai-orchestrator/ai_orchestrator.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/ai-orchestrator/WorkflowViewer/WorkflowViewer.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/sla-prediction/ForecastTimeline/ForecastTimeline.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/ai-orchestrator/DecisionPanel/DecisionPanel.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/ai-orchestrator/AgentCards/AgentCards.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/sla-prediction/RecommendationPanel/RecommendationPanel.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/ai-orchestrator/ExecutionTimeline/ExecutionTimeline.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/ai-orchestrator/WorkflowHistory/WorkflowHistory.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/ai-orchestrator/AgentHealth/AgentHealth.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/executive-reports/ReportBuilder/ReportBuilder.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/executive-reports/InsightCards/InsightCards.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/executive-reports/ExecutiveSummary/ExecutiveSummary.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/executive-reports/PresentationMode/PresentationMode.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/pages/executive-reports/executive_reports.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/executive-reports/ReportHistory/ReportHistory.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/executive-reports/ReportTemplates/ReportTemplates.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/executive-reports/ExportPanel/ExportPanel.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/pages/command-center/command_center.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/command-center/MissionControl/MissionControl.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/command-center/ActivityFeed/ActivityFeed.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/command-center/QuickActions/QuickActions.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/command-center/GlobalSearch/GlobalSearch.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/command-center/NetworkHealth/NetworkHealth.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/command-center/AlertCenter/AlertCenter.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/command-center/OperationsTimeline/OperationsTimeline.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/NetworkExplorer/NetworkExplorer.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/command-center/CommandPalette/CommandPalette.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/pages/geospatial/geospatial.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/HubPanel/HubPanel.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/RoutePlayback/RoutePlayback.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/LayerManager/LayerManager.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/RoutePanel/RoutePanel.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/Timeline/Timeline.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/MapToolbar/MapToolbar.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/pages/copilot/copilot.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62991 - "GET /static/components/SpatialSearch/SpatialSearch.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/PromptSuggestions/PromptSuggestions.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63000 - "GET /static/components/ConversationHistory/ConversationHistory.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62991 - "GET /static/components/RecommendationCard/RecommendationCard.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62989 - "GET /static/components/RichResponse/RichResponse.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62998 - "GET /static/components/CopilotChat/CopilotChat.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62994 - "GET /static/components/ConversationExport/ConversationExport.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62996 - "GET /static/components/sla-prediction/HubRiskPanel/HubRiskPanel.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/sla-prediction/PredictionDashboard/PredictionDashboard.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/sla-prediction/ShipmentRiskTable/ShipmentRiskTable.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/sla-prediction/ForecastTimeline/ForecastTimeline.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/sla-prediction/RiskHeatmap/RiskHeatmap.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/sla-prediction/RecommendationPanel/RecommendationPanel.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/ai-orchestrator/ExecutionTimeline/ExecutionTimeline.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/ai-orchestrator/AgentCards/AgentCards.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/sla-prediction/AlertCenter/AlertCenter.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/pages/sla-prediction/sla_prediction.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/ai-orchestrator/WorkflowViewer/WorkflowViewer.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/pages/ai-orchestrator/ai_orchestrator.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/executive-reports/ReportBuilder/ReportBuilder.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/ai-orchestrator/WorkflowHistory/WorkflowHistory.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/executive-reports/ExecutiveSummary/ExecutiveSummary.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/executive-reports/InsightCards/InsightCards.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/executive-reports/PresentationMode/PresentationMode.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/ai-orchestrator/DecisionPanel/DecisionPanel.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/executive-reports/ReportHistory/ReportHistory.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/pages/executive-reports/executive_reports.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/command-center/MissionControl/MissionControl.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/command-center/ActivityFeed/ActivityFeed.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/command-center/AlertCenter/AlertCenter.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/command-center/NetworkHealth/NetworkHealth.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/command-center/QuickActions/QuickActions.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/command-center/GlobalSearch/GlobalSearch.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/RoutePlayback/RoutePlayback.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/command-center/CommandPalette/CommandPalette.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/LayerManager/LayerManager.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/NetworkExplorer/NetworkExplorer.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/HubPanel/HubPanel.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62989 - "GET /static/components/Timeline/Timeline.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63000 - "GET /static/components/MapToolbar/MapToolbar.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62991 - "GET /static/components/RoutePanel/RoutePanel.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62994 - "GET /static/components/CopilotChat/CopilotChat.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62989 - "GET /static/components/SpatialSearch/SpatialSearch.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62998 - "GET /static/components/PromptSuggestions/PromptSuggestions.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63000 - "GET /static/components/SavedViews/SavedViews.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62996 - "GET /static/components/ConversationHistory/ConversationHistory.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62991 - "GET /static/components/RichResponse/RichResponse.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62989 - "GET /static/components/RecommendationCard/RecommendationCard.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63000 - "GET /static/components/ConversationExport/ConversationExport.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62998 - "GET /static/js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62996 - "GET /static/pages/copilot/copilot.js HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,130] [INFO] [middleware.py:26] - Request Received: GET /api/dataset/status | Request ID: 350e219c-8ab5-46f1-8d16-f83d0ee07787
+[2026-07-20 04:55:12,130] [INFO] [middleware.py:26] - Request Received: GET /api/repository/status | Request ID: da11e769-d741-4d61-8996-8c5b86572fde
+[2026-07-20 04:55:12,131] [INFO] [middleware.py:26] - Request Received: GET /api/pipeline/report | Request ID: 5500c2c3-9cf8-42b7-902d-863b7e314d82
+[2026-07-20 04:55:12,131] [INFO] [repository.py:139] - Repository Access: list_available_sheets
+[2026-07-20 04:55:12,131] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 04:55:12,131] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 04:55:12,131] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 04:55:12,131] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 04:55:12,132] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:12,132] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:12,132] [INFO] [middleware.py:82] - Response Generated: GET /api/pipeline/report | Status: 200 | Time: 1.51 ms
+[2026-07-20 04:55:12,132] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+INFO:     127.0.0.1:62989 - "GET /api/pipeline/report HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,133] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 04:55:12,134] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 04:55:12,138] [INFO] [middleware.py:26] - Request Received: GET /api/pipeline/report | Request ID: d969bcf4-f6d4-46a1-9d49-23b23b3c68b8
+[2026-07-20 04:55:12,138] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 04:55:12,153] [INFO] [middleware.py:82] - Response Generated: GET /api/repository/status | Status: 200 | Time: 22.51 ms
+INFO:     127.0.0.1:62996 - "GET /api/repository/status HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,158] [INFO] [middleware.py:82] - Response Generated: GET /api/pipeline/report | Status: 200 | Time: 20.63 ms
+INFO:     127.0.0.1:62989 - "GET /api/pipeline/report HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,159] [INFO] [middleware.py:26] - Request Received: GET /api/repository/status | Request ID: 6123cd8c-bb13-4aba-9555-5e39d1f475dc
+[2026-07-20 04:55:12,161] [INFO] [repository.py:139] - Repository Access: list_available_sheets
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 04:55:12,161] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 04:55:12,162] [INFO] [middleware.py:82] - Response Generated: GET /api/repository/status | Status: 200 | Time: 2.91 ms
+INFO:     127.0.0.1:63000 - "GET /api/repository/status HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,163] [INFO] [dataset_loader.py:47] - Dataset detected and verified. Sheets found: ['Logistics_Transactions', 'Hub_Location_Master', 'TPR_Master', 'Parts_Master', 'Summary_Dashboard']
+[2026-07-20 04:55:12,163] [INFO] [dataset_validator.py:27] - Starting dataset validation...
+[2026-07-20 04:55:12,173] [INFO] [dataset_validator.py:153] - Dataset validation completed. Overall Validity: True
+[2026-07-20 04:55:12,173] [INFO] [middleware.py:82] - Response Generated: GET /api/dataset/status | Status: 200 | Time: 43.10 ms
+INFO:     127.0.0.1:62998 - "GET /api/dataset/status HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,174] [INFO] [middleware.py:26] - Request Received: GET /api/dataset/status | Request ID: 12114bf3-7c96-403d-8828-ad604e63e384
+[2026-07-20 04:55:12,179] [INFO] [middleware.py:26] - Request Received: GET /api/v1/monitoring/health | Request ID: 27ff3d01-86d6-4ad1-8d1c-71f054f45196
+[2026-07-20 04:55:12,195] [INFO] [dataset_loader.py:47] - Dataset detected and verified. Sheets found: ['Logistics_Transactions', 'Hub_Location_Master', 'TPR_Master', 'Parts_Master', 'Summary_Dashboard']
+[2026-07-20 04:55:12,196] [INFO] [structured_logger.py:36] - {"timestamp": "2026-07-19T23:25:12Z", "level": "INFO", "message": "System Health Check Completed.", "context": {"overall_status": "UP", "services_count": 3}}
+[2026-07-20 04:55:12,196] [INFO] [dataset_validator.py:27] - Starting dataset validation...
+[2026-07-20 04:55:12,196] [INFO] [structured_logger.py:36] - {"timestamp": "2026-07-19T23:25:12Z", "level": "INFO", "message": "Telemetry health cache updated.", "context": {}}
+[2026-07-20 04:55:12,198] [INFO] [middleware.py:82] - Response Generated: GET /api/v1/monitoring/health | Status: 200 | Time: 18.81 ms
+[AUDIT LOG] 2026-07-19T23:25:12Z | API_ACCESS | User: user-admin-001 | Status: SUCCESS | Detail: User 'admin' successfully accessed resource.
+INFO:     127.0.0.1:63000 - "GET /api/v1/monitoring/health HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,205] [INFO] [dataset_validator.py:153] - Dataset validation completed. Overall Validity: True
+[2026-07-20 04:55:12,206] [INFO] [middleware.py:82] - Response Generated: GET /api/dataset/status | Status: 200 | Time: 31.82 ms
+INFO:     127.0.0.1:62998 - "GET /api/dataset/status HTTP/1.1" 200 OK
+[2026-07-20 04:55:12,207] [INFO] [middleware.py:26] - Request Received: GET /api/v1/monitoring/health | Request ID: 3fb0d004-bfb3-4e93-8d9a-4dccd8333338
+[2026-07-20 04:55:12,208] [INFO] [middleware.py:82] - Response Generated: GET /api/v1/monitoring/health | Status: 200 | Time: 0.79 ms
+[AUDIT LOG] 2026-07-19T23:25:12Z | API_ACCESS | User: user-admin-001 | Status: SUCCESS | Detail: User 'admin' successfully accessed resource.
+INFO:     127.0.0.1:62998 - "GET /api/v1/monitoring/health HTTP/1.1" 200 OK
+[2026-07-20 04:55:24,855] [INFO] [middleware.py:26] - Request Received: POST /api/reverse-logistics/payload | Request ID: 6498e88f-5029-4cc9-953e-1748e94a80b0
+[2026-07-20 04:55:24,857] [INFO] [reverse_logistics_service.py:23] - ReverseLogisticsService: Fetching reverse logistics intelligence payload.
+[2026-07-20 04:55:24,947] [INFO] [middleware.py:82] - Response Generated: POST /api/reverse-logistics/payload | Status: 200 | Time: 91.69 ms
+INFO:     127.0.0.1:63002 - "POST /api/reverse-logistics/payload HTTP/1.1" 200 OK
+[2026-07-20 04:55:31,780] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial-network/payload | Request ID: a4711715-aba9-436a-9d21-cef7117ec3ac
+[2026-07-20 04:55:31,781] [WARNING] [exception_handler.py:17] - Validation Failed: Not Found
+[2026-07-20 04:55:31,782] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial-network/payload | Status: 404 | Time: 1.86 ms
+INFO:     127.0.0.1:63004 - "POST /api/geospatial-network/payload HTTP/1.1" 404 Not Found
+[2026-07-20 04:55:33,288] [INFO] [middleware.py:26] - Request Received: POST /api/geospatial-network/payload | Request ID: 13657747-0321-4e4b-8bf0-42bba248c01f
+[2026-07-20 04:55:33,288] [WARNING] [exception_handler.py:17] - Validation Failed: Not Found
+[2026-07-20 04:55:33,289] [INFO] [middleware.py:82] - Response Generated: POST /api/geospatial-network/payload | Status: 404 | Time: 1.34 ms
+INFO:     127.0.0.1:63004 - "POST /api/geospatial-network/payload HTTP/1.1" 404 Not Found
+[2026-07-20 04:55:38,438] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: 54e6139b-6a6e-488c-947d-6b9dec977ae8
+[2026-07-20 04:55:38,438] [INFO] [middleware.py:26] - Request Received: POST /api/route-scoring/payload | Request ID: 5a4de86e-51ea-4966-b606-3f050ba3ef9a
+[2026-07-20 04:55:38,440] [INFO] [middleware.py:26] - Request Received: POST /api/sla-analytics/payload | Request ID: 62a3c64d-0c06-4948-8262-956496649448
+[2026-07-20 04:55:38,440] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: da0964ca-60c6-404f-8ac0-e70fd5ff3153
+[2026-07-20 04:55:38,441] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 04:55:38,441] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:38,441] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:55:38,442] [INFO] [route_scoring_engine.py:52] - RouteScoringEngine: Route Scoring Engine Started. Filters: {}
+[2026-07-20 04:55:38,447] [INFO] [route_scoring_engine.py:57] - RouteScoringEngine: Cache HIT — returning cached payload.
+[2026-07-20 04:55:38,448] [INFO] [sla_engine.py:61] - SLAEngine: SLA Engine Started. Filters: {}
+[2026-07-20 04:55:38,449] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 04:55:38,449] [INFO] [sla_engine.py:66] - SLAEngine: Cache HIT — returning cached payload.
+[2026-07-20 04:55:38,480] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:38,499] [INFO] [middleware.py:82] - Response Generated: POST /api/route-scoring/payload | Status: 200 | Time: 60.84 ms
+INFO:     127.0.0.1:63009 - "POST /api/route-scoring/payload HTTP/1.1" 200 OK
+[2026-07-20 04:55:38,500] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 04:55:38,507] [INFO] [middleware.py:82] - Response Generated: POST /api/sla-analytics/payload | Status: 200 | Time: 67.66 ms
+INFO:     127.0.0.1:63011 - "POST /api/sla-analytics/payload HTTP/1.1" 200 OK
+[2026-07-20 04:55:38,548] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:55:38,603] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 04:55:38,605] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:38,606] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 165.94 ms
+INFO:     127.0.0.1:63012 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:38,607] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 04:55:38,607] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:38,607] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 169.35 ms
+INFO:     127.0.0.1:63007 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:39,111] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: 6f51844c-fbab-4578-a499-e91c8c797b47
+[2026-07-20 04:55:39,113] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: 6ef3094e-aef4-4b70-96c8-0b930c386eda
+[2026-07-20 04:55:39,114] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 04:55:39,114] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:39,114] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 04:55:39,114] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:55:39,115] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:39,120] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 04:55:39,168] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:55:39,266] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 04:55:39,268] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:39,269] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 157.78 ms
+INFO:     127.0.0.1:63007 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:39,270] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 04:55:39,270] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:39,270] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 157.77 ms
+INFO:     127.0.0.1:63012 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:40,274] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: da78de35-2baf-4c06-a16e-b37a298c998e
+[2026-07-20 04:55:40,276] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: 95b8605d-e38f-4a04-97a8-d342fac03cd2
+[2026-07-20 04:55:40,277] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 04:55:40,278] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:40,278] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 04:55:40,278] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:55:40,278] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:40,283] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 04:55:40,334] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 04:55:40,416] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 04:55:40,416] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:40,416] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 141.78 ms
+INFO:     127.0.0.1:63012 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:40,420] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 04:55:40,420] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:40,420] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 143.67 ms
+INFO:     127.0.0.1:63007 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:52,797] [INFO] [middleware.py:26] - Request Received: POST /api/astar-pathfinding/payload | Request ID: 08682928-30f2-4fdd-8613-fa5decca2db2
+[2026-07-20 04:55:52,797] [INFO] [middleware.py:26] - Request Received: POST /api/cost-analytics/payload | Request ID: d70dcf0f-1368-4216-ad32-89a7549fe7c6
+[2026-07-20 04:55:52,800] [INFO] [astar_engine.py:56] - A* Engine Started.
+[2026-07-20 04:55:52,800] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 04:55:52,801] [INFO] [cost_engine.py:63] - CostEngine: Cost Engine Started. Filters: {}
+[2026-07-20 04:55:52,801] [INFO] [graph_engine.py:58] - GraphEngine: Cache HIT — returning cached payload.
+[2026-07-20 04:55:52,801] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:52,801] [INFO] [astar_engine.py:80] - Heuristic Generated.
+[2026-07-20 04:55:52,801] [ERROR] [main.py:650] - A* Pathfinding API Error: Failed retrieving A* payload: 'Ahmedabad'
+[2026-07-20 04:55:52,802] [WARNING] [exception_handler.py:17] - Validation Failed: 'Ahmedabad'
+[2026-07-20 04:55:52,803] [INFO] [middleware.py:82] - Response Generated: POST /api/astar-pathfinding/payload | Status: 500 | Time: 6.11 ms
+INFO:     127.0.0.1:63015 - "POST /api/astar-pathfinding/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:52,860] [ERROR] [main.py:541] - Cost Analytics API Error: Failed retrieving cost analytics payload: 'Category'
+[2026-07-20 04:55:52,861] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:52,861] [INFO] [middleware.py:82] - Response Generated: POST /api/cost-analytics/payload | Status: 500 | Time: 63.53 ms
+INFO:     127.0.0.1:63016 - "POST /api/cost-analytics/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:53,309] [INFO] [middleware.py:26] - Request Received: POST /api/astar-pathfinding/payload | Request ID: e17d2e75-5118-4a14-9216-40d16fb207f8
+[2026-07-20 04:55:53,312] [INFO] [astar_engine.py:56] - A* Engine Started.
+[2026-07-20 04:55:53,312] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 04:55:53,312] [INFO] [graph_engine.py:58] - GraphEngine: Cache HIT — returning cached payload.
+[2026-07-20 04:55:53,312] [INFO] [astar_engine.py:80] - Heuristic Generated.
+[2026-07-20 04:55:53,312] [ERROR] [main.py:650] - A* Pathfinding API Error: Failed retrieving A* payload: 'Ahmedabad'
+[2026-07-20 04:55:53,312] [WARNING] [exception_handler.py:17] - Validation Failed: 'Ahmedabad'
+[2026-07-20 04:55:53,313] [INFO] [middleware.py:82] - Response Generated: POST /api/astar-pathfinding/payload | Status: 500 | Time: 3.57 ms
+INFO:     127.0.0.1:63016 - "POST /api/astar-pathfinding/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:53,366] [INFO] [middleware.py:26] - Request Received: POST /api/cost-analytics/payload | Request ID: e4682383-f3a4-4053-bb70-fa3fc7ba0518
+[2026-07-20 04:55:53,367] [INFO] [cost_engine.py:63] - CostEngine: Cost Engine Started. Filters: {}
+[2026-07-20 04:55:53,368] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:53,450] [ERROR] [main.py:541] - Cost Analytics API Error: Failed retrieving cost analytics payload: 'Category'
+[2026-07-20 04:55:53,450] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:53,450] [INFO] [middleware.py:82] - Response Generated: POST /api/cost-analytics/payload | Status: 500 | Time: 84.46 ms
+INFO:     127.0.0.1:63016 - "POST /api/cost-analytics/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:54,317] [INFO] [middleware.py:26] - Request Received: POST /api/astar-pathfinding/payload | Request ID: cd6384e3-1f1c-4820-9d53-4c7721518353
+[2026-07-20 04:55:54,319] [INFO] [astar_engine.py:56] - A* Engine Started.
+[2026-07-20 04:55:54,319] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 04:55:54,320] [INFO] [graph_engine.py:58] - GraphEngine: Cache HIT — returning cached payload.
+[2026-07-20 04:55:54,320] [INFO] [astar_engine.py:80] - Heuristic Generated.
+[2026-07-20 04:55:54,320] [ERROR] [main.py:650] - A* Pathfinding API Error: Failed retrieving A* payload: 'Ahmedabad'
+[2026-07-20 04:55:54,320] [WARNING] [exception_handler.py:17] - Validation Failed: 'Ahmedabad'
+[2026-07-20 04:55:54,320] [INFO] [middleware.py:82] - Response Generated: POST /api/astar-pathfinding/payload | Status: 500 | Time: 3.14 ms
+INFO:     127.0.0.1:63016 - "POST /api/astar-pathfinding/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:55:54,454] [INFO] [middleware.py:26] - Request Received: POST /api/cost-analytics/payload | Request ID: a37a4de6-8ab9-41e2-a0d7-0ec66e773167
+[2026-07-20 04:55:54,456] [INFO] [cost_engine.py:63] - CostEngine: Cost Engine Started. Filters: {}
+[2026-07-20 04:55:54,456] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:55:54,515] [ERROR] [main.py:541] - Cost Analytics API Error: Failed retrieving cost analytics payload: 'Category'
+[2026-07-20 04:55:54,515] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 04:55:54,515] [INFO] [middleware.py:82] - Response Generated: POST /api/cost-analytics/payload | Status: 500 | Time: 61.22 ms
+INFO:     127.0.0.1:63016 - "POST /api/cost-analytics/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 04:56:18,881] [INFO] [middleware.py:26] - Request Received: POST /api/capacity-analytics/payload | Request ID: 57cc6536-ee47-45ac-976a-045db876af7c
+[2026-07-20 04:56:18,883] [INFO] [capacity_engine.py:61] - CapacityEngine: Capacity Engine Started. Filters: {}
+[2026-07-20 04:56:18,883] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:56:18,941] [INFO] [inventory_engine.py:64] - InventoryEngine: Inventory Engine Started. Filters: {}
+[2026-07-20 04:56:18,941] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 04:56:19,022] [INFO] [inventory_statistics.py:35] - InventoryStatistics: Computing inventory metrics.
+[2026-07-20 04:56:19,024] [INFO] [inventory_statistics.py:112] - InventoryStatistics: Inventory Metrics Generated.
+[2026-07-20 04:56:19,024] [INFO] [inventory_engine.py:108] - InventoryEngine: Inventory Metrics Generated.
+[2026-07-20 04:56:19,097] [INFO] [inventory_rankings.py:36] - InventoryRankingService: Generating rankings (top_n=5).
+[2026-07-20 04:56:19,100] [INFO] [inventory_rankings.py:98] - InventoryRankingService: Inventory Rankings Generated.
+[2026-07-20 04:56:19,100] [INFO] [inventory_engine.py:122] - InventoryEngine: Inventory Rankings Generated.
+[2026-07-20 04:56:19,100] [INFO] [inventory_outliers.py:37] - InventoryOutlierDetector: Running anomaly detection.
+[2026-07-20 04:56:19,144] [INFO] [inventory_outliers.py:140] - InventoryOutlierDetector: Outliers Generated. Total unique: 537
+[2026-07-20 04:56:19,144] [INFO] [inventory_engine.py:126] - InventoryEngine: Inventory Outliers Generated.
+[2026-07-20 04:56:19,144] [INFO] [inventory_trends.py:31] - InventoryTrendsService: Generating time-series trends.
+[2026-07-20 04:56:19,153] [INFO] [inventory_trends.py:61] - InventoryTrendsService: Inventory Trends Generated.
+[2026-07-20 04:56:19,153] [INFO] [inventory_engine.py:130] - InventoryEngine: Inventory Trends Generated.
+[2026-07-20 04:56:19,157] [INFO] [capacity_statistics.py:37] - CapacityStatistics: Computing network capacity overview metrics.
+[2026-07-20 04:56:19,157] [INFO] [capacity_engine.py:161] - CapacityEngine: Capacity Metrics Generated.
+[2026-07-20 04:56:19,157] [INFO] [capacity_statistics.py:87] - CapacityStatistics: Generating multi-dimensional regional capacity breakdowns.
+[2026-07-20 04:56:19,158] [INFO] [capacity_rankings.py:33] - CapacityRankingService: Generating rankings (top_n=5).
+[2026-07-20 04:56:19,158] [INFO] [capacity_rankings.py:84] - CapacityRankingService: Capacity Rankings Generated.
+[2026-07-20 04:56:19,158] [INFO] [capacity_engine.py:170] - CapacityEngine: Capacity Rankings Generated.
+[2026-07-20 04:56:19,158] [INFO] [capacity_bottlenecks.py:30] - CapacityBottleneckDetector: Analyzing network bottlenecks.
+[2026-07-20 04:56:19,158] [WARNING] [capacity_bottlenecks.py:75] - CapacityBottleneckDetector: Network capacity saturation detected!
+[2026-07-20 04:56:19,158] [INFO] [capacity_bottlenecks.py:94] - CapacityBottleneckDetector: Bottlenecks Generated. Total count: 20
+[2026-07-20 04:56:19,158] [INFO] [capacity_engine.py:174] - CapacityEngine: Capacity Bottlenecks Generated.
+[2026-07-20 04:56:19,158] [INFO] [capacity_trends.py:30] - CapacityTrendsService: Generating capacity trend datasets.
+[2026-07-20 04:56:19,165] [INFO] [capacity_trends.py:53] - CapacityTrendsService: Capacity Trends Generated.
+[2026-07-20 04:56:19,165] [INFO] [capacity_engine.py:179] - CapacityEngine: Capacity Trends Generated.
+[2026-07-20 04:56:19,169] [INFO] [middleware.py:82] - Response Generated: POST /api/capacity-analytics/payload | Status: 200 | Time: 287.39 ms
+INFO:     127.0.0.1:63018 - "POST /api/capacity-analytics/payload HTTP/1.1" 200 OK
+[2026-07-20 09:00:05,903] [INFO] [middleware.py:26] - Request Received: POST /api/v1/security/auth/token | Request ID: 9f921007-daa9-4def-b440-a6a79ed8f697
+[2026-07-20 09:00:05,907] [INFO] [middleware.py:82] - Response Generated: POST /api/v1/security/auth/token | Status: 200 | Time: 4.62 ms
+[AUDIT LOG] 2026-07-20T03:30:05Z | LOGIN | User: user-admin-001 | Status: SUCCESS | Detail: User 'admin' logged in successfully.
+INFO:     127.0.0.1:63168 - "POST /api/v1/security/auth/token HTTP/1.1" 200 OK
+[2026-07-20 09:00:05,916] [INFO] [middleware.py:26] - Request Received: GET /api/dataset/status | Request ID: 26db9a91-68bf-43a5-b46a-6f766f979d5a
+[2026-07-20 09:00:05,917] [INFO] [middleware.py:26] - Request Received: GET /api/repository/status | Request ID: 37c74d5b-e882-4b2f-a34d-9a7b34854fc2
+[2026-07-20 09:00:05,918] [INFO] [middleware.py:26] - Request Received: GET /api/pipeline/report | Request ID: 5242dacb-b13f-47df-a62c-72182001d42e
+[2026-07-20 09:00:05,919] [INFO] [repository.py:139] - Repository Access: list_available_sheets
+[2026-07-20 09:00:05,920] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 09:00:05,921] [INFO] [repository.py:145] - Repository Access: sheet_exists('Logistics_Transactions') -> True
+[2026-07-20 09:00:05,921] [INFO] [middleware.py:82] - Response Generated: GET /api/pipeline/report | Status: 200 | Time: 3.26 ms
+[2026-07-20 09:00:05,925] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+INFO:     127.0.0.1:63172 - "GET /api/pipeline/report HTTP/1.1" 200 OK
+[2026-07-20 09:00:05,935] [INFO] [repository.py:145] - Repository Access: sheet_exists('Hub_Location_Master') -> True
+[2026-07-20 09:00:05,966] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:00:05,969] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:00:05,972] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 09:00:05,974] [INFO] [repository.py:145] - Repository Access: sheet_exists('Parts_Master') -> True
+[2026-07-20 09:00:05,974] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 09:00:05,974] [INFO] [repository.py:145] - Repository Access: sheet_exists('Summary_Dashboard') -> True
+[2026-07-20 09:00:05,979] [INFO] [middleware.py:82] - Response Generated: GET /api/repository/status | Status: 200 | Time: 61.49 ms
+INFO:     127.0.0.1:63171 - "GET /api/repository/status HTTP/1.1" 200 OK
+[2026-07-20 09:00:05,986] [INFO] [dataset_loader.py:47] - Dataset detected and verified. Sheets found: ['Logistics_Transactions', 'Hub_Location_Master', 'TPR_Master', 'Parts_Master', 'Summary_Dashboard']
+[2026-07-20 09:00:05,986] [INFO] [dataset_validator.py:27] - Starting dataset validation...
+[2026-07-20 09:00:05,995] [INFO] [dataset_validator.py:153] - Dataset validation completed. Overall Validity: True
+[2026-07-20 09:00:05,996] [INFO] [middleware.py:82] - Response Generated: GET /api/dataset/status | Status: 200 | Time: 80.01 ms
+INFO:     127.0.0.1:63168 - "GET /api/dataset/status HTTP/1.1" 200 OK
+[2026-07-20 09:00:05,997] [INFO] [middleware.py:26] - Request Received: GET /api/v1/monitoring/health | Request ID: ffdcaf0a-fd23-4a32-a85c-35d3114a3f80
+[2026-07-20 09:00:05,998] [INFO] [structured_logger.py:36] - {"timestamp": "2026-07-20T03:30:05Z", "level": "INFO", "message": "System Health Check Completed.", "context": {"overall_status": "UP", "services_count": 3}}
+[2026-07-20 09:00:05,998] [INFO] [structured_logger.py:36] - {"timestamp": "2026-07-20T03:30:05Z", "level": "INFO", "message": "Telemetry health cache updated.", "context": {}}
+[2026-07-20 09:00:05,998] [INFO] [middleware.py:82] - Response Generated: GET /api/v1/monitoring/health | Status: 200 | Time: 0.97 ms
+[AUDIT LOG] 2026-07-20T03:30:05Z | API_ACCESS | User: user-admin-001 | Status: SUCCESS | Detail: User 'admin' successfully accessed resource.
+INFO:     127.0.0.1:63168 - "GET /api/v1/monitoring/health HTTP/1.1" 200 OK
+[2026-07-20 09:00:13,213] [INFO] [middleware.py:26] - Request Received: GET /api/copilot/history | Request ID: 3d025deb-f73c-4daa-8cc9-b65ff7c9cf87
+[2026-07-20 09:00:13,215] [INFO] [middleware.py:82] - Response Generated: GET /api/copilot/history | Status: 200 | Time: 2.30 ms
+INFO:     127.0.0.1:63174 - "GET /api/copilot/history HTTP/1.1" 200 OK
+[2026-07-20 09:01:05,253] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: da940757-6ea9-445f-994f-09e3a8b5c588
+[2026-07-20 09:01:05,255] [INFO] [middleware.py:26] - Request Received: POST /api/route-scoring/payload | Request ID: e703a394-bbe2-488d-8a07-ca80a9826643
+[2026-07-20 09:01:05,255] [INFO] [middleware.py:26] - Request Received: POST /api/sla-analytics/payload | Request ID: 6d39aad1-14af-43a0-9578-424eed3b3122
+[2026-07-20 09:01:05,256] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 09:01:05,256] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: 957b77b6-fb07-47d8-9285-7e57837ad236
+[2026-07-20 09:01:05,256] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:05,257] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 09:01:05,262] [INFO] [route_scoring_engine.py:52] - RouteScoringEngine: Route Scoring Engine Started. Filters: {}
+[2026-07-20 09:01:05,265] [INFO] [route_scoring_engine.py:57] - RouteScoringEngine: Cache HIT — returning cached payload.
+[2026-07-20 09:01:05,265] [INFO] [sla_engine.py:61] - SLAEngine: SLA Engine Started. Filters: {}
+[2026-07-20 09:01:05,305] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 09:01:05,313] [INFO] [sla_engine.py:66] - SLAEngine: Cache HIT — returning cached payload.
+[2026-07-20 09:01:05,314] [INFO] [middleware.py:82] - Response Generated: POST /api/route-scoring/payload | Status: 200 | Time: 59.30 ms
+[2026-07-20 09:01:05,314] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+INFO:     127.0.0.1:63183 - "POST /api/route-scoring/payload HTTP/1.1" 200 OK
+[2026-07-20 09:01:05,316] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 09:01:05,322] [INFO] [middleware.py:82] - Response Generated: POST /api/sla-analytics/payload | Status: 200 | Time: 67.26 ms
+INFO:     127.0.0.1:63185 - "POST /api/sla-analytics/payload HTTP/1.1" 200 OK
+[2026-07-20 09:01:05,355] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 09:01:05,410] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 09:01:05,410] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:05,411] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 154.12 ms
+INFO:     127.0.0.1:63186 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:05,412] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 09:01:05,412] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:05,412] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 159.19 ms
+INFO:     127.0.0.1:63181 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:05,917] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: b5b2e549-89e1-4ea4-86c1-1a486f65ae3b
+[2026-07-20 09:01:05,918] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: c3e573c5-c50d-41fe-9c82-542f1c145475
+[2026-07-20 09:01:05,919] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 09:01:05,920] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:05,920] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 09:01:05,920] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 09:01:05,920] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:05,924] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 09:01:05,998] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 09:01:06,075] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 09:01:06,076] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:06,078] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 160.97 ms
+INFO:     127.0.0.1:63181 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:06,079] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 09:01:06,079] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:06,079] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 161.22 ms
+INFO:     127.0.0.1:63186 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:07,083] [INFO] [middleware.py:26] - Request Received: POST /api/bi/dashboard | Request ID: 25482f02-53ef-4a9c-8030-7a89835297ab
+[2026-07-20 09:01:07,085] [INFO] [middleware.py:26] - Request Received: GET /api/analytics/dashboard | Request ID: c8b3325f-9729-4d02-8e76-3875dde7af2d
+[2026-07-20 09:01:07,085] [INFO] [analytics_service.py:18] - AnalyticsService: Calculating descriptive analytics.
+[2026-07-20 09:01:07,086] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:07,086] [INFO] [bi_service.py:123] - BIService: Calculating filtered dashboard metrics. Filters: {}
+[2026-07-20 09:01:07,086] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 09:01:07,086] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:07,092] [INFO] [bi_service.py:23] - BIService: Applying global filters: {}
+[2026-07-20 09:01:07,141] [INFO] [summary_service.py:13] - SummaryService: Generating executive summary metrics.
+[2026-07-20 09:01:07,251] [ERROR] [main.py:474] - BI API Error: Failed retrieving dashboard metrics: 'Category'
+[2026-07-20 09:01:07,251] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:07,252] [INFO] [middleware.py:82] - Response Generated: POST /api/bi/dashboard | Status: 500 | Time: 168.26 ms
+INFO:     127.0.0.1:63186 - "POST /api/bi/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:07,255] [ERROR] [main.py:463] - Analytics API Error: Failed loading dashboard metrics: 'Category'
+[2026-07-20 09:01:07,255] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:07,256] [INFO] [middleware.py:82] - Response Generated: GET /api/analytics/dashboard | Status: 500 | Time: 170.92 ms
+INFO:     127.0.0.1:63181 - "GET /api/analytics/dashboard HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:14,614] [INFO] [middleware.py:26] - Request Received: POST /api/capacity-analytics/payload | Request ID: d74f9ebd-6158-48c0-a18a-273f0637a66f
+[2026-07-20 09:01:14,615] [INFO] [capacity_engine.py:61] - CapacityEngine: Capacity Engine Started. Filters: {}
+[2026-07-20 09:01:14,615] [INFO] [capacity_engine.py:66] - CapacityEngine: Cache HIT — returning cached payload.
+[2026-07-20 09:01:14,628] [INFO] [middleware.py:82] - Response Generated: POST /api/capacity-analytics/payload | Status: 200 | Time: 14.45 ms
+INFO:     127.0.0.1:63190 - "POST /api/capacity-analytics/payload HTTP/1.1" 200 OK
+[2026-07-20 09:01:16,361] [INFO] [middleware.py:26] - Request Received: POST /api/astar-pathfinding/payload | Request ID: 313dc053-e293-4fcc-b8b7-8fab349c2743
+[2026-07-20 09:01:16,363] [INFO] [middleware.py:26] - Request Received: POST /api/cost-analytics/payload | Request ID: c8ba6ef7-ff23-4273-a0f0-c9c9c1b5b3c8
+[2026-07-20 09:01:16,364] [INFO] [astar_engine.py:56] - A* Engine Started.
+[2026-07-20 09:01:16,364] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 09:01:16,364] [INFO] [graph_engine.py:58] - GraphEngine: Cache HIT — returning cached payload.
+[2026-07-20 09:01:16,364] [INFO] [cost_engine.py:63] - CostEngine: Cost Engine Started. Filters: {}
+[2026-07-20 09:01:16,365] [INFO] [astar_engine.py:80] - Heuristic Generated.
+[2026-07-20 09:01:16,365] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:16,365] [ERROR] [main.py:650] - A* Pathfinding API Error: Failed retrieving A* payload: 'Ahmedabad'
+[2026-07-20 09:01:16,366] [WARNING] [exception_handler.py:17] - Validation Failed: 'Ahmedabad'
+[2026-07-20 09:01:16,367] [INFO] [middleware.py:82] - Response Generated: POST /api/astar-pathfinding/payload | Status: 500 | Time: 5.58 ms
+INFO:     127.0.0.1:63190 - "POST /api/astar-pathfinding/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:16,425] [ERROR] [main.py:541] - Cost Analytics API Error: Failed retrieving cost analytics payload: 'Category'
+[2026-07-20 09:01:16,425] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:16,426] [INFO] [middleware.py:82] - Response Generated: POST /api/cost-analytics/payload | Status: 500 | Time: 62.83 ms
+INFO:     127.0.0.1:63192 - "POST /api/cost-analytics/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:16,872] [INFO] [middleware.py:26] - Request Received: POST /api/astar-pathfinding/payload | Request ID: b6073726-7539-4e27-ac02-0b4ada8c917b
+[2026-07-20 09:01:16,874] [INFO] [astar_engine.py:56] - A* Engine Started.
+[2026-07-20 09:01:16,874] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 09:01:16,874] [INFO] [graph_engine.py:58] - GraphEngine: Cache HIT — returning cached payload.
+[2026-07-20 09:01:16,874] [INFO] [astar_engine.py:80] - Heuristic Generated.
+[2026-07-20 09:01:16,874] [ERROR] [main.py:650] - A* Pathfinding API Error: Failed retrieving A* payload: 'Ahmedabad'
+[2026-07-20 09:01:16,875] [WARNING] [exception_handler.py:17] - Validation Failed: 'Ahmedabad'
+[2026-07-20 09:01:16,875] [INFO] [middleware.py:82] - Response Generated: POST /api/astar-pathfinding/payload | Status: 500 | Time: 3.30 ms
+INFO:     127.0.0.1:63192 - "POST /api/astar-pathfinding/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:16,928] [INFO] [middleware.py:26] - Request Received: POST /api/cost-analytics/payload | Request ID: 64b52c0d-3964-4e99-8e82-153d6fb94e17
+[2026-07-20 09:01:16,931] [INFO] [cost_engine.py:63] - CostEngine: Cost Engine Started. Filters: {}
+[2026-07-20 09:01:16,931] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:16,989] [ERROR] [main.py:541] - Cost Analytics API Error: Failed retrieving cost analytics payload: 'Category'
+[2026-07-20 09:01:16,989] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:16,989] [INFO] [middleware.py:82] - Response Generated: POST /api/cost-analytics/payload | Status: 500 | Time: 60.98 ms
+INFO:     127.0.0.1:63192 - "POST /api/cost-analytics/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:17,881] [INFO] [middleware.py:26] - Request Received: POST /api/astar-pathfinding/payload | Request ID: eb2481c9-2cc5-4f57-9191-3e3424c36a31
+[2026-07-20 09:01:17,883] [INFO] [astar_engine.py:56] - A* Engine Started.
+[2026-07-20 09:01:17,883] [INFO] [graph_engine.py:53] - GraphEngine: Graph Engine Started. Filters: {}
+[2026-07-20 09:01:17,883] [INFO] [graph_engine.py:58] - GraphEngine: Cache HIT — returning cached payload.
+[2026-07-20 09:01:17,883] [INFO] [astar_engine.py:80] - Heuristic Generated.
+[2026-07-20 09:01:17,883] [ERROR] [main.py:650] - A* Pathfinding API Error: Failed retrieving A* payload: 'Ahmedabad'
+[2026-07-20 09:01:17,884] [WARNING] [exception_handler.py:17] - Validation Failed: 'Ahmedabad'
+[2026-07-20 09:01:17,884] [INFO] [middleware.py:82] - Response Generated: POST /api/astar-pathfinding/payload | Status: 500 | Time: 3.40 ms
+INFO:     127.0.0.1:63192 - "POST /api/astar-pathfinding/payload HTTP/1.1" 500 Internal Server Error
+[2026-07-20 09:01:17,993] [INFO] [middleware.py:26] - Request Received: POST /api/cost-analytics/payload | Request ID: a3099ca5-b479-472f-b587-279a6ce625eb
+[2026-07-20 09:01:17,994] [INFO] [cost_engine.py:63] - CostEngine: Cost Engine Started. Filters: {}
+[2026-07-20 09:01:17,995] [INFO] [repository.py:145] - Repository Access: sheet_exists('TPR_Master') -> True
+[2026-07-20 09:01:18,053] [ERROR] [main.py:541] - Cost Analytics API Error: Failed retrieving cost analytics payload: 'Category'
+[2026-07-20 09:01:18,054] [WARNING] [exception_handler.py:17] - Validation Failed: 'Category'
+[2026-07-20 09:01:18,054] [INFO] [middleware.py:82] - Response Generated: POST /api/cost-analytics/payload | Status: 500 | Time: 61.11 ms
+INFO:     127.0.0.1:63192 - "POST /api/cost-analytics/payload HTTP/1.1" 500 Internal Server Error
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+[2026-07-20 09:08:26,834] [INFO] [main.py:99] - Application shutting down.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8892]

@@ -19,6 +19,34 @@
         window.RiskHeatmap.init("sla-risk-map");
 
         try {
+            // Check dataset status first
+            const checkRes = await fetch("/api/dataset/status");
+            let isValid = false;
+            if (checkRes.ok) {
+                const statusData = await checkRes.json();
+                isValid = !!(statusData.validation_report && statusData.validation_report.is_valid);
+            }
+
+            if (!isValid) {
+                ["sla-dashboard", "sla-tracker", "sla-hub-panel",
+                 "sla-alert-center", "sla-rec-panel"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.innerHTML = `
+                            <div class="card glass-panel text-center" style="padding: 2rem; border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 8px;">
+                                <i class="fa-solid fa-database text-danger" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.8;"></i>
+                                <h4 style="color:#fff; margin-bottom: 0.5rem;">No Dataset Loaded</h4>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">Please upload or import the Dell FutureMinds dataset to populate analytics dashboard widgets.</p>
+                                <button class="btn btn-primary btn-sm" onclick="navigateToDataset()">Go to Import Screen</button>
+                            </div>
+                        `;
+                    }
+                });
+                const chartsPanel = document.getElementById("sla-charts-panel");
+                if (chartsPanel) chartsPanel.innerHTML = "";
+                return;
+            }
+
             // Fetch both endpoints in parallel
             const [predRes, fcstRes] = await Promise.all([
                 fetch("/api/sla-prediction/payload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filters: {} }) }),
@@ -82,10 +110,22 @@
 
         } catch (err) {
             console.error("[SLAPrediction] Error:", err);
-            const el = document.getElementById("sla-dashboard");
-            if (el) el.innerHTML = `<div class="card glass-panel" style="padding:var(--space-6);text-align:center;color:var(--danger-color);">
-                <i class="fa-solid fa-triangle-exclamation"></i> Failed to load SLA prediction data.
-            </div>`;
+            ["sla-dashboard", "sla-tracker", "sla-hub-panel",
+             "sla-alert-center", "sla-rec-panel"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerHTML = `
+                        <div class="card glass-panel text-center" style="padding: 1.5rem; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;">
+                            <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                            <h5 style="color:#fff; margin-bottom: 0.25rem;">Failed to load SLA predictions</h5>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem;">Service connectivity issue detected.</p>
+                            <button class="btn btn-secondary btn-sm" onclick="loadSLAPredictionWorkspace()" style="padding: 2px 8px; font-size: 10px;">
+                                <i class="fa-solid fa-rotate-right"></i> Retry
+                            </button>
+                        </div>
+                    `;
+                }
+            });
         }
     }
 

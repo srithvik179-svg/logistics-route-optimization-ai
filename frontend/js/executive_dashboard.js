@@ -175,7 +175,64 @@ function buildExecPayload(extra = {}) {
 // =========================================================
 // TAB 1: EXECUTIVE OVERVIEW
 // =========================================================
+async function checkDatasetStatus() {
+    try {
+        const res = await fetch("/api/dataset/status");
+        if (!res.ok) return false;
+        const data = await res.json();
+        return !!(data.validation_report && data.validation_report.is_valid);
+    } catch (e) {
+        return false;
+    }
+}
+
+function showEmptyExecState() {
+    // Reset KPIs to empty
+    ["ekpi-shipments-val", "ekpi-transit-val", "ekpi-cost-val", "ekpi-ontime-val", "ekpi-sla-val", "ekpi-violations-val"].forEach(id => {
+        setText(id, "—");
+    });
+    
+    // Inject empty state in health table, business summary, and rankings
+    const tbody = document.getElementById("exec-health-table");
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted" style="padding:1rem;">No dataset loaded.</td></tr>`;
+    }
+    const summaryEl = document.getElementById("exec-business-summary");
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+                <i class="fa-solid fa-database text-danger" style="font-size:1.5rem; margin-bottom:0.5rem;"></i>
+                <p style="font-size:11px; margin:0 0 0.5rem 0;">No Dataset Loaded</p>
+                <button class="btn btn-primary btn-sm" onclick="navigateToDataset()" style="font-size:10px; padding:2px 8px;">Import Dataset</button>
+            </div>
+        `;
+    }
+    const topTbody = document.getElementById("exec-top-routes");
+    const botTbody = document.getElementById("exec-bottom-routes");
+    if (topTbody) topTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No dataset loaded</td></tr>`;
+    if (botTbody) botTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No dataset loaded</td></tr>`;
+}
+
+function showExecErrorState() {
+    const summaryEl = document.getElementById("exec-business-summary");
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <div style="text-align:center; padding:1.5rem; color:var(--text-muted);">
+                <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size:1.5rem; margin-bottom:0.5rem;"></i>
+                <p style="font-size:11px; margin:0 0 0.5rem 0;">Connection error loading metrics.</p>
+                <button class="btn btn-secondary btn-sm" onclick="loadExecOverview()" style="font-size:10px; padding:2px 8px;">Retry</button>
+            </div>
+        `;
+    }
+}
+
 async function loadExecOverview() {
+    const isValid = await checkDatasetStatus();
+    if (!isValid) {
+        showEmptyExecState();
+        return;
+    }
+
     try {
         const [dashData, slaData, healthData, scoringData] = await Promise.allSettled([
             execFetchGet("/api/analytics/dashboard"),
@@ -184,16 +241,19 @@ async function loadExecOverview() {
             execFetchPost("/api/route-scoring/payload", buildExecPayload())
         ]);
 
+        let success = false;
+
         // --- KPI Command Strip ---
-        if (dashData.status === "fulfilled") {
+        if (dashData.status === "fulfilled" && dashData.value) {
             const d = dashData.value;
             setText("ekpi-shipments-val", fmtNum(d.total_shipments ?? d.kpis?.total_shipments));
             setText("ekpi-transit-val", fmtDays(d.avg_transit_days ?? d.kpis?.avg_transit_days));
             setText("ekpi-cost-val", fmtCurrency(d.total_cost ?? d.kpis?.total_cost));
             setText("ekpi-ontime-val", fmtPct(d.on_time_delivery_rate ?? d.kpis?.on_time_delivery_rate));
+            success = true;
         }
 
-        if (slaData.status === "fulfilled") {
+        if (slaData.status === "fulfilled" && slaData.value) {
             const s = slaData.value;
             const overview = s.overview ?? s;
             setText("ekpi-sla-val", fmtPct(overview.compliance_rate ?? overview.sla_compliance_rate));
@@ -208,10 +268,11 @@ async function loadExecOverview() {
             // SLA delta indicators
             setDelta("ekpi-sla-delta", overview.compliance_rate ?? 0, 90, true);
             setDelta("ekpi-violations-delta", violations, 0, false);
+            success = true;
         }
 
         // --- Platform Health Table ---
-        if (healthData.status === "fulfilled") {
+        if (healthData.status === "fulfilled" && healthData.value) {
             const h = healthData.value;
             const tbody = document.getElementById("exec-health-table");
             if (tbody && h.services) {
@@ -224,10 +285,11 @@ async function loadExecOverview() {
                     </tr>`;
                 }).join("");
             }
+            success = true;
         }
 
         // --- Business Summary ---
-        if (dashData.status === "fulfilled") {
+        if (dashData.status === "fulfilled" && dashData.value) {
             const d = dashData.value;
             const summaryEl = document.getElementById("exec-business-summary");
             if (summaryEl) {
@@ -240,18 +302,25 @@ async function loadExecOverview() {
                     <div class="exec-stat-row"><span>Active Routes</span><strong>${fmtNum(d.active_routes ?? d.kpis?.active_routes)}</strong></div>
                 `;
             }
+            success = true;
         }
 
         // --- Top & Bottom Route Rankings ---
-        if (scoringData.status === "fulfilled") {
+        if (scoringData.status === "fulfilled" && scoringData.value) {
             const s = scoringData.value;
             const rankings = s.rankings ?? s.route_rankings ?? [];
             renderTopBottomRoutes(rankings);
+            success = true;
         }
 
-        console.log("[Observability] Business Summary Updated");
+        if (!success) {
+            showExecErrorState();
+        } else {
+            console.log("[Observability] Business Summary Updated");
+        }
     } catch (err) {
         console.error("[ExecDashboard] loadExecOverview error:", err);
+        showExecErrorState();
     }
 }
 
