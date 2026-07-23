@@ -2734,7 +2734,7 @@ function renderCorridorTelemetryTable(flows) {
     tbody.innerHTML = "";
 
     if (!flows || flows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No active corridors match selected filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No active corridors match selected filters.</td></tr>`;
         return;
     }
 
@@ -2756,11 +2756,6 @@ function renderCorridorTelemetryTable(flows) {
             <td>${fl.avg_transit_time ? fl.avg_transit_time + ' Days' : '11.0 Days'}</td>
             <td><strong style="color:#10b981;">${costStr}</strong></td>
             <td><span class="badge success" style="font-size:10px;"><i class="fa-solid fa-circle-check"></i> 98.5% Optimal</span></td>
-            <td>
-                <button class="btn btn-primary btn-sm" style="font-size:10px; padding:3px 8px; cursor:pointer;" onclick="window.selectRouteOnMap('${fl.origin_id}', '${fl.destination_id}')">
-                    <i class="fa-solid fa-bolt"></i> Filter Route
-                </button>
-            </td>
         `;
         tbody.appendChild(tr);
     });
