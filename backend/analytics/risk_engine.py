@@ -152,27 +152,35 @@ def score_corridors(df: pd.DataFrame) -> List[Dict[str, Any]]:
 
 
 def generate_alerts(shipments: List[Dict], hubs: List[Dict]) -> List[Dict[str, Any]]:
-    """Generates proactive risk alerts from scored data."""
+    """Generates proactive risk alerts from scored data across all severities."""
     alerts = []
     for s in shipments:
-        if s["risk_level"] in ("Critical", "High"):
-            alerts.append({
-                "type": "Shipment Risk",
-                "severity": s["risk_level"],
-                "color": s["risk_color"],
-                "message": f"Shipment {s['transaction_id']} ({s['origin']} → {s['destination']}) has {s['breach_probability']}% SLA breach probability.",
-                "action": "Prioritize or reroute immediately."
-            })
+        alerts.append({
+            "id": f"ALT-SHP-{s['transaction_id']}",
+            "type": "Shipment Risk",
+            "severity": s["risk_level"],
+            "color": s["risk_color"],
+            "message": f"Shipment {s['transaction_id']} ({s['origin']} → {s['destination']}) has {s['breach_probability']}% SLA breach probability.",
+            "status": "Active",
+            "assigned_to": None,
+            "action": "Prioritize or reroute immediately."
+        })
     for h in hubs:
-        if h["risk_level"] in ("Critical", "High"):
-            alerts.append({
-                "type": "Hub Congestion",
-                "severity": h["risk_level"],
-                "color": h["risk_color"],
-                "message": f"Hub {h['hub']} has {h['capacity_utilization']}% capacity utilization and {h['miss_rate']}% SLA miss rate.",
-                "action": "Redistribute inbound volume to alternate hubs."
-            })
-    return alerts[:8]  # cap at 8 alerts
+        alerts.append({
+            "id": f"ALT-HUB-{h['hub']}",
+            "type": "Hub Congestion",
+            "severity": h["risk_level"],
+            "color": h["risk_color"],
+            "message": f"Hub {h['hub']} has {h['capacity_utilization']}% capacity utilization and {h['miss_rate']}% SLA miss rate.",
+            "status": "Active",
+            "assigned_to": None,
+            "action": "Redistribute inbound volume to alternate hubs."
+        })
+
+    # Sort to prioritize higher severities while keeping multi-severity representation
+    severity_order = {"Critical": 0, "High": 1, "Moderate": 2, "Low": 3, "Very Low": 4}
+    alerts.sort(key=lambda a: severity_order.get(a["severity"], 5))
+    return alerts[:15]
 
 
 def generate_recommendations(shipments: List[Dict], hubs: List[Dict], corridors: List[Dict]) -> List[Dict[str, Any]]:

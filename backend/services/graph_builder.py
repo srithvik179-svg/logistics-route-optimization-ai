@@ -40,31 +40,88 @@ class GraphBuilder:
 
         # Hub Nodes
         for h in hubs:
-            fb = GeospatialService.COORDINATES_FALLBACK.get(h, {})
-            nodes.append(GraphNode(
-                node_id=h,
-                name=fb.get("city", f"Hub {h}") + " Logistics Hub",
-                node_type="Hub",
-                latitude=fb.get("lat", 30.0),
-                longitude=fb.get("lon", -100.0),
-                region=fb.get("state", "TX"),
-                city=fb.get("city", "Unknown"),
-                capacity=fb.get("capacity", 5000.0)
-            ))
+            df_row = hub_df[hub_df["Hub_ID"] == h] if len(hub_df) > 0 and "Hub_ID" in hub_df.columns else pd.DataFrame()
+            if len(df_row) > 0:
+                row = df_row.iloc[0]
+                lat = row.get("Latitude")
+                lon = row.get("Longitude")
+                if pd.isna(lat) or pd.isna(lon):
+                    fb = GeospatialService.COORDINATES_FALLBACK.get(h, {})
+                    lat = fb.get("lat", 30.0)
+                    lon = fb.get("lon", -100.0)
+                nodes.append(GraphNode(
+                    node_id=h,
+                    name=str(row.get("Hub_Name", f"Hub {h}")),
+                    node_type="Hub",
+                    latitude=float(lat),
+                    longitude=float(lon),
+                    region=str(row.get("Region", row.get("Primary_Region", "Unknown"))),
+                    city=str(row.get("City", "Unknown")),
+                    capacity=float(row.get("Inventory_Capacity", 5000.0))
+                ))
+            else:
+                fb = GeospatialService.COORDINATES_FALLBACK.get(h, {})
+                nodes.append(GraphNode(
+                    node_id=h,
+                    name=fb.get("city", f"Hub {h}") + " Logistics Hub",
+                    node_type="Hub",
+                    latitude=fb.get("lat", 30.0),
+                    longitude=fb.get("lon", -100.0),
+                    region=fb.get("state", "TX"),
+                    city=fb.get("city", "Unknown"),
+                    capacity=fb.get("capacity", 5000.0)
+                ))
 
         # Repair Center Nodes
         for rc in rcs:
-            fb = GeospatialService.COORDINATES_FALLBACK.get(rc, {})
-            nodes.append(GraphNode(
-                node_id=rc,
-                name=fb.get("city", f"Repair Center {rc}") + " RC",
-                node_type="Repair Center",
-                latitude=fb.get("lat", 31.0),
-                longitude=fb.get("lon", -99.0),
-                region=fb.get("state", "TX"),
-                city=fb.get("city", "Unknown"),
-                capacity=fb.get("capacity", 2000.0)
-            ))
+            df_row = tpr_df[tpr_df["TPR_ID"] == rc] if len(tpr_df) > 0 and "TPR_ID" in tpr_df.columns else pd.DataFrame()
+            if len(df_row) > 0:
+                row = df_row.iloc[0]
+                lat = row.get("Latitude")
+                lon = row.get("Longitude")
+                if pd.isna(lat) or pd.isna(lon):
+                    fb = GeospatialService.COORDINATES_FALLBACK.get(rc, {})
+                    lat = fb.get("lat", 31.0)
+                    lon = fb.get("lon", -99.0)
+                nodes.append(GraphNode(
+                    node_id=rc,
+                    name=str(row.get("TPR_Name", f"Repair Center {rc}")),
+                    node_type="Repair Center",
+                    latitude=float(lat),
+                    longitude=float(lon),
+                    region=str(row.get("Coverage_Region", "Unknown")),
+                    city=str(row.get("City", "Unknown")),
+                    capacity=float(row.get("Repair_Capacity_Per_Day", 2000.0))
+                ))
+            else:
+                fb = GeospatialService.COORDINATES_FALLBACK.get(rc, {})
+                nodes.append(GraphNode(
+                    node_id=rc,
+                    name=fb.get("city", f"Repair Center {rc}") + " RC",
+                    node_type="Repair Center",
+                    latitude=fb.get("lat", 31.0),
+                    longitude=fb.get("lon", -99.0),
+                    region=fb.get("state", "TX"),
+                    city=fb.get("city", "Unknown"),
+                    capacity=fb.get("capacity", 2000.0)
+                ))
+
+        # Extra Customer Destination Nodes
+        if len(tx_df) > 0 and "Destination_Hub" in tx_df.columns:
+            all_dests = set(tx_df["Destination_Hub"].dropna().unique())
+            extra_dests = all_dests - set(hubs) - set(rcs)
+            for d in extra_dests:
+                fb = GeospatialService.COORDINATES_FALLBACK.get(d, {})
+                nodes.append(GraphNode(
+                    node_id=d,
+                    name=fb.get("city", d) + " Destination",
+                    node_type="Destination",
+                    latitude=fb.get("lat", 22.0),
+                    longitude=fb.get("lon", 78.0),
+                    region=fb.get("state", "IN"),
+                    city=d,
+                    capacity=fb.get("capacity", 0.0)
+                ))
 
         # --- 2. Edges Generation ---
         edges: List[GraphEdge] = []
@@ -100,7 +157,13 @@ class GraphBuilder:
             elif avg_time > 2.5:
                 status = "Congested"
 
-            dest_capacity = GeospatialService.COORDINATES_FALLBACK.get(dest, {}).get("capacity", 2000.0)
+            dest_capacity = 2000.0
+            if len(hub_df) > 0 and "Hub_ID" in hub_df.columns and dest in hub_df["Hub_ID"].values:
+                dest_capacity = float(hub_df[hub_df["Hub_ID"] == dest].iloc[0].get("Inventory_Capacity") or 5000.0)
+            elif len(tpr_df) > 0 and "TPR_ID" in tpr_df.columns and dest in tpr_df["TPR_ID"].values:
+                dest_capacity = float(tpr_df[tpr_df["TPR_ID"] == dest].iloc[0].get("Repair_Capacity_Per_Day") or 2000.0)
+            else:
+                dest_capacity = GeospatialService.COORDINATES_FALLBACK.get(dest, {}).get("capacity", 2000.0)
 
             edges.append(GraphEdge(
                 source=src,

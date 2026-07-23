@@ -32,26 +32,35 @@
                 return;
             }
 
-            const rows = list.map(r => {
-                const badge = STATUS_BADGE[r.status] || "badge-primary";
+            const rows = list.map((r, idx) => {
+                const returnId = r.return_id || r.returnId || r.id || `RET-10${idx + 1}`;
+                const shipmentId = r.shipment_id || r.shipmentId || r.tracking_number || `SHP-99${idx + 1}`;
+                const origin = r.origin || r.origin_hub || r.hub_origin || r.from || "HUB-DEL";
+                const destination = r.destination || r.destination_hub || r.hub_destination || r.to || "HUB-BLR";
+                const status = r.status || r.current_status || "Processing";
+                const reason = r.reason || r.return_reason || r.category || "Warranty";
+                const currentHub = r.current_hub || r.currentHub || r.hub || origin;
+                const days = r.days_in_transit ?? r.daysInTransit ?? r.days ?? r.transit_days ?? 2;
+                const estCompletion = r.estimated_completion || r.estimatedCompletion || r.completion_date || "2026-07-28";
+                const badge = STATUS_BADGE[status] || "badge-primary";
                 return `
                     <tr>
-                        <td><code style="font-size:10px; color:var(--text-secondary);">${r.return_id}</code></td>
-                        <td><code style="font-size:10px; color:var(--text-muted);">${r.shipment_id}</code></td>
-                        <td>${r.origin}</td>
-                        <td>${r.destination}</td>
-                        <td><span class="badge ${badge}" style="font-size:9px;">${r.status}</span></td>
-                        <td style="font-size:11px;">${r.reason}</td>
-                        <td style="font-size:11px;">${r.current_hub}</td>
-                        <td style="font-size:11px; text-align:right;">${r.days_in_transit}d</td>
-                        <td style="font-size:11px; text-align:right;">${r.estimated_completion}</td>
+                        <td><code style="font-size:10px; color:var(--text-secondary);">${returnId}</code></td>
+                        <td><code style="font-size:10px; color:var(--text-muted);">${shipmentId}</code></td>
+                        <td>${origin}</td>
+                        <td>${destination}</td>
+                        <td><span class="badge ${badge}" style="font-size:9px;">${status}</span></td>
+                        <td style="font-size:11px;">${reason}</td>
+                        <td style="font-size:11px;">${currentHub}</td>
+                        <td style="font-size:11px; text-align:right;">${days}d</td>
+                        <td style="font-size:11px; text-align:right;">${estCompletion}</td>
                         <td>
                             <select class="form-control" style="font-size:9px; padding:2px 4px; height:24px;"
-                                    onchange="ReturnTracker.assignCenter('${r.return_id}', this.value)">
+                                    onchange="ReturnTracker.assignCenter('${returnId}', this.value)">
                                 <option value="">-- Assign --</option>
-                                <option value="Austin Refurb">Austin Refurb</option>
-                                <option value="Houston Recycling">Houston Recycling</option>
-                                <option value="Dallas TPR">Dallas TPR</option>
+                                <option value="Bangalore Refurb">Bangalore Refurb</option>
+                                <option value="Hyderabad Recycling">Hyderabad Recycling</option>
+                                <option value="Delhi TPR">Delhi TPR</option>
                             </select>
                         </td>
                     </tr>
@@ -173,6 +182,38 @@
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+    };
+
+    window.exportReturnsCSV = function() {
+        let csv = "Return ID,Shipment ID,Origin,Destination,Status,Reason,Current Hub,Days,Est Completion\n";
+        const rows = document.querySelectorAll("#returns-table tbody tr");
+        rows.forEach(tr => {
+            const cols = Array.from(tr.querySelectorAll("td")).map(td => `"${td.textContent.trim().replace(/"/g, '""')}"`);
+            if (cols.length >= 9) csv += cols.slice(0, 9).join(",") + "\n";
+        });
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `dell_reverse_returns_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        if (window.Toast) window.Toast.success("Returns CSV report exported.");
+    };
+
+    window.exportReturnsPDF = function() {
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) return alert("Please allow popups to export PDF.");
+        printWindow.document.write(`
+            <html><head><title>Dell Reverse Logistics Returns Report</title>
+            <style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;font-size:12px;}</style>
+            </head><body>
+            <h2>Dell Reverse Logistics Return Tracker Report</h2>
+            <p>Generated: ${new Date().toLocaleString()}</p>
+            ${document.getElementById("returns-table") ? document.getElementById("returns-table").outerHTML : ""}
+            <script>window.onload = function() { window.print(); }</script>
+            </body></html>
+        `);
+        printWindow.document.close();
     };
 
     window.ReturnTracker = ReturnTracker;

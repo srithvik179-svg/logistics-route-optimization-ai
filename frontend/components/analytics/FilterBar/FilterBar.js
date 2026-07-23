@@ -1,6 +1,7 @@
 /**
  * FilterBar Component
  * Renders a global analytics filter toolbar and synchronizes filters across viewports.
+ * Dropdown values match the actual Dell_Logistics_Route_Optimization.xlsx dataset.
  */
 (function() {
     window.GlobalFilters = {
@@ -43,62 +44,77 @@
                             <label>Hub Location</label>
                             <select id="gfilter-hub" class="form-control">
                                 <option value="">All Hubs</option>
-                                <option value="Austin Hub">Austin Hub</option>
-                                <option value="Dallas Hub">Dallas Hub</option>
-                                <option value="Houston Hub">Houston Hub</option>
-                                <option value="El Paso Hub">El Paso Hub</option>
+                                <option value="HUB-AHM">Ahmedabad Satellite (HUB-AHM)</option>
+                                <option value="HUB-AMS">Amsterdam Hub (HUB-AMS)</option>
+                                <option value="HUB-BLR">Bangalore Hub (HUB-BLR)</option>
+                                <option value="HUB-CHE">Chennai Hub (HUB-CHE)</option>
+                                <option value="HUB-DEL">Delhi Hub (HUB-DEL)</option>
+                                <option value="HUB-DXB">Dubai Hub (HUB-DXB)</option>
+                                <option value="HUB-HYD">Hyderabad Hub (HUB-HYD)</option>
+                                <option value="HUB-KOL">Kolkata Satellite (HUB-KOL)</option>
+                                <option value="HUB-KUL">Kuala Lumpur Hub (HUB-KUL)</option>
+                                <option value="HUB-MUM">Mumbai Hub (HUB-MUM)</option>
+                                <option value="HUB-PUN">Pune Satellite (HUB-PUN)</option>
+                                <option value="HUB-SIN">Singapore Hub (HUB-SIN)</option>
                             </select>
                         </div>
                         <div class="filter-item">
                             <label>Region</label>
                             <select id="gfilter-region" class="form-control">
                                 <option value="">All Regions</option>
-                                <option value="North">North</option>
-                                <option value="South">South</option>
-                                <option value="East">East</option>
-                                <option value="West">West</option>
+                                <option value="Asia Pacific">Asia Pacific</option>
+                                <option value="East India">East India</option>
+                                <option value="Europe">Europe</option>
+                                <option value="Middle East">Middle East</option>
+                                <option value="North India">North India</option>
+                                <option value="South India">South India</option>
+                                <option value="West India">West India</option>
                             </select>
                         </div>
                         <div class="filter-item">
                             <label>Route Origin/Dest</label>
-                            <input type="text" id="gfilter-route" class="form-control" placeholder="e.g. Austin-Dallas">
+                            <input type="text" id="gfilter-route" class="form-control" placeholder="e.g. HUB-DEL-Bangalore">
                         </div>
                         <div class="filter-item">
-                            <label>Shipment Type</label>
+                            <label>Flow Type</label>
                             <select id="gfilter-shipment-type" class="form-control">
-                                <option value="">All Types</option>
-                                <option value="Parts Replacement">Parts Replacement</option>
-                                <option value="Standard Delivery">Standard Delivery</option>
+                                <option value="">All Flows</option>
+                                <option value="Forward">Forward</option>
+                                <option value="Reverse">Reverse</option>
                             </select>
                         </div>
                         <div class="filter-item">
-                            <label>Transport Mode</label>
+                            <label>Logistics Partner</label>
                             <select id="gfilter-transport-mode" class="form-control">
-                                <option value="">All Modes</option>
-                                <option value="Air Freight">Air Freight</option>
-                                <option value="Ground Transport">Ground Transport</option>
+                                <option value="">All Partners</option>
+                                <option value="AirFreight Partners">AirFreight Partners</option>
+                                <option value="FastTrack Logistics">FastTrack Logistics</option>
+                                <option value="GlobalShip Express">GlobalShip Express</option>
+                                <option value="GroundLink Network">GroundLink Network</option>
+                                <option value="SwiftCargo India">SwiftCargo India</option>
                             </select>
                         </div>
                         <div class="filter-item">
                             <label>Priority</label>
                             <select id="gfilter-priority" class="form-control">
                                 <option value="">All Priorities</option>
-                                <option value="High Priority">High Priority</option>
-                                <option value="Medium Priority">Medium Priority</option>
-                                <option value="Low Priority">Low Priority</option>
+                                <option value="P1-Critical">P1 - Critical</option>
+                                <option value="P2-High">P2 - High</option>
+                                <option value="P3-Medium">P3 - Medium</option>
+                                <option value="P4-Low">P4 - Low</option>
                             </select>
                         </div>
                         <div class="filter-item">
                             <label>SLA Status</label>
                             <select id="gfilter-status" class="form-control">
-                                <option value="">All Statuses</option>
-                                <option value="MET">MET SLA</option>
-                                <option value="MISSED">MISSED SLA</option>
+                                <option value="">All SLA Statuses</option>
+                                <option value="NO">SLA Met (NO Breach)</option>
+                                <option value="YES">SLA Breached (YES)</option>
                             </select>
                         </div>
                         <div class="filter-item filter-search-wrapper">
                             <label>Search Text</label>
-                            <input type="text" id="gfilter-search" class="form-control" placeholder="Search orders...">
+                            <input type="text" id="gfilter-search" class="form-control" placeholder="Part No, Hub ID, destination...">
                         </div>
                     </div>
                 </div>
@@ -111,16 +127,16 @@
 
         apply() {
             // Read UI values
-            window.GlobalFilters.start_date = document.getElementById("gfilter-start-date").value;
-            window.GlobalFilters.end_date = document.getElementById("gfilter-end-date").value;
-            window.GlobalFilters.hub = document.getElementById("gfilter-hub").value;
-            window.GlobalFilters.region = document.getElementById("gfilter-region").value;
-            window.GlobalFilters.route = document.getElementById("gfilter-route").value;
+            window.GlobalFilters.start_date    = document.getElementById("gfilter-start-date").value;
+            window.GlobalFilters.end_date      = document.getElementById("gfilter-end-date").value;
+            window.GlobalFilters.hub           = document.getElementById("gfilter-hub").value;
+            window.GlobalFilters.region        = document.getElementById("gfilter-region").value;
+            window.GlobalFilters.route         = document.getElementById("gfilter-route").value;
             window.GlobalFilters.shipment_type = document.getElementById("gfilter-shipment-type").value;
-            window.GlobalFilters.transport_mode = document.getElementById("gfilter-transport-mode").value;
-            window.GlobalFilters.priority = document.getElementById("gfilter-priority").value;
-            window.GlobalFilters.status = document.getElementById("gfilter-status").value;
-            window.GlobalFilters.search = document.getElementById("gfilter-search").value;
+            window.GlobalFilters.transport_mode= document.getElementById("gfilter-transport-mode").value;
+            window.GlobalFilters.priority      = document.getElementById("gfilter-priority").value;
+            window.GlobalFilters.status        = document.getElementById("gfilter-status").value;
+            window.GlobalFilters.search        = document.getElementById("gfilter-search").value;
 
             console.log("[FilterBar] Applying Global Filters:", window.GlobalFilters);
 
@@ -132,31 +148,47 @@
             if (activeSection) {
                 const targetId = activeSection.id;
                 console.log(`[FilterBar] Refreshing active section: ${targetId}`);
-                if (targetId === "dashboard-section" && typeof window.loadExecutiveDashboard === "function") {
-                    window.loadExecutiveDashboard();
-                } else if (targetId === "routes-section" && typeof window.loadRouteIntelligence === "function") {
-                    window.loadRouteIntelligence();
-                } else if (targetId === "performance-section" && typeof window.loadLogisticsPerformance === "function") {
-                    window.loadLogisticsPerformance();
-                } else if (targetId === "network-map-section" && typeof window.loadNetworkMap === "function") {
-                    window.loadNetworkMap();
-                } else if (targetId === "executive-section" && typeof window.loadExecutiveCommandCenter === "function") {
-                    window.loadExecutiveCommandCenter();
+
+                const sectionLoaders = {
+                    "dashboard-section":     "loadExecutiveDashboard",
+                    "network-map-section":   "loadNetworkMap",
+                    "routes-section":        "loadRouteIntelligence",
+                    "performance-section":   "loadLogisticsPerformance",
+                    "workspace-section":     "loadWorkspace",
+                    "recommendation-section":"loadRecommendationWorkspace",
+                    "corridor-section":      "loadCorridorWorkspace",
+                    "optimization-section":  "loadCostOptimizationWorkspace",
+                    "reverse-section":       "loadReverseLogisticsWorkspace",
+                    "circular-section":      "loadCircularSupplyChainWorkspace",
+                    "command-3d-section":    "load3DCommandCenterWorkspace",
+                    "sla-section":           "loadSLAPredictionWorkspace",
+                    "orchestrator-section":  "loadAIOrchestratorWorkspace",
+                    "reports-section":       "loadExecutiveReportsWorkspace",
+                    "command-center-section":"loadCommandCenterWorkspace",
+                    "geospatial-section":    "loadGeospatialWorkspace",
+                    "copilot-section":       "loadCopilotWorkspace",
+                    "executive-section":     "loadExecutiveCommandCenter",
+                    "admin-section":         "loadAdminCenter"
+                };
+
+                const loaderName = sectionLoaders[targetId];
+                if (loaderName && typeof window[loaderName] === "function") {
+                    window[loaderName]();
                 }
             }
         },
 
         reset() {
-            document.getElementById("gfilter-start-date").value = "";
-            document.getElementById("gfilter-end-date").value = "";
-            document.getElementById("gfilter-hub").value = "";
-            document.getElementById("gfilter-region").value = "";
-            document.getElementById("gfilter-route").value = "";
+            document.getElementById("gfilter-start-date").value    = "";
+            document.getElementById("gfilter-end-date").value      = "";
+            document.getElementById("gfilter-hub").value           = "";
+            document.getElementById("gfilter-region").value        = "";
+            document.getElementById("gfilter-route").value         = "";
             document.getElementById("gfilter-shipment-type").value = "";
-            document.getElementById("gfilter-transport-mode").value = "";
-            document.getElementById("gfilter-priority").value = "";
-            document.getElementById("gfilter-status").value = "";
-            document.getElementById("gfilter-search").value = "";
+            document.getElementById("gfilter-transport-mode").value= "";
+            document.getElementById("gfilter-priority").value      = "";
+            document.getElementById("gfilter-status").value        = "";
+            document.getElementById("gfilter-search").value        = "";
 
             this.apply();
         },
@@ -164,45 +196,36 @@
         syncFilters() {
             const gf = window.GlobalFilters;
 
-            // Sync performance filters
-            if (window.perfState) {
-                window.perfState.filters.start_date = gf.start_date;
-                window.perfState.filters.end_date = gf.end_date;
-                window.perfState.filters.hub = gf.hub;
-                window.perfState.filters.priority = gf.priority;
-                window.perfState.filters.status = gf.status;
-            }
+            const syncState = (state) => {
+                if (!state) return;
+                state.filters = state.filters || {};
+                state.filters.start_date    = gf.start_date;
+                state.filters.end_date      = gf.end_date;
+                state.filters.hub           = gf.hub;
+                state.filters.region        = gf.region;
+                state.filters.route         = gf.route;
+                state.filters.shipment_type = gf.shipment_type;
+                state.filters.transport_mode= gf.transport_mode;
+                state.filters.priority      = gf.priority;
+                state.filters.status        = gf.status;
+                state.filters.search        = gf.search;
+            };
 
-            // Sync route filters
-            if (window.routeState) {
-                window.routeState.filters.start_date = gf.start_date;
-                window.routeState.filters.end_date = gf.end_date;
-                window.routeState.filters.hub = gf.hub;
-                window.routeState.filters.priority = gf.priority;
-            }
-
-            // Sync map filters
-            if (window.mapState) {
-                window.mapState.filters.start_date = gf.start_date;
-                window.mapState.filters.end_date = gf.end_date;
-                window.mapState.filters.hub = gf.hub;
-                window.mapState.filters.priority = gf.priority;
-                window.mapState.filters.status = gf.status;
-            }
-
-            // Sync BI filters
-            if (window.biState) {
-                window.biState.filters.start_date = gf.start_date;
-                window.biState.filters.end_date = gf.end_date;
-                window.biState.filters.hub = gf.hub;
-                window.biState.filters.priority = gf.priority;
-                window.biState.filters.status = gf.status;
-            }
+            syncState(window.perfState);
+            syncState(window.routeState);
+            syncState(window.mapState);
+            syncState(window.biState);
 
             // Sync Executive Command filters
             if (window.execFilters) {
-                window.execFilters.region = gf.region;
+                window.execFilters.region  = gf.region;
+                window.execFilters.partner = gf.transport_mode;
             }
+        },
+
+        updateDropdowns(hubs, regions) {
+            // Dynamic update not needed — dropdowns are now dataset-accurate hardcoded values
+            // This method is kept for API compatibility
         }
     };
     window.FilterBar = FilterBar;

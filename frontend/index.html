@@ -128,6 +128,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <!-- Three.js 3D WebGL Engine CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -158,6 +161,12 @@
                         <a href="#" class="nav-link" data-target="command-center-section" id="nav-command-center">
                             <i class="fa-solid fa-tower-broadcast"></i>
                             <span>Command Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-target="command-3d-section" id="nav-command-3d">
+                            <i class="fa-solid fa-globe text-primary"></i>
+                            <span>3D AI Command Center</span>
                         </a>
                     </li>
                     <li>
@@ -239,6 +248,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="#" class="nav-link" data-target="circular-section" id="nav-circular">
+                            <i class="fa-solid fa-recycle text-success"></i>
+                            <span>AI Circular Supply Chain</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#" class="nav-link" data-target="sla-section" id="nav-sla">
                             <i class="fa-solid fa-hourglass-half"></i>
                             <span>SLA Prediction</span>
@@ -290,39 +305,39 @@
                         </div>
                         <h1 id="header-title" style="font-family:var(--font-heading); font-size:var(--font-size-md); font-weight:600; margin:0">Platform Overview</h1>
                     </div>
-                    <!-- Workspace Switcher Dropdown -->
-                    <div class="workspace-switcher">
-                        <button class="switcher-btn" id="switcher-btn">
-                            <i class="fa-solid fa-network-wired text-success"></i>
-                            <span class="workspace-name">Production Grid</span>
-                            <i class="fa-solid fa-chevron-down" style="font-size:10px; color:var(--text-muted)"></i>
-                        </button>
-                        <div class="switcher-dropdown" id="switcher-dropdown">
-                            <div class="switcher-option active">
-                                <span>Production Grid</span>
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <div class="switcher-option">
-                                <span>Simulation Network</span>
-                                <i></i>
-                            </div>
-                            <div class="switcher-option">
-                                <span>Disaster Recovery Node</span>
-                                <i></i>
-                            </div>
-                        </div>
+                    <!-- Operating Environment Status Badge (Production Grid) -->
+                    <div class="workspace-status-badge" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; font-size: 12px; font-weight: 600; color: #10b981;" title="Operating Environment: Production Grid">
+                        <i class="fa-solid fa-network-wired text-success"></i>
+                        <span class="workspace-name">Production Grid</span>
+                        <i class="fa-solid fa-circle-check" style="font-size: 11px; color: #10b981; margin-left: 2px;"></i>
+                    </div>
+
+                    <!-- Global Active Optimization Engine Badge -->
+                    <div class="active-engine-badge" id="global-active-engine-badge" style="display: flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 20px; font-size: 11px; font-weight: 600; color: #10b981; margin-left: 12px;" title="Current System Optimization Algorithm">
+                        <i class="fa-solid fa-bolt" style="color: #10b981; font-size: 11px;"></i>
+                        <span>Engine: <strong id="global-active-engine-label" style="color: #ffffff;">Dijkstra Shortest Path</strong></span>
                     </div>
                 </div>
                 
                 <div class="header-right">
                     <!-- Global Command Search bar -->
-                    <div class="header-search-bar">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="global-search-input" class="form-control" placeholder="Search operations or hit '/'">
+                    <div class="header-search-bar" id="global-search-container">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="global-search-input" class="form-control header-search-input" 
+                               placeholder="Search Shipment ID, Hub, Route, Part No, TPR..."
+                               autocomplete="off"
+                               aria-label="Global search">
+                        <button type="button" id="global-search-clear" class="search-clear-btn" style="display:none;" title="Clear search">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <span id="global-search-spinner" class="search-spinner" style="display:none;">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        </span>
+                        <div id="global-search-results" class="global-search-dropdown" style="display:none;"></div>
                     </div>
                     
                     <!-- Quick Create Button -->
-                    <button class="btn btn-primary btn-sm" id="quick-create-btn" title="Create dispatch request">
+                    <button class="btn btn-primary btn-sm" id="quick-create-btn" title="Create dispatch request" onclick="openDispatchModal()">
                         <i class="fa-solid fa-plus"></i> Dispatch
                     </button>
                     
@@ -354,11 +369,6 @@
                             </li>
                         </ul>
                     </div>
-
-                    <!-- Theme Toggle button (UI state only) -->
-                    <button class="notification-bell-btn" onclick="alert('Theme configuration locked under corporate tenant rules.')" title="Toggle Theme">
-                        <i class="fa-solid fa-circle-half-stroke"></i>
-                    </button>
 
                     <!-- User Profile Dropdown container -->
                     <div class="profile-menu-container">
@@ -425,16 +435,16 @@
                         <div class="card status-summary-card">
                             <div class="card-header">
                                 <h3>Data Layer Status</h3>
-                                <span class="badge" id="overview-badge">Checking...</span>
+                                <span class="badge success" id="overview-badge">Valid</span>
                             </div>
                             <div class="card-body">
                                 <div class="status-info">
-                                    <div class="status-icon-box" id="overview-status-icon">
-                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <div class="status-icon-box success" id="overview-status-icon">
+                                        <i class="fa-solid fa-circle-check"></i>
                                     </div>
                                     <div class="status-details">
-                                        <h4 id="overview-status-title">Checking dataset availability...</h4>
-                                        <p id="overview-status-desc">Verifying Dell Logistics Excel workbook presence and integrity.</p>
+                                        <h4 id="overview-status-title">Workbook Loaded & Verified</h4>
+                                        <p id="overview-status-desc">Dell Logistics Excel workbook loaded and validated successfully.</p>
                                     </div>
                                 </div>
                                 <div class="action-btn-group" style="margin-top:var(--space-4)">
@@ -524,7 +534,7 @@
                                     <h3>Quick Commands</h3>
                                 </div>
                                 <div class="card-body quick-actions-panel">
-                                    <div class="quick-action-btn" id="quick-action-dispatch">
+                                    <div class="quick-action-btn" id="quick-action-dispatch" onclick="openDispatchModal()">
                                         <i class="fa-solid fa-paper-plane"></i>
                                         <span>Dispatch Order</span>
                                     </div>
@@ -536,7 +546,7 @@
                                         <i class="fa-solid fa-terminal"></i>
                                         <span>Command Shell</span>
                                     </div>
-                                    <div class="quick-action-btn" onclick="alert('Exporting system diagnostics package...');">
+                                    <div class="quick-action-btn" onclick="const navDS = document.querySelector('.sidebar-nav a[href=\'#dataset-status-section\']'); if(navDS) navDS.click(); else alert('System Telemetry Diagnostics: All data pipelines active. Quality Score: 98%. Latency: 4ms.');">
                                         <i class="fa-solid fa-heart-pulse"></i>
                                         <span>Diagnostics</span>
                                     </div>
@@ -571,7 +581,111 @@
                     </div>
                 </section>
 
-                <!-- EXECUTIVE DASHBOARD SECTION -->
+                </section>
+
+                <!-- 🌐 3D AI COMMAND CENTER DIGITAL TWIN SECTION -->
+                <section class="viewport-section" id="command-3d-section" style="position: relative; overflow: hidden; background: #090d16; border-radius: 12px;">
+                    <div id="command-3d-workspace" style="position: relative; width: 100%; height: calc(100vh - 110px); min-height: 750px; overflow: hidden; display: flex; flex-direction: column;">
+
+                        <!-- Top Floating Glass Header Banner & Controls Bar -->
+                        <div class="glass-panel" style="position: absolute; top: 12px; left: 12px; right: 12px; z-index: 10; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-globe text-primary" style="font-size: 18px;"></i>
+                                </div>
+                                <div>
+                                    <h2 style="font-size: 15px; font-weight: 700; color: #f8fafc; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                        3D AI Command Center <span class="badge badge-success" style="font-size: 9px;"><i class="fa-solid fa-signal text-success"></i> LIVE DIGITAL TWIN</span>
+                                    </h2>
+                                    <p style="font-size: 10px; color: var(--text-muted); margin: 2px 0 0 0;">Interactive WebGL Logistics Operations Control • Click Nodes for Deep Telemetry</p>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button class="btn btn-primary btn-sm" id="btn-3d-ai-optimize" style="font-size: 11px; padding: 6px 14px; display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #2563eb, #3b82f6); color: #ffffff; font-weight: 700; border: none; box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Optimization
+                                </button>
+                                <button class="btn btn-sm" id="btn-3d-reset-cam" title="Reset View" style="font-size: 11px; padding: 6px 12px; background: rgba(30, 41, 59, 0.9); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; border-radius: 6px;">
+                                    <i class="fa-solid fa-video text-primary"></i> Reset View
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Top Floating KPI Overlay Strip -->
+                        <div style="position: absolute; top: 72px; left: 12px; right: 12px; z-index: 9; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">
+                            <div class="glass-panel" style="padding: 8px 12px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;">
+                                <span class="text-muted" style="font-size: 9px; font-weight: 600;">TOTAL SHIPMENTS</span>
+                                <h4 id="kpi-3d-shipments" style="font-size: 15px; color: #3b82f6; margin: 2px 0;">1,800</h4>
+                                <span class="text-success" style="font-size: 9px;"><i class="fa-solid fa-circle-check"></i> 100% Tracked</span>
+                            </div>
+                            <div class="glass-panel" style="padding: 8px 12px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;">
+                                <span class="text-muted" style="font-size: 9px; font-weight: 600;">ACTIVE ROUTES</span>
+                                <h4 id="kpi-3d-routes" style="font-size: 15px; color: #10b981; margin: 2px 0;">108 Lanes</h4>
+                                <span style="font-size: 9px; color: #10b981;"><i class="fa-solid fa-network-wired"></i> 83 Nominal</span>
+                            </div>
+                            <div class="glass-panel" style="padding: 8px 12px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;">
+                                <span class="text-muted" style="font-size: 9px; font-weight: 600;">NETWORK SLA</span>
+                                <h4 id="kpi-3d-sla" style="font-size: 15px; color: #f59e0b; margin: 2px 0;">84.2%</h4>
+                                <span class="text-warning" style="font-size: 9px;"><i class="fa-solid fa-hourglass-half"></i> On-Time Target</span>
+                            </div>
+                            <div class="glass-panel" style="padding: 8px 12px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;">
+                                <span class="text-muted" style="font-size: 9px; font-weight: 600;">LOGISTICS SPEND</span>
+                                <h4 id="kpi-3d-cost" style="font-size: 15px; color: #ec4899; margin: 2px 0;">$2.83M</h4>
+                                <span style="font-size: 9px; color: #ec4899;"><i class="fa-solid fa-arrow-trend-down"></i> -12.4% Saved</span>
+                            </div>
+                            <div class="glass-panel" style="padding: 8px 12px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;">
+                                <span class="text-muted" style="font-size: 9px; font-weight: 600;">HUB CAPACITY</span>
+                                <h4 id="kpi-3d-capacity" style="font-size: 15px; color: #06b6d4; margin: 2px 0;">68.5% Avg</h4>
+                                <span style="font-size: 9px; color: #06b6d4;"><i class="fa-solid fa-warehouse"></i> Balanced Load</span>
+                            </div>
+                            <div class="glass-panel" style="padding: 8px 12px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;">
+                                <span class="text-muted" style="font-size: 9px; font-weight: 600;">CIRCULAR REUSE</span>
+                                <h4 id="kpi-3d-circular" style="font-size: 15px; color: #34d399; margin: 4px 0;">91.8 Score</h4>
+                                <span style="font-size: 9px; color: #34d399;"><i class="fa-solid fa-recycle"></i> 14.2T CO₂ Saved</span>
+                            </div>
+                        </div>
+
+                        <!-- WebGL Three.js Canvas -->
+                        <div id="canvas-3d-scene" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+
+                        <!-- Floating Live AI Operational Alert Drawer (Positioned at Bottom Right - OFF 3D Model Center) -->
+                        <div class="glass-panel" style="position: absolute; bottom: 16px; right: 12px; width: 320px; z-index: 9; padding: 12px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; max-height: 240px; overflow-y: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h4 style="font-size: 12px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-bell text-warning"></i> AI Operational Alerts
+                                </h4>
+                                <span class="badge badge-warning" style="font-size: 9px; font-weight: 700;">Live Radar</span>
+                            </div>
+                            <div id="command-3d-alerts-container" style="display: flex; flex-direction: column; gap: 6px;">
+                                <!-- Dynamic Alert Cards -->
+                            </div>
+                        </div>
+
+                        <!-- Floating Mini Inspector Drawer (Bottom Left) -->
+                        <div class="glass-panel" id="command-3d-inspector" style="position: absolute; bottom: 16px; left: 12px; width: 340px; z-index: 9; padding: 14px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h4 id="inspector-title" style="font-size: 13px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-cube text-primary"></i> Node Telemetry
+                                </h4>
+                                <button class="btn btn-sm btn-icon" onclick="document.getElementById('command-3d-inspector').style.display='none';" style="color: #94a3b8; background: transparent; border: none; font-size: 14px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                            <div id="inspector-body" style="font-size: 11px; color: #cbd5e1; display: flex; flex-direction: column; gap: 6px;">
+                                <!-- Dynamic telemetry contents -->
+                            </div>
+                        </div>
+
+                        <!-- Bottom Center Controls Toolbar (High Contrast Dark Styling) -->
+                        <div class="glass-panel" style="position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 9; padding: 6px 16px; display: flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px); border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);">
+                            <button class="btn btn-sm" id="btn-3d-rotate-left" title="Rotate Left" style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(59, 130, 246, 0.4); color: #38bdf8; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-solid fa-rotate-left"></i></button>
+                            <button class="btn btn-sm" id="btn-3d-rotate-right" title="Rotate Right" style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(59, 130, 246, 0.4); color: #38bdf8; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-solid fa-rotate-right"></i></button>
+                            <button class="btn btn-sm" id="btn-3d-zoom-in" title="Zoom In" style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(59, 130, 246, 0.4); color: #38bdf8; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                            <button class="btn btn-sm" id="btn-3d-zoom-out" title="Zoom Out" style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(59, 130, 246, 0.4); color: #38bdf8; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                            <span style="height: 14px; width: 1px; background: rgba(255,255,255,0.2);"></span>
+                            <span style="font-size: 10px; color: var(--text-muted); font-weight: 500;"><i class="fa-solid fa-computer-mouse text-primary"></i> Drag to Rotate • Scroll to Zoom</span>
+                        </div>
+
+                    </div>
+                </section>
                 <section id="dashboard-section" class="viewport-section">
                     
                     <!-- Layout Toolbar -->
@@ -754,13 +868,13 @@
                                         <option value="priority">Priority vs Priority</option>
                                         <option value="flow_type">Flow Type vs Flow Type</option>
                                     </select>
-                                    <select id="compare-entity-a" class="form-control form-control-sm" style="width: auto;"></select>
+                                    <select id="compare-entity-a" class="form-control form-control-sm" style="width: auto;" onchange="runEntityComparison()"></select>
                                     <span style="color: var(--text-muted);">vs</span>
-                                    <select id="compare-entity-b" class="form-control form-control-sm" style="width: auto;"></select>
+                                    <select id="compare-entity-b" class="form-control form-control-sm" style="width: auto;" onchange="runEntityComparison()"></select>
                                     <button class="btn btn-primary btn-sm" onclick="runEntityComparison()"><i class="fa-solid fa-magnifying-glass-chart"></i> Compare</button>
                                 </div>
                             </div>
-                            <div class="card-body" id="comparison-results-body" style="padding: 1.5rem; display: none;">
+                            <div class="card-body" id="comparison-results-body" style="padding: 1.5rem; display: block;">
                                 <div class="grid-layout cols-2" style="gap: 2rem;">
                                     <!-- Entity A Card -->
                                     <div class="comparison-entity-card" id="compare-card-a">
@@ -1237,6 +1351,11 @@
                                         <label class="form-label">Logistics Partner</label>
                                         <select id="map-filter-partner" class="form-control" onchange="applyMapFilters()">
                                             <option value="">-- All Partners --</option>
+                                            <option value="AirFreight Partners">AirFreight Partners</option>
+                                            <option value="FastTrack Logistics">FastTrack Logistics</option>
+                                            <option value="GlobalShip Express">GlobalShip Express</option>
+                                            <option value="GroundLink Network">GroundLink Network</option>
+                                            <option value="SwiftCargo India">SwiftCargo India</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -1294,14 +1413,45 @@
                             </div>
                         </div>
 
-                        <!-- Right Panel: Interactive Leaflet Map Canvas -->
-                        <div class="card" style="height: 100%; display: flex; flex-direction: column; min-height: 600px;">
+                        <!-- Right Panel: Interactive Leaflet Map Canvas & Corridor Telemetry Matrix -->
+                        <div class="card" style="display: flex; flex-direction: column;">
                             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem;">
                                 <h3><i class="fa-solid fa-map-location-dot text-primary"></i> Geographic Logistics Ecosystem</h3>
                                 <button class="btn btn-secondary btn-sm" onclick="resetMapView()"><i class="fa-solid fa-arrow-rotate-left"></i> Reset View</button>
                             </div>
-                            <div class="card-body" style="padding: 0; flex: 1; position: relative;">
-                                <div id="network-map" style="width: 100%; height: 560px; border-radius: 0 0 6px 6px; z-index: 1;"></div>
+                            <div class="card-body" style="padding: 0; position: relative;">
+                                <div id="network-map" style="width: 100%; height: 520px; border-radius: 0 0 6px 6px; z-index: 1;"></div>
+                            </div>
+                            
+                            <!-- Corridor Performance Matrix & Active Telemetry Below Map -->
+                            <div style="padding: 1.25rem; border-top: 1px solid var(--border-color); background: rgba(24, 24, 27, 0.6);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                    <h4 style="margin: 0; font-size: 14px; color: #ffffff; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fa-solid fa-route text-success"></i> Active Corridor Telemetry & Performance Matrix
+                                    </h4>
+                                    <span class="badge success"><i class="fa-solid fa-satellite-dish"></i> Live Stream</span>
+                                </div>
+
+                                <div class="table-container" style="max-height: 280px; overflow-y: auto;">
+                                    <table class="data-table" style="font-size: 12px; width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th>Corridor (Origin &rarr; Destination)</th>
+                                                <th>Flow Type</th>
+                                                <th>Shipment Volume</th>
+                                                <th>Avg Lead Time</th>
+                                                <th>Avg Logistics Cost</th>
+                                                <th>Optimization Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="map-corridor-telemetry-body">
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted">Loading active corridor performance stream...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1348,6 +1498,11 @@
                                         <label class="form-label">Logistics Partner</label>
                                         <select id="route-filter-partner" class="form-control" onchange="applyRouteFilters()">
                                             <option value="">-- All Partners --</option>
+                                            <option value="AirFreight Partners">AirFreight Partners</option>
+                                            <option value="FastTrack Logistics">FastTrack Logistics</option>
+                                            <option value="GlobalShip Express">GlobalShip Express</option>
+                                            <option value="GroundLink Network">GroundLink Network</option>
+                                            <option value="SwiftCargo India">SwiftCargo India</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -1401,9 +1556,66 @@
                             </div>
                         </div>
 
-                        <!-- Right Panel: Graph, Bottlenecks, and Routes Table -->
+                        <!-- Right Panel: Tables FIRST at top, then Graph and Bottlenecks below -->
                         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <!-- Top split: Network Graph & Bottleneck analysis list -->
+                            <!-- TOP PLACEMENT: 2-Column Tables Grid (Route Performance Directory & Hub Load Analysis) -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+                                <!-- Routes Table -->
+                                <div class="card" style="height: 100%;">
+                                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h3 style="font-size: 13px;"><i class="fa-solid fa-table-list text-primary"></i> Route Performance Directory</h3>
+                                    </div>
+                                    <div class="card-body" style="padding: 0;">
+                                        <div class="table-container" style="max-height: 360px; overflow: auto;">
+                                            <table class="data-table interactive-table" id="tbl-route-intelligence">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Origin</th>
+                                                        <th>Destination</th>
+                                                        <th>Type</th>
+                                                        <th class="text-right">Dist</th>
+                                                        <th class="text-right">Days</th>
+                                                        <th class="text-right">Shipments</th>
+                                                        <th class="text-right">Cost</th>
+                                                        <th>SLA</th>
+                                                        <th>Bottleneck</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="routes-table-body">
+                                                    <!-- Dynamic route entries -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Flows summary analysis -->
+                                <div class="card" style="height: 100%;">
+                                    <div class="card-header">
+                                        <h3 style="font-size: 13px;"><i class="fa-solid fa-shuffle text-primary"></i> Hub-wise Inbound & Outbound Load Analysis</h3>
+                                    </div>
+                                    <div class="card-body" style="padding: 0;">
+                                        <div class="table-container" style="max-height: 360px; overflow: auto;">
+                                            <table class="data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Hub Location</th>
+                                                        <th class="text-right">Inbound Vol</th>
+                                                        <th class="text-right">Outbound Vol</th>
+                                                        <th class="text-right">Net Imbalance</th>
+                                                        <th>Flow Split</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="flows-table-body">
+                                                    <!-- Dynamic flows entries -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom split: Network Graph & Bottleneck analysis list -->
                             <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem; align-items: start;">
                                 <!-- Network Graph -->
                                 <div class="card">
@@ -1411,72 +1623,17 @@
                                         <h3><i class="fa-solid fa-circle-nodes text-primary"></i> Interactive Network Topology</h3>
                                     </div>
                                     <div class="card-body" style="padding: 0.5rem;">
-                                        <div id="chart-network-graph" style="height: 380px; width: 100%;"></div>
+                                        <div id="chart-network-graph" style="height: 340px; width: 100%;"></div>
                                     </div>
                                 </div>
 
                                 <!-- Bottleneck list -->
-                                <div class="card" style="height: 100%; display: flex; flex-direction: column; min-height: 412px;">
+                                <div class="card" style="height: 100%; display: flex; flex-direction: column; min-height: 372px;">
                                     <div class="card-header">
                                         <h3><i class="fa-solid fa-triangle-exclamation text-danger"></i> System Bottlenecks</h3>
                                     </div>
                                     <div class="card-body" style="padding: 1rem; overflow-y: auto; flex: 1;" id="routes-bottlenecks-list">
                                         <!-- Dynamic bottlenecks -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Routes Table -->
-                            <div class="card">
-                                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h3><i class="fa-solid fa-table-list text-primary"></i> Route Performance Directory</h3>
-                                    <div style="font-size: 12px; color: var(--text-muted);">*Click any row to open comprehensive route details</div>
-                                </div>
-                                <div class="card-body" style="padding: 0;">
-                                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-                                        <table class="data-table interactive-table" id="tbl-route-intelligence">
-                                            <thead>
-                                                <tr>
-                                                    <th>Origin</th>
-                                                    <th>Destination</th>
-                                                    <th>Route Type</th>
-                                                    <th class="text-right">Distance</th>
-                                                    <th class="text-right">Transit Days</th>
-                                                    <th class="text-right">Shipments</th>
-                                                    <th class="text-right">Avg Cost</th>
-                                                    <th>SLA Compliance</th>
-                                                    <th>Bottleneck</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="routes-table-body">
-                                                <!-- Dynamic route entries -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Flows summary analysis -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3><i class="fa-solid fa-shuffle text-primary"></i> Hub-wise Inbound & Outbound Load Analysis</h3>
-                                </div>
-                                <div class="card-body" style="padding: 0;">
-                                    <div class="table-container">
-                                        <table class="data-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Hub Location</th>
-                                                    <th class="text-right">Inbound Flow Volume</th>
-                                                    <th class="text-right">Outbound Flow Volume</th>
-                                                    <th class="text-right">Net Flow Imbalance</th>
-                                                    <th>Ecosystem Flow Split</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="flows-table-body">
-                                                <!-- Dynamic flows entries -->
-                                            </tbody>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -1525,6 +1682,11 @@
                                         <label class="form-label">Logistics Partner</label>
                                         <select id="perf-filter-partner" class="form-control" onchange="applyPerfFilters()">
                                             <option value="">-- All Partners --</option>
+                                            <option value="AirFreight Partners">AirFreight Partners</option>
+                                            <option value="FastTrack Logistics">FastTrack Logistics</option>
+                                            <option value="GlobalShip Express">GlobalShip Express</option>
+                                            <option value="GroundLink Network">GroundLink Network</option>
+                                            <option value="SwiftCargo India">SwiftCargo India</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -2262,34 +2424,43 @@
                         <div class="exec-filter-row">
                             <div class="exec-filter-group">
                                 <label>Date Range</label>
-                                <select id="exec-filter-date" class="form-control">
-                                    <option value="all">All Time</option>
-                                    <option value="ytd">Year to Date</option>
-                                    <option value="q1">Q1</option>
-                                    <option value="q2">Q2</option>
-                                    <option value="q3">Q3</option>
-                                    <option value="q4">Q4</option>
+                                <select id="exec-filter-date" class="form-control" onchange="applyExecFilters()">
+                                    <option value="all">All Time (2024)</option>
+                                    <option value="ytd">Year to Date (2024)</option>
+                                    <option value="q1">Q1 2024 (Jan - Mar)</option>
+                                    <option value="q2">Q2 2024 (Apr - Jun)</option>
+                                    <option value="q3">Q3 2024 (Jul - Sep)</option>
+                                    <option value="q4">Q4 2024 (Oct - Dec)</option>
                                 </select>
                             </div>
                             <div class="exec-filter-group">
                                 <label>Region</label>
-                                <select id="exec-filter-region" class="form-control">
+                                <select id="exec-filter-region" class="form-control" onchange="applyExecFilters()">
                                     <option value="">All Regions</option>
-                                    <option value="North">North</option>
-                                    <option value="South">South</option>
-                                    <option value="East">East</option>
-                                    <option value="West">West</option>
+                                    <option value="South India">South India</option>
+                                    <option value="North India">North India</option>
+                                    <option value="West India">West India</option>
+                                    <option value="East India">East India</option>
+                                    <option value="Asia Pacific">Asia Pacific</option>
+                                    <option value="Middle East">Middle East</option>
+                                    <option value="Europe">Europe</option>
                                 </select>
                             </div>
                             <div class="exec-filter-group">
                                 <label>Transport Partner</label>
-                                <select id="exec-filter-partner" class="form-control">
+                                <select id="exec-filter-partner" class="form-control" onchange="applyExecFilters()">
                                     <option value="">All Partners</option>
+                                    <option value="AirFreight Partners">AirFreight Partners</option>
+                                    <option value="FastTrack Logistics">FastTrack Logistics</option>
+                                    <option value="GlobalShip Express">GlobalShip Express</option>
+                                    <option value="GroundLink Network">GroundLink Network</option>
+                                    <option value="SwiftCargo India">SwiftCargo India</option>
                                 </select>
                             </div>
                             <div class="exec-filter-group">
                                 <label>Algorithm</label>
-                                <select id="exec-filter-algo" class="form-control">
+                                <select id="exec-filter-algo" class="form-control" onchange="applyExecFilters()">
+                                    <option value="dijkstra">Dijkstra Shortest Path</option>
                                     <option value="astar">A* Pathfinding</option>
                                     <option value="genetic">Genetic Algorithm</option>
                                     <option value="aco">Ant Colony</option>
@@ -2612,7 +2783,7 @@
                                     </div>
                                 </div>
                                 <div class="exec-kpi-tile accent-red">
-                                    <div class="exec-kpi-icon"><i class="fa-solid fa-bottleneck"></i></div>
+                                    <div class="exec-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
                                     <div class="exec-kpi-body">
                                         <span class="exec-kpi-label">Bottlenecks</span>
                                         <span class="exec-kpi-value" id="net-bottlenecks">—</span>
@@ -3095,6 +3266,146 @@
                     </div>
                 </section>
 
+                <!-- AI CIRCULAR SUPPLY CHAIN OPTIMIZER PLATFORM -->
+                <section class="viewport-section" id="circular-section">
+                    <div class="circular-workspace" style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+                        <!-- Top Control Toolbar & Title Banner -->
+                        <div class="card glass-panel" style="padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.04); border-left: 4px solid #10b981;">
+                            <div>
+                                <h2 style="font-size: 16px; font-weight: 700; color: #f8fafc; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-recycle text-success"></i> AI Circular Supply Chain Optimizer
+                                </h2>
+                                <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">Smart Repair, Predictive Redeployment, Component Harvesting & Zero E-Waste Optimization</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-outline-secondary" id="btn-circ-export-csv" style="font-size: 11px;">
+                                    <i class="fa-solid fa-file-csv text-success"></i> Export Circular CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 6 Executive KPI Scorecards -->
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem;">
+                            <div class="card glass-panel" style="padding: 1rem;">
+                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">CIRCULAR ECONOMY SCORE</span>
+                                <h3 id="circ-kpi-score" style="font-size: 20px; color: #10b981; margin: 4px 0;">91.8%</h3>
+                                <span class="text-success" style="font-size: 9px;"><i class="fa-solid fa-circle-check"></i> Enterprise Grade A</span>
+                            </div>
+                            <div class="card glass-panel" style="padding: 1rem;">
+                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">PROCUREMENT AVOIDED</span>
+                                <h3 id="circ-kpi-avoided" style="font-size: 20px; color: #3b82f6; margin: 4px 0;">$1,428,500</h3>
+                                <span class="text-info" style="font-size: 9px;"><i class="fa-solid fa-arrow-trend-up"></i> Direct Savings</span>
+                            </div>
+                            <div class="card glass-panel" style="padding: 1rem;">
+                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">CO₂ FOOTPRINT SAVED</span>
+                                <h3 id="circ-kpi-co2" style="font-size: 20px; color: #34d399; margin: 4px 0;">14,250 kg</h3>
+                                <span style="font-size: 9px; color: #34d399;"><i class="fa-solid fa-leaf"></i> 70.1% CO₂ Reduction</span>
+                            </div>
+                            <div class="card glass-panel" style="padding: 1rem;">
+                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">E-WASTE PREVENTED</span>
+                                <h3 id="circ-kpi-ewaste" style="font-size: 20px; color: #06b6d4; margin: 4px 0;">8,420 kg</h3>
+                                <span style="font-size: 9px; color: #06b6d4;"><i class="fa-solid fa-shield-halved"></i> ISO 14001 Compliant</span>
+                            </div>
+                            <div class="card glass-panel" style="padding: 1rem;">
+                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">DIRECT REUSE RATE</span>
+                                <h3 id="circ-kpi-reuse" style="font-size: 20px; color: #f59e0b; margin: 4px 0;">38.5%</h3>
+                                <span class="text-warning" style="font-size: 9px;"><i class="fa-solid fa-bolt"></i> Zero Lead-Time</span>
+                            </div>
+                            <div class="card glass-panel" style="padding: 1rem;">
+                                <span class="text-muted" style="font-size: 10px; font-weight: 600;">ANNUAL NET SAVINGS</span>
+                                <h3 id="circ-kpi-savings" style="font-size: 20px; color: #ec4899; margin: 4px 0;">$2,320,600</h3>
+                                <span style="font-size: 9px; color: #ec4899;"><i class="fa-solid fa-coins"></i> 4.35x ROI</span>
+                            </div>
+                        </div>
+
+                        <!-- Split View: Lifecycle Flow Diagram & Decision Category Matrix -->
+                        <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 1.5rem;">
+                            <!-- Plotly Sankey Flow Chart -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-diagram-project text-success"></i> Circular Lifecycle Flow Architecture</h3>
+                                </div>
+                                <div class="card-body" style="padding: 0.5rem;">
+                                    <div id="chart-circular-lifecycle" style="height: 320px; width: 100%;"></div>
+                                </div>
+                            </div>
+                            <!-- 4 Decision Category Cards -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-list-check text-primary"></i> Supported Lifecycle Decision Matrix</h3>
+                                </div>
+                                <div class="card-body" style="padding: 1rem; display: flex; flex-direction: column; gap: 10px;" id="circular-matrix-cards">
+                                    <!-- Dynamic decision matrix cards -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Predictive Redeployment Intelligence Data Table -->
+                        <div class="card glass-panel">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3><i class="fa-solid fa-brain text-success"></i> Predictive Redeployment Intelligence</h3>
+                                <span class="badge badge-success" style="font-size: 10px;">AI High-Value Redeployment Engine</span>
+                            </div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="table-container" style="max-height: 340px; overflow: auto;">
+                                    <table class="data-table interactive-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Part & Component Name</th>
+                                                <th>Lifecycle Action</th>
+                                                <th>Origin Node</th>
+                                                <th>Recommended Destination</th>
+                                                <th class="text-right">Predicted Demand</th>
+                                                <th class="text-right">Stockout Risk Avoided</th>
+                                                <th class="text-right">Net Value Generated</th>
+                                                <th class="text-right">CO₂ Saved</th>
+                                                <th class="text-right">Confidence</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="circular-redeploy-table-body">
+                                            <!-- Dynamic redeployments -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Split View: Component Harvesting & Sustainability Analysis -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <!-- Component Harvesting Opportunities -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-microchip text-warning"></i> Component Harvesting Opportunities</h3>
+                                </div>
+                                <div class="card-body" style="padding: 1rem;" id="circular-harvesting-container">
+                                    <!-- Dynamic harvesting opportunities -->
+                                </div>
+                            </div>
+                            <!-- Sustainability & Environmental Impact -->
+                            <div class="card glass-panel">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-leaf text-success"></i> Sustainability & Environmental Impact</h3>
+                                </div>
+                                <div class="card-body" style="padding: 1rem;" id="circular-sustainability-container">
+                                    <!-- Dynamic sustainability -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Recommendation Center -->
+                        <div class="card glass-panel">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-robot text-primary"></i> AI Recommendation & Evidence Center</h3>
+                            </div>
+                            <div class="card-body" style="padding: 1rem;" id="circular-ai-recommendations-list">
+                                <!-- Dynamic recommendation cards -->
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
                 <!-- ENTERPRISE SLA BREACH PREDICTION & RISK FORECASTING PLATFORM -->
                 <section class="viewport-section" id="sla-section">
                     <div class="sla-workspace">
@@ -3102,9 +3413,8 @@
                         <!-- Executive KPI Scorecards -->
                         <div id="sla-dashboard"></div>
 
-                        <!-- Map + Alerts Split -->
-                        <div class="sla-map-alert-grid">
-                            <!-- Leaflet SLA Risk Map -->
+                        <!-- Map — full width row -->
+                        <div style="width:100%;">
                             <div class="card glass-panel">
                                 <div class="card-header">
                                     <h3><i class="fa-solid fa-map-location-dot text-primary"></i> SLA Risk Map Layer</h3>
@@ -3113,7 +3423,10 @@
                                     <div id="sla-risk-map" class="sla-risk-map-container"></div>
                                 </div>
                             </div>
-                            <!-- Proactive Risk Alerts -->
+                        </div>
+
+                        <!-- System Alert Command Center — full width row below map -->
+                        <div style="width:100%;">
                             <div id="sla-alert-center"></div>
                         </div>
 
@@ -3332,6 +3645,74 @@
             </div>
         </div>
     </div>
+    <!-- Dispatch Request Modal -->
+    <div class="modal-overlay" id="dispatch-modal" style="display: none;">
+        <div class="modal" style="max-width: 540px; width: 92%; background: #121215; border: 1px solid rgba(63, 63, 70, 0.6); border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid rgba(63, 63, 70, 0.4);">
+                <h3 style="margin: 0; font-size: 16px; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-truck-fast text-primary"></i> Create Quick Dispatch Request
+                </h3>
+                <button class="close-btn" onclick="closeDispatchModal()" style="background: none; border: none; color: #a1a1aa; font-size: 16px; cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+                <p style="font-size: 12px; color: #a1a1aa; margin: 0; line-height: 1.4;">
+                    Select active origin and destination nodes from the uploaded Dell FutureMinds dataset to generate optimal transit routing recommendations.
+                </p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 600; color: #d4d4d8; margin-bottom: 4px;">
+                            Origin Hub (Source)
+                        </label>
+                        <select id="dispatch-source-hub" class="form-control" style="width: 100%; height: 36px; background: #18181b; border: 1px solid #3f3f46; color: #fff; border-radius: 6px; padding: 0 10px; font-size: 12px;">
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 600; color: #d4d4d8; margin-bottom: 4px;">
+                            Destination Node
+                        </label>
+                        <select id="dispatch-dest-hub" class="form-control" style="width: 100%; height: 36px; background: #18181b; border: 1px solid #3f3f46; color: #fff; border-radius: 6px; padding: 0 10px; font-size: 12px;">
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 600; color: #d4d4d8; margin-bottom: 4px;">
+                            Priority Class
+                        </label>
+                        <select id="dispatch-priority" class="form-control" style="width: 100%; height: 36px; background: #18181b; border: 1px solid #3f3f46; color: #fff; border-radius: 6px; padding: 0 10px; font-size: 12px;">
+                            <option value="High Priority">High Priority (SLA Express)</option>
+                            <option value="Medium Priority" selected>Medium Priority (Standard)</option>
+                            <option value="Low Priority">Low Priority (Bulk Economy)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 600; color: #d4d4d8; margin-bottom: 4px;">
+                            Optimization Goal
+                        </label>
+                        <select id="dispatch-goal" class="form-control" style="width: 100%; height: 36px; background: #18181b; border: 1px solid #3f3f46; color: #fff; border-radius: 6px; padding: 0 10px; font-size: 12px;">
+                            <option value="fastest_route" selected>Fastest Route (Min Duration)</option>
+                            <option value="cheapest_route">Lowest Cost Route</option>
+                            <option value="highest_sla_route">Highest SLA Compliance</option>
+                            <option value="balanced_route">Balanced Pathfinding</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="dispatch-modal-status" style="font-size: 11px; color: #10b981; display: none;"></div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 1rem 1.25rem; border-top: 1px solid rgba(63, 63, 70, 0.4);">
+                <button class="btn btn-secondary btn-sm" onclick="closeDispatchModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="submitDispatchOrder()">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Dispatch Order
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Drill-down Details Modal -->
     <div class="modal-overlay" id="drilldown-modal" style="display: none;">
         <div class="modal" style="max-width: 950px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
@@ -3562,6 +3943,8 @@
     <script src="/static/components/route-recommendation/ComparisonTable/ComparisonTable.js"></script>
     <script src="/static/components/route-recommendation/RoutePlayback/RoutePlayback.js"></script>
     <script src="/static/components/route-recommendation/RecommendationHistory/RecommendationHistory.js"></script>
+    <script src="/static/components/route-recommendation/RouteTimeline/RouteTimeline.js"></script>
+    <script src="/static/components/route-recommendation/ScenarioComparison/ScenarioComparisonModal.js"></script>
     <script src="/static/pages/route-recommendation/route_recommendation.js"></script>
     <!-- AI Corridor Intelligence Components -->
     <script src="/static/components/corridor-intelligence/CorridorDashboard/CorridorDashboard.js"></script>
@@ -3570,22 +3953,23 @@
     <script src="/static/components/corridor-intelligence/BottleneckPanel/BottleneckPanel.js"></script>
     <script src="/static/components/corridor-intelligence/RecommendationPanel/RecommendationPanel.js"></script>
     <script src="/static/components/corridor-intelligence/CorridorTable/CorridorTable.js"></script>
+    <script src="/static/components/corridor-intelligence/CorridorDrillDown/CorridorDrillDownModal.js"></script>
     <script src="/static/pages/corridor-intelligence/corridor_intelligence.js"></script>
     <!-- Cost Optimization Simulator Components -->
-    <script src="/static/components/ScenarioBuilder/ScenarioBuilder.js"></script>
-    <script src="/static/components/SavingsDashboard/SavingsDashboard.js"></script>
-    <script src="/static/components/ScenarioComparison/ScenarioComparison.js"></script>
-    <script src="/static/components/FinancialCharts/FinancialCharts.js"></script>
-    <script src="/static/components/SimulationHistory/SimulationHistory.js"></script>
-    <script src="/static/pages/cost-optimization/cost_optimization.js"></script>
+    <script src="/static/components/ScenarioBuilder/ScenarioBuilder.js?v=2.0"></script>
+    <script src="/static/components/SavingsDashboard/SavingsDashboard.js?v=2.0"></script>
+    <script src="/static/components/ScenarioComparison/ScenarioComparison.js?v=2.0"></script>
+    <script src="/static/components/FinancialCharts/FinancialCharts.js?v=2.0"></script>
+    <script src="/static/components/SimulationHistory/SimulationHistory.js?v=2.0"></script>
+    <script src="/static/pages/cost-optimization/cost_optimization.js?v=2.0"></script>
     <!-- Reverse Logistics Platform Components -->
-    <script src="/static/components/reverse-logistics/ReverseDashboard/ReverseDashboard.js"></script>
-    <script src="/static/components/reverse-logistics/ReverseMap/ReverseMap.js"></script>
-    <script src="/static/components/reverse-logistics/ReturnTracker/ReturnTracker.js"></script>
-    <script src="/static/components/reverse-logistics/RecoveryPanel/RecoveryPanel.js"></script>
-    <script src="/static/components/reverse-logistics/RefurbishmentPanel/RefurbishmentPanel.js"></script>
-    <script src="/static/components/reverse-logistics/RecyclingCenter/RecyclingCenter.js"></script>
-    <script src="/static/pages/reverse-logistics/reverse_logistics.js"></script>
+    <script src="/static/components/reverse-logistics/ReverseDashboard/ReverseDashboard.js?v=2.0"></script>
+    <script src="/static/components/reverse-logistics/ReverseMap/ReverseMap.js?v=2.0"></script>
+    <script src="/static/components/reverse-logistics/ReturnTracker/ReturnTracker.js?v=2.0"></script>
+    <script src="/static/components/reverse-logistics/RecoveryPanel/RecoveryPanel.js?v=2.0"></script>
+    <script src="/static/components/reverse-logistics/RefurbishmentPanel/RefurbishmentPanel.js?v=2.0"></script>
+    <script src="/static/components/reverse-logistics/RecyclingCenter/RecyclingCenter.js?v=2.0"></script>
+    <script src="/static/pages/reverse-logistics/reverse_logistics.js?v=2.0"></script>
     <!-- SLA Breach Prediction Platform -->
     <script src="/static/components/sla-prediction/PredictionDashboard/PredictionDashboard.js"></script>
     <script src="/static/components/sla-prediction/RiskHeatmap/RiskHeatmap.js"></script>
@@ -3617,6 +4001,7 @@
     <script src="/static/components/command-center/GlobalSearch/GlobalSearch.js"></script>
     <script src="/static/components/command-center/NetworkHealth/NetworkHealth.js"></script>
     <script src="/static/components/command-center/CommandPalette/CommandPalette.js"></script>
+    <script src="/static/pages/command-center/command_center.js"></script>
     <!-- Enterprise Geospatial Intelligence Workspace -->
     <script src="/static/components/NetworkExplorer/NetworkExplorer.js"></script>
     <script src="/static/components/LayerManager/LayerManager.js"></script>
@@ -3627,6 +4012,7 @@
     <script src="/static/components/Timeline/Timeline.js"></script>
     <script src="/static/components/SpatialSearch/SpatialSearch.js"></script>
     <script src="/static/components/SavedViews/SavedViews.js"></script>
+    <script src="/static/pages/geospatial/geospatial.js"></script>
     <!-- Enterprise AI Logistics Copilot Workspace -->
     <script src="/static/components/CopilotChat/CopilotChat.js"></script>
     <script src="/static/components/ConversationHistory/ConversationHistory.js"></script>
@@ -3650,6 +4036,10 @@
     <script src="/static/js/auth.js"></script>
     <!-- Command Center Experience -->
     <script src="/static/design-system/command_center.js"></script>
+    <script src="/static/components/TPRDrillDownModal/TPRDrillDownModal.js"></script>
+    <script src="/static/js/ui_enhancements.js"></script>
+    <script src="/static/js/command_center_3d.js"></script>
+    <script src="/static/js/circular_supply_chain.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>

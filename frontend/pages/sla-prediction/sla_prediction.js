@@ -20,12 +20,8 @@
 
         try {
             // Check dataset status first
-            const checkRes = await fetch("/api/dataset/status");
-            let isValid = false;
-            if (checkRes.ok) {
-                const statusData = await checkRes.json();
-                isValid = !!(statusData.validation_report && statusData.validation_report.is_valid);
-            }
+            const statusData = await apiFetch("/api/dataset/status");
+            const isValid = !!(statusData && (statusData.loaded || statusData.status === "LOADED" || (statusData.validation_report && statusData.validation_report.is_valid)));
 
             if (!isValid) {
                 ["sla-dashboard", "sla-tracker", "sla-hub-panel",
@@ -48,24 +44,29 @@
             }
 
             // Fetch both endpoints in parallel
-            const [predRes, fcstRes] = await Promise.all([
-                fetch("/api/sla-prediction/payload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filters: {} }) }),
-                fetch("/api/sla-prediction/forecast",  { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filters: {} }) })
+            [_payload, _forecast] = await Promise.all([
+                apiFetch("/api/sla-prediction/payload",  { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filters: window.GlobalFilters || {} }) }),
+                apiFetch("/api/sla-prediction/forecast", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filters: window.GlobalFilters || {} }) })
             ]);
 
-            if (!predRes.ok) throw new Error("Prediction API failed");
-            if (!fcstRes.ok) throw new Error("Forecast API failed");
-
-            _payload  = await predRes.json();
-            _forecast = await fcstRes.json();
-
             const { shipments, hubs, corridors, summary, charts, alerts, recommendations } = _payload;
+
+            if (!shipments || shipments.length === 0) {
+                window.EmptyState.render("sla-tracker", "No records match the selected filters.", "Try resetting the filters to show complete operational data.", "fa-triangle-exclamation");
+                document.getElementById("sla-dashboard").innerHTML = `<div class="card glass-panel text-center" style="padding: 1.5rem; color: var(--text-muted);">No records match.</div>`;
+                document.getElementById("sla-hub-panel").innerHTML = "";
+                document.getElementById("sla-alert-center").innerHTML = "";
+                document.getElementById("sla-rec-panel").innerHTML = "";
+                const chartsPanel = document.getElementById("sla-charts-panel");
+                if (chartsPanel) chartsPanel.innerHTML = "";
+                return;
+            }
 
             // 1. KPI scorecards
             window.PredictionDashboard.render("sla-dashboard", summary);
 
             // 2. Risk heatmap
-            window.RiskHeatmap.render(shipments, hubs, corridors);
+            window.RiskHeatmap.render(shipments, hubs, corridors, _payload.node_coordinates);
 
             // 3. 7-day timeline bar chart
             window.ForecastTimeline.renderTimeline("sla-forecast-timeline", _forecast.timeline, _forecast.peak_day);
@@ -106,7 +107,10 @@
             window.AlertCenter.render("sla-alert-center", alerts);
 
             // 8. AI Recommendations
-            window.RecommendationPanel.render("sla-rec-panel", recommendations);
+            const slaRecPanel = window.SLARecommendationPanel || window.RecommendationPanel;
+            if (slaRecPanel && typeof slaRecPanel.render === "function") {
+                slaRecPanel.render("sla-rec-panel", recommendations);
+            }
 
         } catch (err) {
             console.error("[SLAPrediction] Error:", err);
@@ -118,7 +122,7 @@
                         <div class="card glass-panel text-center" style="padding: 1.5rem; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;">
                             <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
                             <h5 style="color:#fff; margin-bottom: 0.25rem;">Failed to load SLA predictions</h5>
-                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem;">Service connectivity issue detected.</p>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem;">Service connectivity issue: ${err.message || err}</p>
                             <button class="btn btn-secondary btn-sm" onclick="loadSLAPredictionWorkspace()" style="padding: 2px 8px; font-size: 10px;">
                                 <i class="fa-solid fa-rotate-right"></i> Retry
                             </button>

@@ -88,7 +88,7 @@ class SLAViolationService:
         # Merge category
         violated_parts = violated_df.copy()
         if len(parts_df) > 0 and "Part_Number" in parts_df.columns and "Category" in parts_df.columns:
-            violated_parts = violated_parts.merge(parts_df[["Part_Number", "Category"]], on="Part_Number", how="left")
+            violated_parts = violated_parts.merge(parts_df[["Part_Number", "Category"]], on="Part_Number", how="left", suffixes=("", "_parts_master"))
         else:
             violated_parts["Category"] = "Unknown"
 

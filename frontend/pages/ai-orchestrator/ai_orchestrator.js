@@ -20,9 +20,7 @@
         window.DecisionPanel.render("orchestrator-decision-panel", null);
 
         try {
-            const res = await fetch("/api/orchestrator/dashboard");
-            if (!res.ok) throw new Error("Failed to fetch orchestrator dashboard payload");
-            _data = await res.json();
+            _data = await apiFetch("/api/orchestrator/dashboard");
 
             // 1. Dashboard KPI stats widgets
             renderDashboardKPIs(_data.metrics);
@@ -82,14 +80,11 @@
         }
 
         try {
-            const res = await fetch("/api/orchestrator/run", {
+            const runResult = await apiFetch("/api/orchestrator/run", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ include_reverse: true, filters: {} })
+                body: JSON.stringify({ include_reverse: true, filters: window.GlobalFilters || {} })
             });
-
-            if (!res.ok) throw new Error("Workflow run API failed");
-            const runResult = await res.json();
 
             // Refresh steps list & timeline chart & decision metrics panel
             window.WorkflowViewer.render("orchestrator-flow-viewer", runResult.execution_steps);
@@ -97,13 +92,12 @@
             window.DecisionPanel.render("orchestrator-decision-panel", runResult.decision);
 
             // Re-fetch dashboard log history
-            const dashboardRes = await fetch("/api/orchestrator/dashboard");
-            if (dashboardRes.ok) {
-                const refreshed = await dashboardRes.json();
+            try {
+                const refreshed = await apiFetch("/api/orchestrator/dashboard");
                 renderDashboardKPIs(refreshed.metrics);
                 window.AgentCards.render("orchestrator-agent-cards", refreshed.agents);
                 window.WorkflowHistory.render("orchestrator-history", refreshed.history);
-            }
+            } catch (_) {}
 
             // Small toast notification
             const toast = document.createElement("div");

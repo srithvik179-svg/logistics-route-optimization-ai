@@ -22,44 +22,29 @@ class RouteScoreCalculator:
         volume: float,
         capacity: float,
         partner_rating: float,
-        sla_compliance: float
+        sla_compliance: float,
+        total_cost: float = 0.0,
     ) -> RouteScoreResult:
-        """Converts raw operational values to normalized scores (0 to 100) and aggregates composite indexes.
-
-        Args:
-            src: Source node ID.
-            dest: Destination node ID.
-            distance: Travel distance in miles.
-            cost: Shipment cost.
-            transit_time: Duration in days.
-            volume: Shipment volume flow.
-            capacity: Node capacity limit.
-            partner_rating: Partner rating (1.0 to 5.0).
-            sla_compliance: Historic SLA compliance % (0.0 to 100.0).
-
-        Returns:
-            RouteScoreResult: Set of computed metrics.
-        """
+        """Converts raw operational values to normalized scores (0 to 100) and aggregates composite indexes."""
         # 1. Normalize individual scoring dimensions to 0 - 100
-        # Distance (longer -> lower score, benchmark 600 miles)
-        dist_score = max(0.0, 100.0 * (1.0 - (distance / 600.0)))
+        # Distance (longer -> lower score, benchmark 1500 miles)
+        dist_score = max(0.0, 100.0 * (1.0 - (distance / 1500.0)))
         dist_score = min(100.0, dist_score)
 
-        # Cost (higher -> lower score, benchmark $500)
-        cost_score = max(0.0, 100.0 * (1.0 - (cost / 500.0)))
+        # Cost (higher -> lower score, benchmark $3500)
+        cost_score = max(5.0, 100.0 * (1.0 - (cost / 3500.0)))
         cost_score = min(100.0, cost_score)
 
-        # Transit Time (longer -> lower score, benchmark 5 days)
-        time_score = max(0.0, 100.0 * (1.0 - (transit_time / 5.0)))
+        # Transit Time (longer -> lower score, benchmark 20 days)
+        time_score = max(5.0, 100.0 * (1.0 - (transit_time / 20.0)))
         time_score = min(100.0, time_score)
 
         # Capacity Utilization (optimal between 50% and 80%, overload penalties)
         util = (volume / capacity) if capacity > 0 else 0.5
-        # Penalty is absolute distance from optimal 0.65 utilization
         cap_score = max(0.0, 100.0 * (1.0 - abs(util - 0.65) / 0.65))
         cap_score = min(100.0, cap_score)
 
-        # SLA Compliance (direct mapping, default 100%)
+        # SLA Compliance (direct mapping 0-100%)
         sla_val = sla_compliance if sla_compliance >= 0 else 100.0
         sla_score = min(100.0, max(0.0, sla_val))
 
@@ -68,7 +53,6 @@ class RouteScoreCalculator:
         reliability_score = min(100.0, max(0.0, rating_val * 20.0))
 
         # 2. Compute composite indices
-        # Overall Route Score (weighted sum: 25% cost, 25% time, 15% SLA, 15% capacity, 10% distance, 10% partner)
         overall_score = (
             0.25 * cost_score +
             0.25 * time_score +
@@ -78,25 +62,17 @@ class RouteScoreCalculator:
             0.10 * reliability_score
         )
 
-        # Business Priority Score (high priority on speed and reliability: 40% time, 40% SLA, 20% partner)
         priority_score = (
             0.40 * time_score +
             0.40 * sla_score +
             0.20 * reliability_score
         )
 
-        # Operational Risk Score (high risk when SLA is missed or capacity is overloaded)
         overload_penalty = 100.0 if util > 0.90 else (50.0 if util > 0.80 else 0.0)
         risk_score = 100.0 - (0.50 * sla_score + 0.50 * (100.0 - overload_penalty))
         risk_score = min(100.0, max(0.0, risk_score))
 
-        # Cost Efficiency Score (high priority on cost: 80% cost, 20% distance)
-        cost_eff = 0.80 * cost_score + 0.20 * dist_score
-
-        # Performance Index (combines speed and SLA: 50% time, 50% SLA)
         perf_index = 0.50 * time_score + 0.50 * sla_score
-
-        # Composite Logistics Score
         composite_score = overall_score
 
         return RouteScoreResult(
@@ -113,5 +89,8 @@ class RouteScoreCalculator:
             business_priority_score=round(priority_score, 2),
             operational_risk_score=round(risk_score, 2),
             performance_index=round(perf_index, 2),
-            composite_logistics_score=round(composite_score, 2)
+            composite_logistics_score=round(composite_score, 2),
+            avg_cost=round(cost, 2),
+            total_cost=round(total_cost, 2),
+            sla_compliance=round(sla_score, 1)
         )

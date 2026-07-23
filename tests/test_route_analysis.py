@@ -72,10 +72,10 @@ def test_route_analysis_suite():
     print(f"Total routes with High Priority shipments: {len(payload_high['routes'])}")
     # Verify average distance is higher or matches filtering scope
     
-    payload_hub_a = RouteAnalysisService.get_route_analysis_payload({"hub": "HUB-A"})
-    print(f"Total routes touching HUB-A: {len(payload_hub_a['routes'])}")
+    payload_hub_a = RouteAnalysisService.get_route_analysis_payload({"hub": "HUB-BLR"})
+    print(f"Total routes touching HUB-BLR: {len(payload_hub_a['routes'])}")
     for r in payload_hub_a["routes"]:
-        assert r["origin"] == "HUB-A" or r["destination"] == "HUB-A"
+        assert r["origin"] == "HUB-BLR" or r["destination"] == "HUB-BLR"
 
     print("\nAll Route Analysis & Network Intelligence tests passed successfully!")
 

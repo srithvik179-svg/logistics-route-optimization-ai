@@ -30,27 +30,44 @@
             if (this.filteredData.length === 0) {
                 rowsHtml = `<tr><td colspan="10" class="text-center text-muted">No corridors match active filter criteria.</td></tr>`;
             } else {
-                this.filteredData.forEach(c => {
+                // Store corridor data in global lookup map so onclick only passes a safe numeric index
+                window._corridorMap = window._corridorMap || {};
+                this.filteredData.forEach((c, idx) => {
                     // Score coloring classes
                     const getScoreClass = (score) => {
                         return score >= 75.0 ? 'text-success' : (score >= 50.0 ? 'text-warning' : 'text-danger');
                     };
 
+                    // Store in global map for safe lookup
+                    const mapKey = `corridor_${idx}`;
+                    window._corridorMap[mapKey] = c;
+
                     rowsHtml += `
                         <tr>
                             <td><strong>${c.origin}</strong></td>
                             <td><strong>${c.destination}</strong></td>
-                            <td class="text-right">${c.distance.toFixed(1)} km</td>
-                            <td class="text-right">${c.transit_time.toFixed(1)} days</td>
-                            <td class="text-right">${c.shipment_count}</td>
-                            <td class="text-right ${c.delay_rate > 30 ? 'text-danger' : ''}">${c.delay_rate.toFixed(1)}%</td>
+                            <td class="text-right">${(c.distance || 0).toFixed(1)} km</td>
+                            <td class="text-right">${(c.transit_time || 0).toFixed(1)} days</td>
+                            <td class="text-right">${c.shipment_count || 0}</td>
+                            <td class="text-right ${(c.delay_rate || 0) > 30 ? 'text-danger' : ''}">${(c.delay_rate || 0).toFixed(1)}%</td>
                             <td class="text-right">${window.Formatters.safeCurrency(c.avg_cost)}</td>
-                            <td class="text-right">${(c.distance * 0.15).toFixed(1)} gal</td>
-                            <td class="text-right ${c.reliability_score < 70 ? 'text-danger' : 'text-success'}">${c.reliability_score.toFixed(1)}%</td>
-                            <td class="text-right ${getScoreClass(c.efficiency_score)}"><strong>${c.efficiency_score.toFixed(0)}%</strong></td>
+                            <td class="text-right">${((c.distance || 0) * 0.15).toFixed(1)} gal</td>
+                            <td class="text-right ${(c.reliability_score || 0) < 70 ? 'text-danger' : 'text-success'}">${(c.reliability_score || 0).toFixed(1)}%</td>
+                            <td class="text-right ${getScoreClass(c.efficiency_score || 0)}"><strong>${(c.efficiency_score || 0).toFixed(0)}%</strong></td>
+                            <td style="white-space:nowrap;">
+                                <button class="btn btn-secondary btn-sm" style="font-size:10px; padding:3px 8px; margin-right:4px;"
+                                    onclick="window.openCorridorDrillDown('${mapKey}')">
+                                    <i class="fa-solid fa-magnifying-glass-chart"></i> Details
+                                </button>
+                                <button class="btn btn-primary btn-sm" style="font-size:10px; padding:3px 8px;"
+                                    onclick="window.triggerCorridorOptimization('${mapKey}')">
+                                    <i class="fa-solid fa-bolt"></i> Optimize
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
+
             }
 
             this.container.innerHTML = `
@@ -80,6 +97,7 @@
                                         <th class="sortable text-right" data-field="distance">Fuel Est</th>
                                         <th class="sortable text-right" data-field="reliability_score">SLA Met</th>
                                         <th class="sortable text-right" data-field="efficiency_score">Efficiency</th>
+                                        <th style="text-align:center;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>

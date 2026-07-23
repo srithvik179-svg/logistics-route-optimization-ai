@@ -39,14 +39,16 @@
             legend.addTo(_map);
         },
 
-        render(shipments, hubs, corridors) {
+        render(shipments, hubs, corridors, nodeCoordinates = null) {
             if (!_map) return;
             _layers.forEach(l => l.remove());
             _layers = [];
 
+            const coordsLookup = nodeCoordinates || HUB_COORDS;
+
             // Hub circles — size/color by risk score
             hubs.forEach(h => {
-                const coords = HUB_COORDS[h.hub];
+                const coords = coordsLookup[h.hub];
                 if (!coords) return;
                 const radius = 8 + (h.risk_score / 100) * 16;
                 const circle = L.circleMarker(coords, {
@@ -65,8 +67,8 @@
 
             // Corridor lines — color/weight by risk score
             corridors.forEach(c => {
-                const orig = HUB_COORDS[c.origin];
-                const dest = HUB_COORDS[c.destination];
+                const orig = coordsLookup[c.origin];
+                const dest = coordsLookup[c.destination];
                 if (!orig || !dest) return;
                 const weight = 2 + (c.risk_score / 100) * 5;
                 const line = L.polyline([orig, dest], {

@@ -21,6 +21,9 @@ class RouteAnalysisService:
         """
         logger.info(f"RouteAnalysisService: Analyzing network. Filters: {filters}")
 
+        if not repository.is_initialized():
+            repository.initialize()
+
         # Load sheets from repository
         df_tx_raw = repository._processed_sheets.get("Logistics_Transactions")
         df_hub = repository._processed_sheets.get("Hub_Location_Master")
@@ -70,6 +73,9 @@ class RouteAnalysisService:
 
         # Apply global filters to transactions
         df_filtered = GeospatialService._apply_geospatial_filters(df, df_parts, filters)
+        if len(df_filtered) == 0:
+            logger.warning(f"RouteAnalysisService: No rows matched filters {filters}. Falling back to full dataset.")
+            df_filtered = df.copy()
 
         # 1. Compile Route-Level Statistics
         routes_map = {}
@@ -90,7 +96,14 @@ class RouteAnalysisService:
             dist = float(r.get("Route_Distance") or 0.0)
             transit_days = float((pd.to_datetime(r["Delivery_Date"]) - pd.to_datetime(r["Order_Date"])).days)
             prio = str(r["Priority"])
-            sla = str(r["SLA_Status"])
+            
+            # Standardize SLA detection
+            raw_sla = str(r.get("SLA_Status") or r.get("SLA_Breach") or "NO").strip().upper()
+            if raw_sla in ["ON TIME", "ON-TIME", "MET", "EARLY", "NO", "FALSE", "0"]:
+                sla = "MET"
+            else:
+                sla = "MISSED"
+                
             part_no = str(r["Part_Number"])
             partner = str(r["Logistics_Partner"])
 
@@ -132,9 +145,8 @@ class RouteAnalysisService:
             all_avg_transits.append(sum(v["transits"]) / len(v["transits"]))
             all_volumes.append(len(v["txn_ids"]))
             
-        cost_cutoff = pd.Series(all_avg_costs).quantile(0.75) if all_avg_costs else 250.0
-        transit_cutoff = pd.Series(all_avg_transits).quantile(0.75) if all_avg_transits else 2.5
-        volume_cutoff = pd.Series(all_volumes).quantile(0.75) if all_volumes else 3.0
+        cost_cutoff = pd.Series(all_avg_costs).quantile(0.85) if all_avg_costs else 1500.0
+        transit_cutoff = pd.Series(all_avg_transits).quantile(0.85) if all_avg_transits else 8.0
 
         for route_key, r_data in routes_map.items():
             shipment_count = len(r_data["txn_ids"])
@@ -142,19 +154,19 @@ class RouteAnalysisService:
             avg_transit = sum(r_data["transits"]) / shipment_count
             avg_distance = sum(r_data["distances"]) / shipment_count
             
+            on_time_count = r_data["statuses"].get("MET", 0)
             delay_count = r_data["statuses"].get("MISSED", 0)
-            delay_rate = (delay_count / shipment_count) * 100.0
+            delay_rate = (delay_count / shipment_count) * 100.0 if shipment_count > 0 else 0.0
+            sla_compliance_pct = round((on_time_count / shipment_count) * 100.0, 1) if shipment_count > 0 else 0.0
             
-            # Classify Bottleneck: based on Cutoffs
+            # Intelligent Bottleneck Classification: only flag true problem routes
             reasons = []
-            if avg_cost >= cost_cutoff:
-                reasons.append("High Logistics Cost")
-            if avg_transit >= transit_cutoff:
-                reasons.append("High Transit Duration")
-            if delay_rate >= 30.0 and delay_count > 0:
+            if sla_compliance_pct < 25.0:
                 reasons.append("Frequent SLA Delays")
-            if shipment_count >= volume_cutoff:
-                reasons.append("High Shipment Load")
+            if avg_transit >= transit_cutoff and delay_rate >= 70.0:
+                reasons.append("High Transit Duration")
+            if avg_cost >= cost_cutoff and delay_rate >= 70.0:
+                reasons.append("High Logistics Cost")
                 
             is_bottleneck = len(reasons) > 0
             bottleneck_reason = ", ".join(reasons) if is_bottleneck else ""
@@ -169,8 +181,10 @@ class RouteAnalysisService:
                 "avg_cost": round(avg_cost, 2),
                 "priority_dist": r_data["priorities"],
                 "status_dist": r_data["statuses"],
+                "on_time_count": on_time_count,
                 "delay_count": delay_count,
                 "delay_rate": round(delay_rate, 1),
+                "sla_compliance_pct": sla_compliance_pct,
                 "parts": list(r_data["parts"]),
                 "partners": list(r_data["partners"]),
                 "transaction_ids": r_data["txn_ids"],
@@ -189,10 +203,10 @@ class RouteAnalysisService:
         hub_connections = sum(1 for r in routes_list if r["route_type"] == "Hub-to-Hub Transfer")
         rc_connections = sum(1 for r in routes_list if r["route_type"] == "Outbound to TPR")
         
-        network_avg_distance = df_filtered["Route_Distance"].mean() if len(df_filtered) > 0 else 0.0
-        network_avg_cost = df_filtered["Shipment_Cost"].mean() if len(df_filtered) > 0 else 0.0
+        network_avg_distance = df_filtered["Route_Distance"].mean() if len(df_filtered) > 0 and "Route_Distance" in df_filtered.columns else 0.0
+        network_avg_cost = df_filtered["Shipment_Cost"].mean() if len(df_filtered) > 0 and "Shipment_Cost" in df_filtered.columns else 0.0
         network_avg_transit = 0.0
-        if len(df_filtered) > 0:
+        if len(df_filtered) > 0 and "Delivery_Date" in df_filtered.columns and "Order_Date" in df_filtered.columns:
             ts = pd.to_datetime(df_filtered["Delivery_Date"]) - pd.to_datetime(df_filtered["Order_Date"])
             network_avg_transit = ts.dt.days.mean()
             
@@ -205,26 +219,47 @@ class RouteAnalysisService:
             "avg_route_distance": round(network_avg_distance, 1),
             "avg_transit_time": round(network_avg_transit, 1),
             "avg_logistics_cost": round(network_avg_cost, 2),
-            "avg_shipments_per_route": round(avg_shipments, 1)
+            "avg_shipments_per_route": round(avg_shipments, 1),
+            "bottlenecks_count": len(bottlenecks_list)
         }
 
         # 3. Flow Analysis Breakdowns
         # Outbound vs Inbound volume per hub
-        hubs_set = set(df_hub["Hub_ID"]) if len(df_hub) > 0 else {"HUB-A", "HUB-B", "HUB-C", "HUB-D", "HUB-E"}
+        hubs_set = set(df_hub["Hub_ID"]) if len(df_hub) > 0 and "Hub_ID" in df_hub.columns else (set(df_tx_raw["Origin_Hub"].dropna().unique()).union(set(df_tx_raw["Destination_Hub"].dropna().unique())) if len(df_tx_raw) > 0 else set())
         hub_flows = {}
         for h in hubs_set:
-            outbound = int(df_filtered[df_filtered["Origin_Hub"] == h]["Quantity"].sum())
-            inbound = int(df_filtered[df_filtered["Destination_Hub"] == h]["Quantity"].sum())
+            outbound_qty = df_filtered[df_filtered["Origin_Hub"] == h]["Quantity"].sum() if "Quantity" in df_filtered.columns else 0
+            inbound_qty = df_filtered[df_filtered["Destination_Hub"] == h]["Quantity"].sum() if "Quantity" in df_filtered.columns else 0
+            
+            outbound_cnt = len(df_filtered[df_filtered["Origin_Hub"] == h])
+            inbound_cnt = len(df_filtered[df_filtered["Destination_Hub"] == h])
+
+            outbound = int(outbound_qty) if outbound_qty > 0 else outbound_cnt
+            inbound = int(inbound_qty) if inbound_qty > 0 else inbound_cnt
+            net = outbound - inbound
+
+            total_vol = outbound + inbound
+            outbound_pct = round((outbound / total_vol) * 100.0, 1) if total_vol > 0 else 50.0
+            inbound_pct = round((inbound / total_vol) * 100.0, 1) if total_vol > 0 else 50.0
+
+            imbalance_label = "Outbound Heavy" if net > 50 else ("Inbound Heavy" if net < -50 else "Balanced")
+
             hub_flows[h] = {
                 "inbound": inbound,
                 "outbound": outbound,
-                "net": outbound - inbound
+                "net": net,
+                "inbound_pct": inbound_pct,
+                "outbound_pct": outbound_pct,
+                "imbalance_label": imbalance_label
             }
             
+        hub_to_hub_val = int(df_filtered[df_filtered["Flow_Type"] == "Hub-to-Hub Transfer"]["Quantity"].sum()) if len(df_filtered) > 0 and "Flow_Type" in df_filtered.columns and "Quantity" in df_filtered.columns else 0
+        hub_to_repair_val = int(df_filtered[df_filtered["Flow_Type"] == "Outbound to TPR"]["Quantity"].sum()) if len(df_filtered) > 0 and "Flow_Type" in df_filtered.columns and "Quantity" in df_filtered.columns else 0
+
         # Flow type summary segment counts
         flow_segments = {
-            "hub_to_hub": int(df_filtered[df_filtered["Flow_Type"] == "Hub-to-Hub Transfer"]["Quantity"].sum()),
-            "hub_to_repair": int(df_filtered[df_filtered["Flow_Type"] == "Outbound to TPR"]["Quantity"].sum()),
+            "hub_to_hub": hub_to_hub_val,
+            "hub_to_repair": hub_to_repair_val,
             "repair_to_hub": 0 # Default placeholder for future loopback flow
         }
 

@@ -58,7 +58,8 @@
 
         togglePlay() {
             if (_segments.length === 0) {
-                alert("Please select a route flow or hub corridor from the map first.");
+                const statusText = document.getElementById("playback-status-text") || document.getElementById("pb-step-info");
+                if (statusText) statusText.textContent = "Select a route flow or corridor on the map";
                 return;
             }
 

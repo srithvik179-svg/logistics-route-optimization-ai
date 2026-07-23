@@ -23,12 +23,8 @@
 
         try {
             // Check dataset status first
-            const checkRes = await fetch("/api/dataset/status");
-            let isValid = false;
-            if (checkRes.ok) {
-                const statusData = await checkRes.json();
-                isValid = !!(statusData.validation_report && statusData.validation_report.is_valid);
-            }
+            const statusData = await apiFetch("/api/dataset/status");
+            const isValid = !!(statusData && (statusData.loaded || statusData.status === "LOADED" || (statusData.validation_report && statusData.validation_report.is_valid)));
 
             if (!isValid) {
                 containers.forEach(id => {
@@ -47,21 +43,31 @@
                 return;
             }
 
-            const res = await fetch("/api/reverse-logistics/payload", {
+            _data = await apiFetch("/api/reverse-logistics/payload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ filters: {} })
+                body: JSON.stringify({ filters: window.GlobalFilters || {} })
             });
-            if (!res.ok) throw new Error("Failed to fetch reverse logistics payload");
-            _data = await res.json();
 
-            const { returns, analytics, recommendations, summary } = _data;
+            const returns = (_data && _data.returns) ? _data.returns : [];
+            const analytics = (_data && _data.analytics) ? _data.analytics : (_data && _data.flow_analytics) ? _data.flow_analytics : {};
+            const recommendations = (_data && _data.recommendations) ? _data.recommendations : (_data && _data.ai_recommendations) ? _data.ai_recommendations : [];
+            const summary = (_data && _data.summary) ? _data.summary : (_data && _data.executive_summary) ? _data.executive_summary : {};
+
+            if (!returns) {
+                window.EmptyState.render("rl-tracker", "No records match the selected filters.", "Try resetting the filters to show complete operational data.", "fa-triangle-exclamation");
+                document.getElementById("rl-dashboard").innerHTML = `<div class="card glass-panel text-center" style="padding: 1.5rem; color: var(--text-muted);">No records match.</div>`;
+                document.getElementById("rl-recovery-panel").innerHTML = "";
+                document.getElementById("rl-refurb-panel").innerHTML = "";
+                document.getElementById("rl-recycling-panel").innerHTML = "";
+                return;
+            }
 
             // 1. Dashboard KPI scorecards
             window.ReverseDashboard.render("rl-dashboard", _data);
 
             // 2. Map overlays
-            window.ReverseMap.render(returns);
+            window.ReverseMap.render(returns, _data.node_coordinates);
 
             // 3. Return tracker table
             window.ReturnTracker.render("rl-tracker", returns);
@@ -84,7 +90,7 @@
                         <div class="card glass-panel text-center" style="padding: 1.5rem; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;">
                             <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
                             <h5 style="color:#fff; margin-bottom: 0.25rem;">Failed to load Reverse Logistics</h5>
-                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem;">Service connectivity issue detected.</p>
+                            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 0.75rem;">Service connectivity issue: ${err.message || err}</p>
                             <button class="btn btn-secondary btn-sm" onclick="loadReverseLogisticsWorkspace()" style="padding: 2px 8px; font-size: 10px;">
                                 <i class="fa-solid fa-rotate-right"></i> Retry
                             </button>
@@ -139,12 +145,12 @@
 
                 <h3>Executive Summary</h3>
                 <div>
-                    <div class="kpi"><span class="kpi-val">${summary.today_returns}</span><span class="kpi-lbl">Today's Returns</span></div>
-                    <div class="kpi"><span class="kpi-val">${analytics.recovery_rate}%</span><span class="kpi-lbl">Recovery Rate</span></div>
-                    <div class="kpi"><span class="kpi-val">$${analytics.recovered_value.toFixed(2)}</span><span class="kpi-lbl">Recovered Value</span></div>
-                    <div class="kpi"><span class="kpi-val">$${analytics.avg_return_cost.toFixed(2)}</span><span class="kpi-lbl">Avg Return Cost</span></div>
-                    <div class="kpi"><span class="kpi-val">${analytics.refurbishment_success_rate}%</span><span class="kpi-lbl">Refurb Success</span></div>
-                    <div class="kpi"><span class="kpi-val">${analytics.recycling_percentage}%</span><span class="kpi-lbl">Recycling %</span></div>
+                    <div class="kpi"><span class="kpi-val">${summary.today_returns || 0}</span><span class="kpi-lbl">Today's Returns</span></div>
+                    <div class="kpi"><span class="kpi-val">${analytics.recovery_rate || 0}%</span><span class="kpi-lbl">Recovery Rate</span></div>
+                    <div class="kpi"><span class="kpi-val">$${(analytics.recovered_value || 0).toFixed(2)}</span><span class="kpi-lbl">Recovered Value</span></div>
+                    <div class="kpi"><span class="kpi-val">$${(analytics.avg_return_cost || 0).toFixed(2)}</span><span class="kpi-lbl">Avg Return Cost</span></div>
+                    <div class="kpi"><span class="kpi-val">${analytics.refurbishment_success_rate || 0}%</span><span class="kpi-lbl">Refurb Success</span></div>
+                    <div class="kpi"><span class="kpi-val">${analytics.recycling_percentage || 0}%</span><span class="kpi-lbl">Recycling %</span></div>
                 </div>
 
                 <h3>Return Shipment Register</h3>
@@ -158,12 +164,12 @@
                     <tbody>
                         ${returns.map(r => `
                             <tr>
-                                <td>${r.return_id}</td><td>${r.shipment_id}</td>
-                                <td>${r.origin}</td><td>${r.destination}</td>
-                                <td>${r.status}</td><td>${r.reason}</td>
-                                <td>${r.days_in_transit}d</td><td>$${r.return_cost.toFixed(2)}</td>
+                                <td>${r.return_id || ''}</td><td>${r.shipment_id || ''}</td>
+                                <td>${r.origin || ''}</td><td>${r.destination || ''}</td>
+                                <td>${r.status || ''}</td><td>${r.reason || ''}</td>
+                                <td>${r.days_in_transit || 0}d</td><td>$${(r.return_cost || 0).toFixed(2)}</td>
                             </tr>
-                        `).join("")}
+                        `).join('')}
                     </tbody>
                 </table>
                 <script>window.onload = function() { window.print(); }</script>

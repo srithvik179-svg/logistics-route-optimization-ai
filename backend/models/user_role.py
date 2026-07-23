@@ -10,6 +10,8 @@ class UserRole(str, Enum):
     OPERATIONS_MANAGER = "Operations Manager"
     LOGISTICS_ANALYST = "Logistics Analyst"
     BUSINESS_ANALYST = "Business Analyst"
+    EXECUTIVE_VIEWER = "Executive Viewer"
+    READ_ONLY_USER = "Read-Only User"
     VIEWER = "Viewer"
     SYSTEM_SERVICE = "System Service"
 

@@ -83,23 +83,29 @@ class DistanceCalculator:
         logger.info("DistanceCalculator: Generating nearest node mappings.")
         mappings: List[NearestMapping] = []
 
-        # Categorize node IDs based on fallbacks registry type
+        # Try to resolve type dynamically
+        from backend.services.repository import repository
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        tpr_sheet_name = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet_name)
+        
+        tpr_ids = set(df_tpr["TPR_ID"].unique()) if df_tpr is not None and "TPR_ID" in df_tpr.columns else set()
+        hub_ids = set(df_hub["Hub_ID"].unique()) if df_hub is not None and "Hub_ID" in df_hub.columns else set()
+
         hubs = []
         warehouses = []
         rcs = []
 
         for node_id in node_coords.keys():
-            t = GeospatialService.COORDINATES_FALLBACK.get(node_id, {}).get("type", "Hub")
-            if t == "Repair Center":
+            if node_id in tpr_ids or node_id.upper().startswith("TPR"):
                 rcs.append(node_id)
-            elif t == "Warehouse":
-                warehouses.append(node_id)
             else:
                 hubs.append(node_id)
+                warehouses.append(node_id)
 
         # Fallback empty protections
         if not hubs:
-            hubs = ["HUB-A"]
+            hubs = list(node_coords.keys())[:1] if node_coords else ["HUB-A"]
         if not warehouses:
             # If no warehouse sheet, use hubs as warehouse backup
             warehouses = hubs

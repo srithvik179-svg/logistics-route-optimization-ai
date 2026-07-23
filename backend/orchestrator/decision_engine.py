@@ -12,8 +12,21 @@ class DecisionEngine:
         corridors   = aggregated["corridors"].get("corridors", [])
         reverse_an  = aggregated["reverse_logistics"].get("analytics", {})
 
+        from backend.services.repository import repository
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        tpr_sheet_name = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet_name)
+        
+        hubs_list = list(df_hub["Hub_ID"].unique()) if df_hub is not None and len(df_hub) > 0 and "Hub_ID" in df_hub.columns else []
+        tpr_list = list(df_tpr["TPR_Name"].unique()) if df_tpr is not None and len(df_tpr) > 0 and "TPR_Name" in df_tpr.columns else ["Refurbishment Center"]
+        
+        hub1 = hubs_list[0] if len(hubs_list) > 0 else "Origin Hub"
+        hub2 = hubs_list[1] if len(hubs_list) > 1 else ("Destination Hub" if len(hubs_list) > 0 else "Destination")
+        tpr1 = tpr_list[0] if len(tpr_list) > 0 else "Refurbishment Center"
+
         # Find best routing corridor (lowest cost, highest SLA compliance)
-        best_route = "HUB-A → HUB-B"
+        best_route = f"{hub1} → {hub2}"
+        lowest_cost_route = f"{hub2} → {hub1}"
         lowest_cost_val = float('inf')
         highest_sla_val = 0.0
 
@@ -22,6 +35,7 @@ class DecisionEngine:
             sla_compliance = 100.0 - c.get("miss_rate", 0.0)
             if cost < lowest_cost_val:
                 lowest_cost_val = cost
+                lowest_cost_route = c.get("corridor", lowest_cost_route)
             if sla_compliance > highest_sla_val:
                 highest_sla_val = sla_compliance
                 best_route = c.get("corridor", best_route)
@@ -41,7 +55,7 @@ class DecisionEngine:
             conflicts.append({
                 "type": "Cost vs. SLA Congestion",
                 "description": "Cost optimization recommends lane consolidations, but SLA Prediction warns of high-risk cargo backlog at destination hubs.",
-                "resolution": "Override cost reduction: Prioritize capacity on HUB-C → HUB-D to maintain SLA compliance, but apply mode shift optimizations elsewhere."
+                "resolution": f"Override cost reduction: Prioritize capacity on {best_route} to maintain SLA compliance, but apply mode shift optimizations elsewhere."
             })
 
         # Compile business and network impacts
@@ -51,13 +65,13 @@ class DecisionEngine:
         # Unified recommendations list
         recs = [
             "Initiate express lane transfers for high-priority shipments on congested corridors.",
-            "Reroute return shipments to Austin Refurbishment Center during Dallas hub congestion peaks.",
-            "Reallocate 3 drivers from stable routes to Dallas-Houston corridor to handle volume spikes."
+            f"Reroute return shipments to {tpr1} during {hub2} congestion peaks.",
+            f"Reallocate 3 drivers from stable routes to {best_route} corridor to handle volume spikes."
         ]
 
         return {
             "best_route": best_route,
-            "lowest_cost_route": "HUB-D → HUB-A",
+            "lowest_cost_route": lowest_cost_route,
             "highest_sla_route": best_route,
             "confidence_score": confidence,
             "conflicts": conflicts,

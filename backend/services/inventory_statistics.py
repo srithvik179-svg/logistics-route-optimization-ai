@@ -68,7 +68,7 @@ class InventoryStatistics:
         # Aggregate per category
         by_cat: Dict[str, float] = {}
         if len(parts_master) > 0 and "Part_Number" in parts_master.columns and "Category" in parts_master.columns:
-            m_df = stock_df.merge(parts_master[["Part_Number", "Category"]], left_on="part_number", right_on="Part_Number", how="left")
+            m_df = stock_df.merge(parts_master[["Part_Number", "Category"]], left_on="part_number", right_on="Part_Number", how="left", suffixes=("", "_parts_master"))
             for cat, group in m_df.groupby("Category"):
                 by_cat[str(cat)] = round(float(group["stock_level"].sum()), 2)
 

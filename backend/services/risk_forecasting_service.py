@@ -15,8 +15,12 @@ class RiskForecastingService:
         logger.info("RiskForecastingService: Building 7-day risk forecast payload.")
 
         import pandas as pd
-        df = repository._processed_sheets.get("Logistics_Transactions")
-        if df is None or df.empty:
+        df_raw = repository._processed_sheets.get("Logistics_Transactions")
+        if df_raw is None or df_raw.empty:
+            return {"timeline": [], "corridor_forecast": [], "peak_day": "N/A"}
+        from backend.services.bi_service import BIService
+        df = BIService.apply_filters(df_raw, filters)
+        if df.empty:
             return {"timeline": [], "corridor_forecast": [], "peak_day": "N/A"}
 
         # Build synthetic 7-day rolling risk forecast

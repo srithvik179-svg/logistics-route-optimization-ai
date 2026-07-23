@@ -38,7 +38,12 @@ class DataRepository:
             if "Actual_Delivery_Date" in df.columns:
                 df["Delivery_Date"] = df["Actual_Delivery_Date"]
             if "Destination_Location" in df.columns:
-                df["Destination_Hub"] = df["Destination_Location"]
+                city_to_hub = {}
+                if "Hub_Location_Master" in sheets_data:
+                    h_df = sheets_data["Hub_Location_Master"]
+                    if "City" in h_df.columns and "Hub_ID" in h_df.columns:
+                        city_to_hub = dict(zip(h_df["City"], h_df["Hub_ID"]))
+                df["Destination_Hub"] = df["Destination_Location"].map(city_to_hub).fillna(df["Destination_Location"])
             if "Part_No" in df.columns:
                 df["Part_Number"] = df["Part_No"]
             if "SLA_Breach" in df.columns:

@@ -1,11 +1,23 @@
 /**
  * Global Validators Utility for Logistics Platform
  * Verifies variable types to prevent NaN, null, and division by zero.
+ * Supports raw numbers, formatted strings, and nested KPI objects.
  */
 (function() {
     const Validators = {
         isValidNumber(val) {
-            return val !== null && val !== undefined && val !== "" && !isNaN(Number(val)) && isFinite(Number(val));
+            if (val === null || val === undefined || val === "") return false;
+            if (typeof val === "object") {
+                if (val.raw_value !== undefined && !isNaN(Number(val.raw_value))) return true;
+                if (val.value !== undefined) val = val.value;
+            }
+            if (typeof val === "number") return !isNaN(val) && isFinite(val);
+            if (typeof val === "string") {
+                const cleaned = val.replace(/,/g, '').replace(/[\$,%\sDaysUnitsmi]/gi, '').trim();
+                const n = Number(cleaned);
+                return !isNaN(n) && isFinite(n);
+            }
+            return !isNaN(Number(val)) && isFinite(Number(val));
         },
         isValidString(val) {
             return typeof val === "string" && val.trim().length > 0;

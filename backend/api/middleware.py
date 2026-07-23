@@ -3,11 +3,25 @@
 import uuid
 import time
 import json
+import math
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import StreamingResponse
 from backend.api.response_builder import ResponseBuilder
 from backend.utils.logger import logger
+
+
+def sanitize_json_payload(data):
+    """Recursively replaces NaN and Infinity float values with None to ensure JSON compliance."""
+    if isinstance(data, dict):
+        return {k: sanitize_json_payload(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_json_payload(v) for v in data]
+    elif isinstance(data, float):
+        if math.isnan(data) or math.isinf(data):
+            return None
+        return data
+    return data
 
 
 class APIGatewayMiddleware(BaseHTTPMiddleware):
@@ -62,7 +76,8 @@ class APIGatewayMiddleware(BaseHTTPMiddleware):
                         execution_time_ms=exec_time
                     )
                     
-                    body_bytes = json.dumps(wrapped.model_dump()).encode("utf-8")
+                    wrapped_dict = sanitize_json_payload(wrapped.model_dump())
+                    body_bytes = json.dumps(wrapped_dict).encode("utf-8")
                     
                     # Update content length headers
                     response.headers["content-length"] = str(len(body_bytes))

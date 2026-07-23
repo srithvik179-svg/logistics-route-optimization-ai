@@ -9,21 +9,48 @@ from backend.services.executive_summary import ExecutiveSummaryService
 
 REPORT_HISTORY: List[Dict[str, Any]] = [
     {
-        "id": "REP-9901",
-        "time": "2026-07-18T10:15:30",
-        "type": "Weekly Operations Report",
-        "generated_by": "System Scheduler",
+        "id": "REP-2026-0723-122",
+        "time": "2026-07-23 21:38:11",
+        "type": "Executive Summary",
+        "generated_by": "analyst",
         "template": "Executive Leadership",
-        "downloads": 14,
+        "downloads": 18,
         "is_favorite": True
     },
     {
-        "id": "REP-9902",
-        "time": "2026-07-19T16:45:10",
-        "type": "Cost Optimization Report",
+        "id": "REP-2026-0723-121",
+        "time": "2026-07-23 21:38:06",
+        "type": "Network Performance Report",
         "generated_by": "analyst",
         "template": "Regional Manager",
-        "downloads": 5,
+        "downloads": 12,
+        "is_favorite": False
+    },
+    {
+        "id": "REP-2026-0723-120",
+        "time": "2026-07-23 21:38:03",
+        "type": "Network Performance Report",
+        "generated_by": "analyst",
+        "template": "Regional Manager",
+        "downloads": 9,
+        "is_favorite": False
+    },
+    {
+        "id": "REP-2026-0723-119",
+        "time": "2026-07-23 21:35:55",
+        "type": "Network Performance Report",
+        "generated_by": "analyst",
+        "template": "Regional Manager",
+        "downloads": 6,
+        "is_favorite": False
+    },
+    {
+        "id": "REP-2026-0723-118",
+        "time": "2026-07-23 21:35:54",
+        "type": "Network Performance Report",
+        "generated_by": "analyst",
+        "template": "Regional Manager",
+        "downloads": 4,
         "is_favorite": False
     }
 ]
@@ -36,8 +63,8 @@ class ReportGenerator:
         return REPORT_HISTORY
 
     @classmethod
-    def compile_report(cls, report_type: str, template: str, generated_by: str) -> Dict[str, Any]:
-        filters = {}
+    def compile_report(cls, report_type: str, template: str, generated_by: str, filters: Dict[str, Any] = None) -> Dict[str, Any]:
+        filters = filters or {}
         
         # 1. Aggregate real data
         aggregated = ResultAggregator.aggregate_data(filters)
@@ -46,7 +73,7 @@ class ReportGenerator:
         insights = InsightGenerator.generate_insights(filters)
 
         # 3. Create corporate summary
-        summary = ExecutiveSummaryService.get_summary(aggregated)
+        summary = ExecutiveSummaryService.get_summary(aggregated, filters)
 
         # 4. Define template specifics
         focus_areas = {
@@ -61,11 +88,11 @@ class ReportGenerator:
         rep_id = f"REP-{datetime.date.today().strftime('%Y-%m%d')}-{len(REPORT_HISTORY)+100}"
         REPORT_HISTORY.insert(0, {
             "id": rep_id,
-            "time": datetime.datetime.now().isoformat()[:19],
+            "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "type": report_type,
             "generated_by": generated_by,
             "template": template,
-            "downloads": 0,
+            "downloads": 1,
             "is_favorite": False
         })
 

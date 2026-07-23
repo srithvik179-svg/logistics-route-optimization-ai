@@ -60,13 +60,8 @@ class CapacityEngine:
         """
         logger.info(f"CapacityEngine: Capacity Engine Started. Filters: {filters}")
 
-        # --- Cache Lookup ---
-        cache_key = cls._build_cache_key(filters)
-        if cache_key in cls._cache:
-            logger.info("CapacityEngine: Cache HIT — returning cached payload.")
-            cached = cls._cache[cache_key]
-            cached.cached = True
-            return cached
+        # --- Clear cache to ensure fresh calculations ---
+        cls._cache.clear()
 
         # --- Load sheets ---
         df_tx_raw = repository._processed_sheets.get("Logistics_Transactions")
@@ -108,11 +103,22 @@ class CapacityEngine:
         rcs_list = []
 
         # Hub capacities mapping
-        hubs = list(df_hub["Hub_ID"].unique()) if len(df_hub) > 0 else ["HUB-A", "HUB-B", "HUB-C", "HUB-D", "HUB-E"]
+        hubs = list(df_hub["Hub_ID"].unique()) if len(df_hub) > 0 and "Hub_ID" in df_hub.columns else ["HUB-BLR", "HUB-DEL", "HUB-MUM", "HUB-CHE", "HUB-HYD", "HUB-PUN", "HUB-KOL", "HUB-AHM", "HUB-SIN", "HUB-KUL", "HUB-DXB", "HUB-AMS"]
         for h in hubs:
-            cap = GeospatialService.COORDINATES_FALLBACK.get(h, {}).get("capacity") or 5000.0
-            used = stock_hubs.get(h, 100.0)  # fall back to nominal stock if absent
-            used = min(used, cap)
+            cap = 5000.0
+            util_pct = 50.0
+            if len(df_hub) > 0 and "Hub_ID" in df_hub.columns:
+                row = df_hub[df_hub["Hub_ID"] == h]
+                if len(row) > 0:
+                    cap = float(row.iloc[0].get("Inventory_Capacity") or 5000.0)
+                    if "Utilisation_Pct" in row.columns and not pd.isna(row.iloc[0].get("Utilisation_Pct")):
+                        u_val = float(row.iloc[0].get("Utilisation_Pct"))
+                        util_pct = u_val * 100.0 if u_val <= 1.0 else u_val
+            else:
+                cap = GeospatialService.COORDINATES_FALLBACK.get(h, {}).get("capacity") or 5000.0
+
+            util_pct = round(util_pct, 1)
+            used = round(cap * (util_pct / 100.0), 2)
 
             # Node Workload (trans transactions count)
             node_txs = df_filtered[(df_filtered["Origin_Hub"] == h) | (df_filtered["Destination_Hub"] == h)]
@@ -124,8 +130,8 @@ class CapacityEngine:
             hubs_list.append(NodeCapacityMetrics(
                 node_id=h,
                 capacity=cap,
-                used_capacity=round(used, 2),
-                utilization_pct=round((used / cap) * 100.0, 1),
+                used_capacity=used,
+                utilization_pct=util_pct,
                 remaining_capacity=round(cap - used, 2),
                 workload=workload,
                 shipment_density=round(workload / cap, 4),
@@ -134,11 +140,21 @@ class CapacityEngine:
             ))
 
         # Repair Center capacity mapping
-        rcs = list(df_tpr["TPR_ID"].unique()) if len(df_tpr) > 0 else ["TPR-001", "TPR-002", "TPR-003"]
+        rcs = list(df_tpr["TPR_ID"].unique()) if len(df_tpr) > 0 and "TPR_ID" in df_tpr.columns else ["TPR-BLR-01", "TPR-BLR-02", "TPR-DEL-01", "TPR-MUM-01", "TPR-CHE-01", "TPR-HYD-01", "TPR-SIN-01", "TPR-KUL-01"]
         for rc in rcs:
-            cap = GeospatialService.COORDINATES_FALLBACK.get(rc, {}).get("capacity") or 2000.0
-            used = stock_rcs.get(rc, 100.0)
-            used = min(used, cap)
+            cap = 2000.0
+            util_pct = 50.0
+            if len(df_tpr) > 0 and "TPR_ID" in df_tpr.columns:
+                row = df_tpr[df_tpr["TPR_ID"] == rc]
+                if len(row) > 0:
+                    cap = float(row.iloc[0].get("Repair_Capacity_Per_Day") or 2000.0)
+                    wl = float(row.iloc[0].get("Current_Workload") or 0.0)
+                    util_pct = (wl / cap) * 100.0 if cap > 0 else 50.0
+            else:
+                cap = GeospatialService.COORDINATES_FALLBACK.get(rc, {}).get("capacity") or 2000.0
+
+            util_pct = round(util_pct, 1)
+            used = round(cap * (util_pct / 100.0), 2)
 
             node_txs = df_filtered[(df_filtered["Origin_Hub"] == rc) | (df_filtered["Destination_Hub"] == rc)]
             workload = len(node_txs)
@@ -147,8 +163,8 @@ class CapacityEngine:
             rcs_list.append(NodeCapacityMetrics(
                 node_id=rc,
                 capacity=cap,
-                used_capacity=round(used, 2),
-                utilization_pct=round((used / cap) * 100.0, 1),
+                used_capacity=used,
+                utilization_pct=util_pct,
                 remaining_capacity=round(cap - used, 2),
                 workload=workload,
                 shipment_density=round(workload / cap, 4),
@@ -190,6 +206,7 @@ class CapacityEngine:
             cached=False
         )
 
+        cache_key = cls._build_cache_key(filters)
         cls._cache[cache_key] = payload
         return payload
 

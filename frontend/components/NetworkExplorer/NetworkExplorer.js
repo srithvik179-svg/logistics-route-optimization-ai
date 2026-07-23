@@ -166,9 +166,13 @@
 
             // 3. Render Route flows
             flows.forEach(flow => {
+                const startLat = flow.origin_lat || flow.start_lat || 20.0;
+                const startLon = flow.origin_lon || flow.start_lon || 78.0;
+                const endLat = flow.dest_lat || flow.end_lat || 20.0;
+                const endLon = flow.dest_lon || flow.end_lon || 78.0;
                 const latlngs = [
-                    [flow.start_lat || 20.0, flow.start_lon || 78.0],
-                    [flow.end_lat || 20.0, flow.end_lon || 78.0]
+                    [startLat, startLon],
+                    [endLat, endLon]
                 ];
 
                 // Check SLA and Costs to decide colors
@@ -183,17 +187,28 @@
                     className: "animated-polyline-flow"
                 }).addTo(_layers.flows);
 
+                const originId = flow.origin_id || flow.origin || "Unknown";
+                const destId = flow.destination_id || flow.destination || "Unknown";
+                const avgTransit = flow.avg_transit_time || flow.avg_transit_days || 0;
+
                 polyline.bindPopup(`
                     <div style="color:#fff; font-family:sans-serif;">
-                        <h4 style="margin:0 0 4px 0;">Corridor: ${flow.corridor || (flow.origin + ' → ' + flow.destination)}</h4>
+                        <h4 style="margin:0 0 4px 0;">Corridor: ${flow.corridor || (originId + ' → ' + destId)}</h4>
                         <p style="margin:2px 0;"><strong>Active Shipments:</strong> ${flow.shipment_count}</p>
                         <p style="margin:2px 0;"><strong>Average Cost:</strong> $${flow.avg_cost}</p>
-                        <p style="margin:2px 0;"><strong>Average Transit:</strong> ${flow.avg_transit_days} days</p>
+                        <p style="margin:2px 0;"><strong>Average Transit:</strong> ${avgTransit} days</p>
                     </div>
                 `);
 
                 polyline.on("click", () => {
-                    if (window.RoutePanel) window.RoutePanel.show(flow);
+                    const normalizedFlow = {
+                        origin: originId,
+                        destination: destId,
+                        shipment_count: flow.shipment_count,
+                        avg_cost: flow.avg_cost,
+                        avg_transit_days: avgTransit
+                    };
+                    if (window.RoutePanel) window.RoutePanel.show(normalizedFlow);
                 });
             });
 

@@ -17,7 +17,11 @@
             }
 
             const listHtml = history.map(h => `
-                <div style="padding:var(--space-3); background:rgba(9, 9, 11, 0.4); border:1px solid rgba(63, 63, 70, 0.3); border-radius:var(--radius-md); display:flex; flex-direction:column; gap:4px; margin-bottom:var(--space-2);">
+                <div onclick="window.downloadArchiveReport && window.downloadArchiveReport('${h.id}')" 
+                     style="padding:var(--space-3); background:rgba(9, 9, 11, 0.4); border:1px solid rgba(63, 63, 70, 0.3); border-radius:var(--radius-md); display:flex; flex-direction:column; gap:4px; margin-bottom:var(--space-2); cursor:pointer; transition: background 0.2s;"
+                     onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'"
+                     onmouseout="this.style.background='rgba(9, 9, 11, 0.4)'"
+                     title="Click to download report archive">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:10px; font-weight:700; color:#3b82f6;">${h.type}</span>
                         <code style="font-size:9px; color:var(--text-muted);">${h.id}</code>
@@ -27,7 +31,7 @@
                     </div>
                     <div style="font-size:9px; color:var(--text-secondary); margin-top:2px; display:flex; justify-content:space-between; align-items:center;">
                         <span>Focus: ${h.template}</span>
-                        <span style="color:#10b981;"><i class="fa-solid fa-download"></i> ${h.downloads} dl</span>
+                        <span style="color:#10b981; font-weight:600;"><i class="fa-solid fa-download"></i> ${h.downloads} dl</span>
                     </div>
                 </div>
             `).join("");

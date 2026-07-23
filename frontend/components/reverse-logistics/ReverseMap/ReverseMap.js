@@ -16,11 +16,21 @@
     };
 
     const HUB_COORDS = {
-        "HUB-A": [30.2672, -97.7431],  // Austin, TX
-        "HUB-B": [29.7604, -95.3698],  // Houston, TX
-        "HUB-C": [32.7767, -96.7970],  // Dallas, TX
-        "HUB-D": [29.4241, -98.4936],  // San Antonio, TX
-        "HUB-E": [35.2271, -101.8313]  // Amarillo, TX
+        "HUB-BLR": [12.9716, 77.5946],
+        "HUB-DEL": [28.6139, 77.2090],
+        "HUB-MUM": [19.0760, 72.8777],
+        "HUB-CHE": [13.0827, 80.2707],
+        "HUB-HYD": [17.3850, 78.4867],
+        "HUB-KOL": [22.5726, 88.3639],
+        "HUB-PUN": [18.5204, 73.8567],
+        "HUB-AHM": [23.0225, 72.5714],
+        "HUB-JAI": [26.9124, 75.7873],
+        "HUB-LKO": [26.8467, 80.9462],
+        "TPR-BLR-01": [12.9716, 77.5946],
+        "TPR-HYD-01": [17.3850, 78.4867],
+        "TPR-DEL-01": [28.6139, 77.2090],
+        "TPR-CHE-01": [13.0827, 80.2707],
+        "TPR-MUM-01": [19.0760, 72.8777]
     };
 
     const ReverseMap = {
@@ -29,7 +39,7 @@
             if (!el) return;
             if (_map) { _map.remove(); _map = null; }
 
-            _map = L.map(mapId, { zoomControl: true, attributionControl: false }).setView([31.5, -97.5], 6);
+            _map = L.map(mapId, { zoomControl: true, attributionControl: false }).setView([20.5937, 78.9629], 5);
 
             L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
                 subdomains: "abcd", maxZoom: 19
@@ -52,7 +62,7 @@
             legend.addTo(_map);
         },
 
-        render(returns) {
+        render(returns, nodeCoordinates = null) {
             if (!_map) return;
 
             // Clear existing layers
@@ -60,8 +70,13 @@
             _markers.forEach(m => m.remove());
             _polylines = []; _markers = [];
 
+            // Resolve coordinates mapping
+            const coordsLookup = nodeCoordinates || HUB_COORDS;
+
             // Draw hub markers
-            Object.entries(HUB_COORDS).forEach(([hub, coords]) => {
+            Object.entries(coordsLookup).forEach(([hub, coords]) => {
+                if (hub.toUpperCase().startsWith("TPR")) return; // skip repair centers
+
                 const marker = L.circleMarker(coords, {
                     radius: 8, color: "#3b82f6", fillColor: "#1d4ed8",
                     fillOpacity: 0.9, weight: 2
@@ -74,23 +89,26 @@
                 marker.bindTooltip(label);
             });
 
-            // Draw special markers for Refurbishment and Recycling Centers
-            const refurbMarker = L.circleMarker([30.2672, -97.7431], {
-                radius: 12, color: "#10b981", fillColor: "#065f46", fillOpacity: 0.9, weight: 2
-            }).addTo(_map);
-            refurbMarker.bindPopup(`<strong style="color:#10b981;">Austin Refurbishment Center</strong><br><span style="font-size:10px; color:#a1a1aa;">Primary recovery facility</span>`);
-            _markers.push(refurbMarker);
+            // Draw dynamic special markers for Repair/Refurbishment/Recycling Centers
+            Object.entries(coordsLookup).forEach(([nodeId, coords]) => {
+                if (!nodeId.toUpperCase().startsWith("TPR")) return;
 
-            const recycleMarker = L.circleMarker([29.7604, -95.3698], {
-                radius: 12, color: "#06b6d4", fillColor: "#0c4a6e", fillOpacity: 0.9, weight: 2
-            }).addTo(_map);
-            recycleMarker.bindPopup(`<strong style="color:#06b6d4;">Houston Recycling Center</strong><br><span style="font-size:10px; color:#a1a1aa;">Certified green recycling hub</span>`);
-            _markers.push(recycleMarker);
+                const isRecycle = nodeId.endsWith("02") || nodeId.includes("RECYCLE");
+                const color = isRecycle ? "#06b6d4" : "#10b981";
+                const fillColor = isRecycle ? "#0c4a6e" : "#065f46";
+                const centerType = isRecycle ? "Recycling Center" : "Refurbishment Center";
+
+                const marker = L.circleMarker(coords, {
+                    radius: 12, color, fillColor, fillOpacity: 0.9, weight: 2
+                }).addTo(_map);
+                marker.bindPopup(`<strong style="color:${color};">${nodeId}</strong><br><span style="font-size:10px; color:#a1a1aa;">${centerType}</span>`);
+                _markers.push(marker);
+            });
 
             // Draw return flow polylines
             returns.forEach(ret => {
-                const origCoords = HUB_COORDS[ret.origin];
-                const destCoords = HUB_COORDS[ret.destination];
+                const origCoords = coordsLookup[ret.origin];
+                const destCoords = coordsLookup[ret.destination];
                 if (!origCoords || !destCoords) return;
 
                 const color = STATUS_COLORS[ret.status] || "#6b7280";

@@ -30,7 +30,8 @@ class SimulationService:
             df_tx = pd.DataFrame()
 
         # Apply filters to baseline
-        df_baseline = df_tx.copy()
+        from backend.services.bi_service import BIService
+        df_baseline = BIService.apply_filters(df_tx, filters)
 
         # 2. Run Baseline metrics calculation
         baseline_metrics = CostSimulation.run_simulation(df_baseline, {})

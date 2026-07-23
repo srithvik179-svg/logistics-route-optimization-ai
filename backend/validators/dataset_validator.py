@@ -123,20 +123,38 @@ class DatasetValidator:
                                 logger.error(f"Validation Error: Sheet '{required_sheet}', Column '{col}' type mismatch. Expected numeric, got '{actual_type}'.")
                     
                     elif expected_type == "datetime":
-                        if not pd.api.types.is_datetime64_any_dtype(df[col]):
-                            try:
-                                pd.to_datetime(df[col].dropna())
-                                sheet_report.warnings.append(f"Column '{col}' has type '{actual_type}' but can be parsed as datetime.")
-                            except Exception:
-                                is_type_valid = False
-                                sheet_report.errors.append(f"Column '{col}' has invalid data type. Expected datetime, got '{actual_type}'.")
-                                logger.error(f"Validation Error: Sheet '{required_sheet}', Column '{col}' type mismatch. Expected datetime, got '{actual_type}'.")
+                        if pd.api.types.is_datetime64_any_dtype(df[col]):
+                            # Column is already proper datetime — nothing to report
+                            pass
+                        else:
+                            # Column is still object/string — try parsing
+                            non_null = df[col].dropna()
+                            if len(non_null) == 0:
+                                # All null — treated as valid, nothing to validate
+                                pass
+                            else:
+                                converted = pd.to_datetime(non_null, errors="coerce")
+                                failure_rate = converted.isna().sum() / len(non_null)
 
-                    # Record details
+                                if failure_rate > 0.10:
+                                    # More than 10 % of values cannot be parsed — real error
+                                    is_type_valid = False
+                                    sheet_report.errors.append(
+                                        f"Column '{col}' has invalid data type. Expected datetime, got '{actual_type}' "
+                                        f"({failure_rate*100:.1f}% of values are not parseable as dates)."
+                                    )
+                                    logger.error(
+                                        f"Validation Error: Sheet '{required_sheet}', Column '{col}' — "
+                                        f"{failure_rate*100:.1f}% of values are unparseable dates."
+                                    )
+                                # else: all or almost all values parse fine — silently accept it
+
+                    # Record details — read dtype fresh so it reflects the already-coerced column
+                    runtime_type = str(df[col].dtype)
                     sheet_report.invalid_columns.append(ColumnValidationDetail(
                         name=col,
                         expected_type=expected_type,
-                        actual_type=actual_type,
+                        actual_type=runtime_type,
                         is_valid=is_type_valid,
                         missing_count=missing_val_count
                     ))

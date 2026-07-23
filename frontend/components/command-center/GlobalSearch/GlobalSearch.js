@@ -1,91 +1,197 @@
 /**
  * GlobalSearch Component
- * Enterprise search bar querying shipments, hubs, and corridors with deep link navigation.
+ * Enterprise search utility querying shipments, hubs, TPRs, parts, corridors, and partners.
  */
 (function() {
-    const GlobalSearch = {
-        render(containerId) {
-            const el = document.getElementById(containerId);
-            if (!el) return;
+    let debounceTimer = null;
+    let selectedIndex = -1;
 
-            el.innerHTML = `
-                <div style="position:relative; width:100%; max-width:400px;">
-                    <div style="display:flex; align-items:center; background:rgba(9,9,11,0.6); border:1px solid rgba(63,63,70,0.5); border-radius:8px; padding:0 10px;">
-                        <i class="fa-solid fa-magnifying-glass text-muted" style="font-size:12px;"></i>
-                        <input type="text" id="global-search-input" placeholder="Search shipments, hubs, corridors..." 
-                               style="background:transparent; border:none; color:#fff; font-size:11px; padding:8px 6px; width:100%; outline:none;"
-                               oninput="GlobalSearch.handleSearch(this.value)">
-                    </div>
-                    <div id="global-search-results" 
-                         style="position:absolute; top:36px; left:0; width:100%; background:#18181b; border:1px solid rgba(63,63,70,0.5); border-radius:8px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.5); z-index:999; display:none; max-height:280px; overflow-y:auto; padding:6px 0;">
-                    </div>
-                </div>
-            `;
+    const GlobalSearch = {
+        init() {
+            const input = document.getElementById("global-search-input");
+            const clearBtn = document.getElementById("global-search-clear");
+            const resultsBox = document.getElementById("global-search-results");
+
+            if (!input) return;
+
+            // Handle input change with 150ms debouncing
+            input.addEventListener("input", (e) => {
+                const val = e.target.value;
+                if (clearBtn) {
+                    clearBtn.style.display = val.length > 0 ? "flex" : "none";
+                }
+                
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    this.handleSearch(val);
+                }, 150);
+            });
+
+            // Clear button click handler
+            if (clearBtn) {
+                clearBtn.addEventListener("click", () => {
+                    input.value = "";
+                    clearBtn.style.display = "none";
+                    if (resultsBox) resultsBox.style.display = "none";
+                    input.focus();
+                });
+            }
+
+            // Keyboard navigation (Arrow keys, Enter, Escape)
+            input.addEventListener("keydown", (e) => {
+                if (!resultsBox || resultsBox.style.display === "none") return;
+                const items = resultsBox.querySelectorAll(".search-result-item");
+                if (!items || items.length === 0) return;
+
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % items.length;
+                    this.highlightItem(items, selectedIndex);
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                    this.highlightItem(items, selectedIndex);
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && selectedIndex < items.length) {
+                        items[selectedIndex].click();
+                    } else if (items[0]) {
+                        items[0].click();
+                    }
+                } else if (e.key === "Escape") {
+                    resultsBox.style.display = "none";
+                    selectedIndex = -1;
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", (e) => {
+                const container = document.getElementById("global-search-container");
+                if (container && !container.contains(e.target) && resultsBox) {
+                    resultsBox.style.display = "none";
+                    selectedIndex = -1;
+                }
+            });
+        },
+
+        highlightItem(items, index) {
+            items.forEach((item, idx) => {
+                if (idx === index) {
+                    item.classList.add("active");
+                    item.scrollIntoView({ block: "nearest" });
+                } else {
+                    item.classList.remove("active");
+                }
+            });
         },
 
         async handleSearch(val) {
-            const box = document.getElementById("global-search-results");
-            if (!box) return;
+            const resultsBox = document.getElementById("global-search-results");
+            const spinner = document.getElementById("global-search-spinner");
+            const clearBtn = document.getElementById("global-search-clear");
+            
+            if (!resultsBox) return;
+            selectedIndex = -1;
 
             if (!val || val.trim().length < 2) {
-                box.style.display = "none";
+                resultsBox.style.display = "none";
+                if (spinner) spinner.style.display = "none";
+                if (clearBtn && val.length > 0) clearBtn.style.display = "flex";
                 return;
             }
 
+            if (spinner) spinner.style.display = "block";
+            if (clearBtn) clearBtn.style.display = "none";
+
             try {
-                const res = await fetch("/api/command-center/search", {
+                const response = await apiFetch("/api/command-center/search", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query: val })
+                    body: JSON.stringify({ query: val.trim() })
                 });
-                if (!res.ok) throw new Error("Search request failed");
-                const results = await res.json();
 
-                if (!results.length) {
-                    box.innerHTML = `<div style="padding:10px; font-size:10px; color:var(--text-muted); text-align:center;">No records found.</div>`;
+                if (spinner) spinner.style.display = "none";
+                if (clearBtn) clearBtn.style.display = "flex";
+
+                // Unpack payload if unwrapped or standard
+                const results = Array.isArray(response) ? response : (response.payload || []);
+
+                if (!results || results.length === 0) {
+                    resultsBox.innerHTML = `
+                        <div style="padding:14px; font-size:12px; color:var(--text-muted); text-align:center;">
+                            <i class="fa-solid fa-magnifying-glass text-muted" style="margin-bottom:4px; font-size:16px;"></i><br>
+                            No records found for "<strong>${this.escapeHtml(val)}</strong>"
+                        </div>`;
                 } else {
-                    box.innerHTML = results.map(r => `
-                        <div style="padding:8px 12px; border-bottom:1px solid rgba(63,63,70,0.2); cursor:pointer;"
-                             onmouseover="this.style.background='rgba(59,130,246,0.1)'"
-                             onmouseout="this.style.background='transparent'"
-                             onclick="GlobalSearch.navigate('${r.target_section}', '${r.id}')">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                                <strong style="font-size:10px; color:#fff;">${r.title}</strong>
-                                <span class="badge badge-info" style="font-size:8px; padding:1px 4px;">${r.category}</span>
+                    resultsBox.innerHTML = results.map((r, i) => {
+                        const badgeStyle = this.getBadgeStyle(r.category);
+                        return `
+                            <div class="search-result-item ${i === 0 ? 'active' : ''}" 
+                                 onclick="GlobalSearch.navigate('${r.target_section}', '${r.id}')">
+                                <div class="search-result-header">
+                                    <span class="search-result-title">${this.escapeHtml(r.title)}</span>
+                                    <span style="${badgeStyle}">${this.escapeHtml(r.category)}</span>
+                                </div>
+                                <div class="search-result-subtitle">${this.escapeHtml(r.subtitle)}</div>
                             </div>
-                            <div style="font-size:9px; color:var(--text-muted);">${r.subtitle}</div>
-                        </div>
-                    `).join("");
+                        `;
+                    }).join("");
+                    if (results.length > 0) selectedIndex = 0;
                 }
-                box.style.display = "block";
+                resultsBox.style.display = "block";
 
             } catch (err) {
                 console.error("[GlobalSearch] Search Error:", err);
+                if (spinner) spinner.style.display = "none";
+                if (clearBtn) clearBtn.style.display = "flex";
             }
         },
 
+        getBadgeStyle(category) {
+            const cat = String(category || "").toLowerCase();
+            if (cat.includes("shipment")) {
+                return "background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600;";
+            } else if (cat.includes("hub")) {
+                return "background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600;";
+            } else if (cat.includes("tpr") || cat.includes("repair")) {
+                return "background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600;";
+            } else if (cat.includes("part")) {
+                return "background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600;";
+            } else if (cat.includes("corridor")) {
+                return "background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600;";
+            } else {
+                return "background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600;";
+            }
+        },
+
+        escapeHtml(str) {
+            return String(str || "").replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            }[m]));
+        },
+
         navigate(sectionId, id) {
-            const box = document.getElementById("global-search-results");
-            if (box) box.style.display = "none";
+            const resultsBox = document.getElementById("global-search-results");
+            if (resultsBox) resultsBox.style.display = "none";
 
             const input = document.getElementById("global-search-input");
+            const clearBtn = document.getElementById("global-search-clear");
             if (input) input.value = "";
+            if (clearBtn) clearBtn.style.display = "none";
 
             const link = document.querySelector(`.nav-link[data-target="${sectionId}"]`);
             if (link) {
                 link.click();
-                setTimeout(() => {
-                    // Small notification toast helper
-                    const toast = document.createElement("div");
-                    toast.style.cssText = `position:fixed; bottom:20px; right:20px; background:rgba(59,130,246,0.9); color:#fff;
-                                           padding:10px 16px; border-radius:8px; font-size:12px; z-index:9999;`;
-                    toast.textContent = `Deep link navigates: loaded ${id} inside ${sectionId}`;
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 3500);
-                }, 500);
             }
         }
     };
 
     window.GlobalSearch = GlobalSearch;
+    
+    // Auto-initialize when DOM is ready
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => GlobalSearch.init());
+    } else {
+        GlobalSearch.init();
+    }
 })();

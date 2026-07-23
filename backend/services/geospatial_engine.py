@@ -187,18 +187,43 @@ class GeospatialEngine:
         coords = {}
 
         # Resolve Hubs
-        hubs = list(hub_df["Hub_ID"].unique()) if len(hub_df) > 0 else ["HUB-A", "HUB-B", "HUB-C", "HUB-D", "HUB-E"]
-        for h in hubs:
-            fb = GeospatialService.COORDINATES_FALLBACK.get(h, {})
-            lat = fb.get("lat") or float(hub_df[hub_df["Hub_ID"] == h]["Latitude"].mean()) if len(hub_df) > 0 else 30.0
-            lon = fb.get("lon") or float(hub_df[hub_df["Hub_ID"] == h]["Longitude"].mean()) if len(hub_df) > 0 else -100.0
-            coords[h] = (lat, lon)
+        if len(hub_df) > 0 and "Hub_ID" in hub_df.columns:
+            for idx, row in hub_df.iterrows():
+                hub_id = str(row["Hub_ID"])
+                lat = row.get("Latitude")
+                lon = row.get("Longitude")
+                if pd.isna(lat) or pd.isna(lon):
+                    fb = GeospatialService.COORDINATES_FALLBACK.get(hub_id, {"lat": 30.0, "lon": -100.0})
+                    lat = fb["lat"]
+                    lon = fb["lon"]
+                coords[hub_id] = (float(lat), float(lon))
+        else:
+            hubs = ["HUB-A", "HUB-B", "HUB-C", "HUB-D", "HUB-E"]
+            for h in hubs:
+                fb = GeospatialService.COORDINATES_FALLBACK.get(h, {"lat": 30.0, "lon": -100.0})
+                coords[h] = (fb["lat"], fb["lon"])
 
         # Resolve TPRs
-        rcs = list(tpr_df["TPR_ID"].unique()) if len(tpr_df) > 0 else ["TPR-001", "TPR-002", "TPR-003"]
-        for rc in rcs:
-            fb = GeospatialService.COORDINATES_FALLBACK.get(rc, {})
-            coords[rc] = (fb.get("lat", 31.0), fb.get("lon", -99.0))
+        if len(tpr_df) > 0 and "TPR_ID" in tpr_df.columns:
+            for idx, row in tpr_df.iterrows():
+                rc_id = str(row["TPR_ID"])
+                lat = row.get("Latitude")
+                lon = row.get("Longitude")
+                if pd.isna(lat) or pd.isna(lon):
+                    fb = GeospatialService.COORDINATES_FALLBACK.get(rc_id, {"lat": 31.0, "lon": -99.0})
+                    lat = fb["lat"]
+                    lon = fb["lon"]
+                coords[rc_id] = (float(lat), float(lon))
+        else:
+            rcs = ["TPR-001", "TPR-002", "TPR-003"]
+            for rc in rcs:
+                fb = GeospatialService.COORDINATES_FALLBACK.get(rc, {"lat": 31.0, "lon": -99.0})
+                coords[rc] = (fb["lat"], fb["lon"])
+
+        # Add all COORDINATES_FALLBACK entries for other nodes not in masters (e.g. customer destination cities)
+        for k, v in GeospatialService.COORDINATES_FALLBACK.items():
+            if k not in coords:
+                coords[k] = (v["lat"], v["lon"])
 
         return coords
 

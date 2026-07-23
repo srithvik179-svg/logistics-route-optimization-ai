@@ -72,26 +72,52 @@ class RouteScoringEngine:
         # Query ratings and compliance statistics
         ratings_map, compliance_map = cls._query_partner_attributes()
 
+        # Build real route-level stats from Logistics_Transactions
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        route_stats: Dict[str, Dict[str, float]] = {}
+        if df_tx is not None and len(df_tx) > 0:
+            dest_col = "Destination_Location" if "Destination_Location" in df_tx.columns else ("Destination_Hub" if "Destination_Hub" in df_tx.columns else "Destination_Location")
+            if "Origin_Hub" in df_tx.columns and dest_col in df_tx.columns:
+                df_tx_work = df_tx.copy()
+                df_tx_work["Route_Key"] = df_tx_work["Origin_Hub"].astype(str) + " → " + df_tx_work[dest_col].astype(str)
+                cost_col = "Logistics_Cost_Total_USD" if "Logistics_Cost_Total_USD" in df_tx_work.columns else ("Total_Cost_USD" if "Total_Cost_USD" in df_tx_work.columns else "Shipment_Cost")
+                
+                for r_key, grp in df_tx_work.groupby("Route_Key"):
+                    tot = len(grp)
+                    met = len(grp[grp["SLA_Breach"].astype(str).str.upper() == "NO"]) if "SLA_Breach" in grp.columns else tot
+                    sla_pct = (met / tot * 100.0) if tot > 0 else 95.0
+                    avg_c = float(grp[cost_col].mean()) if cost_col in grp.columns else 500.0
+                    tot_c = float(grp[cost_col].sum()) if cost_col in grp.columns else avg_c * tot
+                    route_stats[r_key] = {
+                        "sla_compliance": round(sla_pct, 1),
+                        "avg_cost": round(avg_c, 2),
+                        "total_cost": round(tot_c, 2)
+                    }
+
         # Compute route scores
         scores: List[RouteScoreResult] = []
         for edge in edges:
             src, dest = edge.source, edge.destination
             partner = edge.logistics_partner
             
-            # Map rating and compliance (default if missing)
             rating = ratings_map.get(partner, 4.0)
-            compliance = compliance_map.get(partner, 95.0)
+            route_key = f"{src} → {dest}"
+            r_stat = route_stats.get(route_key, {})
+            real_sla = r_stat.get("sla_compliance", compliance_map.get(partner, 95.0))
+            real_cost = r_stat.get("avg_cost", edge.cost)
+            real_tot_cost = r_stat.get("total_cost", edge.cost * 10.0)
 
             res = RouteScoreCalculator.calculate_scores(
                 src=src,
                 dest=dest,
                 distance=edge.distance,
-                cost=edge.cost,
+                cost=real_cost,
                 transit_time=edge.transit_time,
                 volume=edge.volume,
                 capacity=edge.capacity,
                 partner_rating=rating,
-                sla_compliance=compliance
+                sla_compliance=real_sla,
+                total_cost=real_tot_cost
             )
             scores.append(res)
 

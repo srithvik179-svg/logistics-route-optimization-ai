@@ -53,6 +53,8 @@
                     console.log(`[Command Center] Workspace updated: ${name}`);
                 });
             });
+        } else {
+            console.log("[Command Center] Environment initialized: Production Grid");
         }
     }
 
@@ -158,13 +160,13 @@
         // Handle trigger click
         [createBtn, actionBtn].forEach(btn => {
             if (btn) {
-                btn.addEventListener("click", () => {
-                    const origin = prompt("Enter Origin Hub ID (e.g. Austin Hub):", "Austin Hub");
-                    if (!origin) return;
-                    const dest = prompt("Enter Destination Hub ID (e.g. Dallas Hub):", "Dallas Hub");
-                    if (!dest) return;
-                    
-                    alert(`Quick dispatch request successfully submitted: ${origin} -> ${dest}. Check routes section for optimization analysis.`);
+                btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    if (typeof window.openDispatchModal === "function") {
+                        window.openDispatchModal();
+                    } else {
+                        console.warn("[DispatchModal] openDispatchModal function not available");
+                    }
                 });
             }
         });

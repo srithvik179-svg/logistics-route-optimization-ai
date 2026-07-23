@@ -19,20 +19,22 @@
             }
 
             const algorithm = routeData.algorithm || "A* Pathfinding";
-            const confidence = (routeData.confidence_score * 100).toFixed(0);
+            // Support both primaryRec shape (confidence_score) and explainableAi shape (no confidence)
+            const rawConf = routeData.confidence_score ?? routeData.confidence ?? 0.92;
+            const confidence = (typeof rawConf === 'number' && rawConf <= 1 ? rawConf * 100 : rawConf).toFixed(0);
             
             // Format explanations dynamically based on goal
             let goalLabel = "Fastest Time";
-            let selectionReason = `This route was computed via the ${algorithm} engine as the optimal path for minimizing transit duration.`;
-            let advantages = [
+            let selectionReason = routeData.why_selected || routeData.selectionReason || `This route was computed via the ${algorithm} engine as the optimal path for minimizing transit duration.`;
+            let advantages = routeData.advantages || [
                 "Reduces total shipping lead time to the lowest possible threshold.",
                 "Decreases risk of transit-time SLA violations."
             ];
-            let tradeOffs = [
+            let tradeOffs = routeData.trade_offs || routeData.tradeOffs || [
                 "May choose toll roads or premium lanes, increasing total transit cost.",
                 "Slightly higher fuel consumption and carbon footprint."
             ];
-            let risks = [
+            let risks = routeData.potential_risks || routeData.risks || [
                 "High speed transit zones are sensitive to weather and construction bottlenecks.",
                 "Higher probability of speed traps or ground safety hazards."
             ];

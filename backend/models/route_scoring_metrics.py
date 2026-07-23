@@ -20,6 +20,9 @@ class RouteScoreResult(BaseModel):
     operational_risk_score: float = Field(description="Risk rating combining delays and capacity overflow (0 to 100)")
     performance_index: float = Field(description="Operational speed and quality index (0 to 100)")
     composite_logistics_score: float = Field(description="Overall scoring index used by path optimization algorithms (0 to 100)")
+    avg_cost: float = Field(default=0.0, description="Average cost per shipment in USD")
+    total_cost: float = Field(default=0.0, description="Total cost of shipments in USD")
+    sla_compliance: float = Field(default=0.0, description="Actual historical SLA compliance percentage (0 to 100)")
 
 
 class RouteRankingsSet(BaseModel):

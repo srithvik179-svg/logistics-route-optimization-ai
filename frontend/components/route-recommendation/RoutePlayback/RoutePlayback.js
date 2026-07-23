@@ -73,10 +73,9 @@
             const primaryLatlngs = (selected.path_nodes || []).map(nodeId => getCoords(nodeId)).filter(coord => coord !== null);
             if (primaryLatlngs.length >= 2) {
                 const primaryPoly = L.polyline(primaryLatlngs, {
-                    color: "var(--brand-blue)",
+                    color: "#3b82f6",
                     weight: 6,
-                    shadowColor: "var(--brand-blue-glow)",
-                    shadowBlur: 10
+                    opacity: 0.95
                 }).addTo(this.map);
                 
                 primaryPoly.bindTooltip(`Selected Recommended Route (${selected.algorithm})`, { sticky: true });
@@ -98,7 +97,7 @@
                 const isEnd = idx === 0 || idx === selected.path_nodes.length - 1;
                 const marker = L.circleMarker(coord, {
                     radius: isEnd ? 8 : 5,
-                    color: isEnd ? "var(--primary-color)" : "var(--brand-blue)",
+                    color: isEnd ? "#10b981" : "#3b82f6",
                     fillColor: "#09090b",
                     fillOpacity: 1,
                     weight: 2

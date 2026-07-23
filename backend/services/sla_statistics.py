@@ -102,7 +102,7 @@ class SLAStatistics:
 
         # Parts Category merge
         if len(parts_df) > 0 and "Part_Number" in df_work.columns and "Category" in parts_df.columns:
-            df_work = df_work.merge(parts_df[["Part_Number", "Category"]], on="Part_Number", how="left")
+            df_work = df_work.merge(parts_df[["Part_Number", "Category"]], on="Part_Number", how="left", suffixes=("", "_parts_master"))
         else:
             df_work["Category"] = "Unknown"
 

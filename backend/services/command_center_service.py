@@ -97,51 +97,129 @@ class CommandCenterService:
         }
 
     @classmethod
+    @classmethod
     def global_search(cls, query: str) -> List[Dict[str, Any]]:
-        """Searches across all shipments, hubs, and corridors based on query string."""
-        if not query:
+        """Searches across all shipments, hubs, TPRs, parts, corridors, and partners based on query string."""
+        if not query or not query.strip():
             return []
-        q = query.lower()
+        q = query.strip().lower()
 
-        filters = {}
-        agg = ResultAggregator.aggregate_data(filters)
-        shipments = agg["sla_prediction"].get("shipments", [])
-        corridors = agg["corridors"].get("corridors", [])
-        hubs = agg["sla_prediction"].get("hubs", [])
+        from backend.services.repository import repository
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        tpr_sheet_name = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet_name)
+        df_parts = repository._processed_sheets.get("Parts_Master")
 
         results = []
+        seen_ids = set()
 
-        # Search shipments
-        for s in shipments:
-            if q in s["transaction_id"].lower() or q in s["origin"].lower() or q in s["destination"].lower():
-                results.append({
-                    "category": "Shipment",
-                    "id": s["transaction_id"],
-                    "title": f"Shipment {s['transaction_id']} ({s['origin']} → {s['destination']})",
-                    "subtitle": f"Risk Score: {s['risk_score']} | Level: {s['risk_level']}",
-                    "target_section": "sla-section"
-                })
+        # 1. Search Hubs
+        if df_hub is not None and not df_hub.empty:
+            for idx, h in df_hub.iterrows():
+                hub_id = str(h.get("Hub_ID", ""))
+                hub_name = str(h.get("Hub_Name", ""))
+                region = str(h.get("Region", ""))
+                country = str(h.get("Country", ""))
+                if q in hub_id.lower() or q in hub_name.lower() or q in region.lower() or q in country.lower():
+                    if hub_id not in seen_ids:
+                        seen_ids.add(hub_id)
+                        results.append({
+                            "category": "Hub",
+                            "id": hub_id,
+                            "title": f"Hub {hub_id} — {hub_name}",
+                            "subtitle": f"Region: {region} | Country: {country}",
+                            "target_section": "network-map-section"
+                        })
 
-        # Search hubs
-        for h in hubs:
-            if q in h["hub"].lower():
-                results.append({
-                    "category": "Hub",
-                    "id": h["hub"],
-                    "title": f"Hub {h['hub']} Congestion Matrix",
-                    "subtitle": f"Queue Length: {h['queue_length']} | Utilization: {h['capacity_utilization']}%",
-                    "target_section": "sla-section"
-                })
+        # 2. Search TPRs / Repair Centers
+        if df_tpr is not None and not df_tpr.empty:
+            for idx, t in df_tpr.iterrows():
+                tpr_id = str(t.get("TPR_ID", ""))
+                tpr_name = str(t.get("TPR_Name", ""))
+                loc = str(t.get("Location", ""))
+                if q in tpr_id.lower() or q in tpr_name.lower() or q in loc.lower():
+                    if tpr_id not in seen_ids:
+                        seen_ids.add(tpr_id)
+                        results.append({
+                            "category": "TPR / Repair Center",
+                            "id": tpr_id,
+                            "title": f"{tpr_id} — {tpr_name}",
+                            "subtitle": f"Location: {loc}",
+                            "target_section": "corridor-section"
+                        })
 
-        # Search corridors
+        # 3. Search Parts
+        if df_parts is not None and not df_parts.empty:
+            for idx, p in df_parts.iterrows():
+                part_no = str(p.get("Part_Number", ""))
+                part_name = str(p.get("Part_Name", ""))
+                cat = str(p.get("Category", ""))
+                if q in part_no.lower() or q in part_name.lower() or q in cat.lower():
+                    if part_no not in seen_ids:
+                        seen_ids.add(part_no)
+                        results.append({
+                            "category": "Part Number",
+                            "id": part_no,
+                            "title": f"Part {part_no} — {part_name}",
+                            "subtitle": f"Category: {cat} | Unit Cost: ${p.get('Cost_usd', 0):.2f}",
+                            "target_section": "explorer-section"
+                        })
+
+        # 4. Search Shipments
+        if df_tx is not None and not df_tx.empty:
+            for idx, s in df_tx.iterrows():
+                txn_id = str(s.get("Transaction_ID", ""))
+                orig = str(s.get("Origin_Hub", ""))
+                dest = str(s.get("Destination_Hub", ""))
+                part_no = str(s.get("Part_Number", ""))
+                partner = str(s.get("Logistics_Partner", ""))
+                sla = str(s.get("SLA_Breach", "NO"))
+                
+                if (q in txn_id.lower() or q in orig.lower() or q in dest.lower() or 
+                    q in part_no.lower() or q in partner.lower()):
+                    if txn_id not in seen_ids:
+                        seen_ids.add(txn_id)
+                        sla_text = "SLA Breached" if sla.upper() == "YES" else "SLA Compliant"
+                        results.append({
+                            "category": "Shipment",
+                            "id": txn_id,
+                            "title": f"Shipment {txn_id} ({orig} → {dest})",
+                            "subtitle": f"Part: {part_no} | Partner: {partner} | Status: {sla_text}",
+                            "target_section": "sla-section"
+                        })
+
+        # 5. Search Corridors
+        agg = ResultAggregator.aggregate_data({})
+        corridors = agg["corridors"].get("corridors", [])
         for c in corridors:
-            if q in c["corridor"].lower():
-                results.append({
-                    "category": "Corridor",
-                    "id": c["corridor"],
-                    "title": f"Corridor {c['corridor']}",
-                    "subtitle": f"SLA Miss Rate: {c['miss_rate']}% | Trend: {c['risk_trend']}",
-                    "target_section": "corridor-section"
-                })
+            orig = c.get("origin", "")
+            dest = c.get("destination", "")
+            corridor_key = f"{orig} → {dest}"
+            if q in orig.lower() or q in dest.lower() or q in corridor_key.lower():
+                if corridor_key not in seen_ids:
+                    seen_ids.add(corridor_key)
+                    results.append({
+                        "category": "Corridor",
+                        "id": corridor_key,
+                        "title": f"Corridor {corridor_key}",
+                        "subtitle": f"Shipments: {c.get('shipment_count', 0)} | Delay Rate: {c.get('delay_rate', 0.0)}% | Avg Cost: ${c.get('avg_cost', 0):.2f}",
+                        "target_section": "corridor-section"
+                    })
 
-        return results[:10]  # Cap results at 10 items
+        # 6. Search Logistics Partners
+        if df_tx is not None and not df_tx.empty and "Logistics_Partner" in df_tx.columns:
+            for partner in df_tx["Logistics_Partner"].dropna().unique():
+                partner_str = str(partner)
+                if q in partner_str.lower():
+                    if partner_str not in seen_ids:
+                        seen_ids.add(partner_str)
+                        results.append({
+                            "category": "Logistics Partner",
+                            "id": partner_str,
+                            "title": f"Partner: {partner_str}",
+                            "subtitle": f"Logistics Carrier Partner",
+                            "target_section": "performance-section"
+                        })
+
+        return results[:12]  # Cap results at top 12 items

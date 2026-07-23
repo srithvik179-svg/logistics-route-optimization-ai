@@ -1,0 +1,42 @@
+name: RoutePilot AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest httpx
+
+    - name: Run Production Verification Suite
+      run: |
+        python scratch/verify_phase59_production_suite.py
+        python scratch/verify_phase58_executive_reporting.py
+
+    - name: Build Docker Image
+      run: |
+        docker build -t routepilot-ai:latest .
+
+    - name: Validate Container Health
+      run: |
+        docker run -d --name test-app -p 8000:8000 routepilot-ai:latest
+        sleep 5
+        curl -f http://localhost:8000/api/v1/monitoring/health-status || exit 1
+        docker stop test-app

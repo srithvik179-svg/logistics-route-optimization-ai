@@ -1736,25 +1736,32 @@ body {
     }
 
     .exec-tab-pane {
+        display: none !important;
+    }
+
+    .exec-tab-pane.active {
         display: block !important;
-        page-break-after: always;
     }
 
     .exec-kpi-command,
     .exec-scorecard-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 
     .card {
         break-inside: avoid;
-        border: 1px solid #ccc !important;
-        background: white !important;
-        color: black !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
     }
 
     body {
-        background: white !important;
-        color: black !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    h1, h2, h3, h4, h5, h6, th, td, strong, span, p {
+        color: #0f172a !important;
     }
 }
 
@@ -2563,3 +2570,96 @@ kbd {
 .badge.success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
 .badge.danger  { background: rgba(239,68,68,0.15);  color: #fca5a5; }
 .badge.warning { background: rgba(245,158,11,0.15); color: #fde68a; }
+
+/* ==========================================================================
+   Phase 61 – Enterprise UI/UX Refinement, Accessibility & Skeleton Loaders
+   ========================================================================== */
+
+/* WCAG High-Visibility Keyboard Focus Indicator */
+:focus-visible {
+    outline: 2px solid var(--accent-blue) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Skeleton Loading Shimmer Animation */
+@keyframes skeleton-shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton-box {
+    display: inline-block;
+    height: 1rem;
+    width: 100%;
+    background: #27272a;
+    background-image: linear-gradient(
+        90deg,
+        #27272a 0px,
+        #3f3f46 40px,
+        #27272a 80px
+    );
+    background-size: 600px 100%;
+    animation: skeleton-shimmer 1.4s infinite ease-out;
+    border-radius: 4px;
+}
+
+.skeleton-card {
+    height: 120px;
+    border-radius: 8px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+/* Enterprise Empty State Cards */
+.empty-state-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    text-align: center;
+    background: rgba(24, 24, 27, 0.6);
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    color: var(--text-muted);
+}
+.empty-state-card i {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+}
+.empty-state-card h4 {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.empty-state-card p {
+    font-size: 12px;
+    max-width: 320px;
+}
+
+/* Enhanced Enterprise Data Tables */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.table-sticky th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #18181b;
+    box-shadow: 0 1px 0 var(--border-color);
+}
+.table tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+/* High Contrast & Smooth Micro-Interactions */
+button:hover, .btn:hover {
+    transform: translateY(-1px);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+

@@ -224,7 +224,7 @@ class CostEngine:
         df_parts = repository._processed_sheets.get("Parts_Master", pd.DataFrame())
         avg_category = 0.0
         if len(df_parts) > 0 and "Part_Number" in df.columns and "Category" in df_parts.columns:
-            merged = df.merge(df_parts[["Part_Number", "Category"]], on="Part_Number", how="left")
+            merged = df.merge(df_parts[["Part_Number", "Category"]], on="Part_Number", how="left", suffixes=("", "_parts_master"))
             cat_avg = merged.groupby("Category")["Shipment_Cost"].mean()
             avg_category = float(cat_avg.mean()) if len(cat_avg) > 0 else 0.0
 
@@ -273,7 +273,7 @@ class CostEngine:
         # 7. By Part Category
         df_parts = repository._processed_sheets.get("Parts_Master", pd.DataFrame())
         if len(df_parts) > 0 and "Part_Number" in df.columns and "Category" in df_parts.columns:
-            merged = df.merge(df_parts[["Part_Number", "Category"]], on="Part_Number", how="left")
+            merged = df.merge(df_parts[["Part_Number", "Category"]], on="Part_Number", how="left", suffixes=("", "_parts_master"))
             breakdowns.by_category = cls._breakdown_by_column(merged, "Category")
 
         # 8. By Shipment Status (SLA_Status)

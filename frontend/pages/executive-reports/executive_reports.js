@@ -22,10 +22,13 @@
             await compileReport("Executive Summary", "Executive Leadership");
 
             // Fetch report log history
-            const histRes = await fetch("/api/reports/history");
-            if (histRes.ok) {
-                const history = await histRes.json();
-                window.ReportHistory.render("reports-history-container", history);
+            try {
+                const history = await apiFetch("/api/reports/history");
+                if (history) window.ReportHistory.render("reports-history-container", history);
+            } catch (histErr) {
+                console.warn("[ExecutiveReports] History unavailable:", histErr);
+                const histEl = document.getElementById("reports-history-container");
+                if (histEl) histEl.innerHTML = `<div style="padding:1rem;color:var(--text-muted);font-size:11px;text-align:center;">No report history available yet.</div>`;
             }
 
         } catch (err) {
@@ -37,17 +40,31 @@
         console.log(`[ExecutiveReports] Compiling report: ${reportType} (${template})...`);
 
         try {
-            const res = await fetch("/api/reports/generate", {
+            const currentFilters = window.GlobalFilters || {};
+
+            const result = await apiFetch("/api/reports/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ report_type: reportType, template: template, generated_by: "analyst" })
+                body: JSON.stringify({
+                    report_type: reportType,
+                    template: template,
+                    generated_by: "analyst",
+                    filters: currentFilters
+                })
             });
-            if (!res.ok) throw new Error("Report compile API failed");
-            _activeReport = await res.json();
+            _activeReport = result;
 
             // Render components
             window.ExecutiveSummary.render("reports-summary-container", _activeReport.summary);
             window.InsightCards.render("reports-insights-container", _activeReport.insights);
+
+            // Refresh history view so new log entry appears immediately
+            try {
+                const history = await apiFetch("/api/reports/history");
+                if (history) window.ReportHistory.render("reports-history-container", history);
+            } catch (hErr) {
+                console.warn("[ExecutiveReports] History refresh error:", hErr);
+            }
 
         } catch (err) {
             console.error("[ExecutiveReports] Compile Error:", err);
@@ -55,6 +72,22 @@
             if (el) el.innerHTML = `<div class="card glass-panel" style="padding:var(--space-6); text-align:center; color:var(--danger-color);">
                 <i class="fa-solid fa-triangle-exclamation"></i> Failed to generate report.
             </div>`;
+        }
+    }
+
+    async function downloadArchiveReport(id) {
+        try {
+            await apiFetch("/api/reports/increment-download", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id })
+            });
+            const history = await apiFetch("/api/reports/history");
+            if (history) window.ReportHistory.render("reports-history-container", history);
+            exportReportCSV();
+        } catch (err) {
+            console.warn("Archive download count increment error:", err);
+            exportReportCSV();
         }
     }
 
@@ -144,4 +177,5 @@
     window.enterPresentationMode = enterPresentationMode;
     window.exportReportCSV = exportReportCSV;
     window.exportReportPDF = exportReportPDF;
+    window.downloadArchiveReport = downloadArchiveReport;
 })();

@@ -15,12 +15,12 @@ class ResultAggregator:
     def aggregate_data(cls, filters: Dict[str, Any]) -> Dict[str, Any]:
         # Collect outputs safely from existing engines
         try:
-            corridor_payload = CorridorService.get_corridors_payload(filters)
+            corridor_payload = CorridorService.get_corridor_intelligence(filters)
         except Exception:
             corridor_payload = {"corridors": [], "summary": {}}
 
         try:
-            simulation_payload = SimulationService.simulate_scenario({})
+            simulation_payload = SimulationService.get_simulation_payload(filters, {})
         except Exception:
             simulation_payload = {"summary": {}, "recommendations": []}
 

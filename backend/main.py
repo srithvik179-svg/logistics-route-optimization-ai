@@ -2,7 +2,7 @@ import os
 import uvicorn
 import pandas as pd
 import numpy as np
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -36,12 +36,26 @@ from backend.services.ant_colony_engine import AntColonyEngine
 from backend.services.rl_preparation_engine import RLPreparationEngine
 from backend.services.ai_preparation_engine import AIPreparationEngine
 from backend.services.corridor_service import CorridorService
+from backend.services.route_decision_engine import RouteDecisionEngine
+from backend.services.intelligent_routing_engine import IntelligentRoutingEngine
+from backend.services.cost_optimization_engine import CostOptimizationEngine
 from backend.services.simulation_service import SimulationService
 from backend.services.reverse_logistics_service import ReverseLogisticsService
+from backend.services.reverse_logistics_engine import ReverseLogisticsEngine
 from backend.services.sla_prediction_service import SLAPredictionService
+from backend.services.sla_prediction_engine import SLAPredictionEngine
 from backend.services.risk_forecasting_service import RiskForecastingService
 from backend.orchestrator.workflow_engine import WorkflowEngine
 from backend.services.report_generator import ReportGenerator
+from backend.services.executive_reporting_engine import ExecutiveReportingEngine
+from backend.services.circular_supply_chain_service import CircularSupplyChainService
+from backend.security.audit_trail_engine import AuditTrailEngine
+from backend.monitoring.health_monitoring_engine import HealthMonitoringEngine
+from backend.monitoring.performance_optimization_engine import PerformanceOptimizationEngine
+from backend.services.notification_backup_manager import NotificationBackupManager
+from backend.services.system_info_service import SystemInfoService
+from backend.ml.ai_model_lifecycle_manager import AIModelLifecycleManager
+from backend.services.enterprise_validation_engine import EnterpriseValidationEngine
 from backend.services.command_center_service import CommandCenterService
 from backend.services.copilot_service import CopilotService
 from backend.services.conversation_manager import conversation_manager
@@ -186,10 +200,27 @@ def get_repository_status():
                 "columns": repository.get_column_count(s)
             })
             
+        # Extract active hubs and regions dynamically from datasets
+        active_hubs = []
+        active_regions = []
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        if df_hub is not None and len(df_hub) > 0:
+            if "Hub_ID" in df_hub.columns:
+                for _, r in df_hub.iterrows():
+                    active_hubs.append({
+                        "id": str(r["Hub_ID"]),
+                        "name": str(r.get("Hub_Name", r["Hub_ID"]))
+                    })
+            region_col = "Region" if "Region" in df_hub.columns else ("Primary_Region" if "Primary_Region" in df_hub.columns else "")
+            if region_col:
+                active_regions = sorted(list(df_hub[region_col].dropna().unique()))
+
         return {
             "state": state,
             "sheets": sheet_stats,
-            "is_initialized": repository.is_initialized()
+            "is_initialized": repository.is_initialized(),
+            "active_hubs": active_hubs,
+            "active_regions": active_regions
         }
     except Exception as e:
         logger.error(f"Error fetching repository status: {str(e)}")
@@ -254,6 +285,9 @@ class GeospatialAnalyticsRequest(BaseModel):
 class ShortestPathAnalyticsRequest(BaseModel):
     filters: Dict[str, Any]
 
+class CircularSupplyChainRequest(BaseModel):
+    filters: Dict[str, Any]
+
 class RouteScoringRequest(BaseModel):
     filters: Dict[str, Any]
 
@@ -304,9 +338,12 @@ class QueryPayload(BaseModel):
 
 @app.get("/api/explorer/datasets")
 def list_explorer_datasets():
-    """Lists available datasets in repository."""
+    """Lists available datasets in repository, excluding raw transactions sheet."""
     try:
-        return repository.list_available_sheets()
+        sheets = repository.list_available_sheets()
+        # Exclude raw transactions sheet as requested
+        filtered_sheets = [s for s in sheets if s not in ["Logistics_Transactions", "Logistics Transactions"]]
+        return filtered_sheets
     except Exception as e:
         logger.error(f"Explorer API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -372,16 +409,33 @@ def get_dataset_columns(dataset_name: str):
         logger.error(f"Explorer API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+def _resolve_sheet_key(dataset_name: str) -> str:
+    """Resolves dataset sheet name handling spaces, underscores, and case mismatches."""
+    if repository.sheet_exists(dataset_name):
+        return dataset_name
+    alt = dataset_name.replace(" ", "_")
+    if repository.sheet_exists(alt):
+        return alt
+    alt2 = dataset_name.replace("_", " ")
+    if repository.sheet_exists(alt2):
+        return alt2
+    norm_name = dataset_name.lower().replace(" ", "_")
+    for sheet_name in (repository._sheets or {}).keys():
+        if sheet_name.lower().replace(" ", "_") == norm_name:
+            return sheet_name
+    return dataset_name
+
 @app.get("/api/explorer/column-profile/{dataset_name}/{column}")
 def get_column_profile(dataset_name: str, column: str):
     """Profiles a single column of a dataset."""
     try:
-        if not repository.sheet_exists(dataset_name):
-            raise HTTPException(status_code=404, detail="Dataset not found")
+        sheet_key = _resolve_sheet_key(dataset_name)
+        if not repository.sheet_exists(sheet_key):
+            raise HTTPException(status_code=404, detail=f"Dataset '{dataset_name}' not found")
             
-        df = repository._processed_sheets.get(dataset_name)
+        df = repository._processed_sheets.get(sheet_key)
         if df is None:
-            df = repository._sheets[dataset_name]
+            df = repository._sheets[sheet_key]
             
         if column not in df.columns:
             raise HTTPException(status_code=404, detail=f"Column '{column}' not found")
@@ -398,12 +452,13 @@ def get_column_profile(dataset_name: str, column: str):
 def query_dataset(dataset_name: str, payload: QueryPayload):
     """Queries, filters, searches, and paginates a dataset, returning JSON-safe rows."""
     try:
-        if not repository.sheet_exists(dataset_name):
-            raise HTTPException(status_code=404, detail="Dataset not found")
+        sheet_key = _resolve_sheet_key(dataset_name)
+        if not repository.sheet_exists(sheet_key):
+            raise HTTPException(status_code=404, detail=f"Dataset '{dataset_name}' not found")
             
-        df = repository._processed_sheets.get(dataset_name)
+        df = repository._processed_sheets.get(sheet_key)
         if df is None:
-            df = repository._sheets[dataset_name]
+            df = repository._sheets[sheet_key]
             
         # Parse filters from model
         filters_list = []
@@ -438,7 +493,7 @@ def query_dataset(dataset_name: str, payload: QueryPayload):
         serialized_df = serialized_df.where(pd.notnull(serialized_df), None)
         records = serialized_df.to_dict(orient="records")
         
-        logger.info(f"Explorer Query: Dataset='{dataset_name}', Page={payload.page}, Filters={len(filters_list)}, Results={len(records)}")
+        logger.info(f"Explorer Query: Dataset='{sheet_key}' (raw '{dataset_name}'), Page={payload.page}, Filters={len(filters_list)}, Results={len(records)}")
         
         return {
             "records": records,
@@ -524,6 +579,7 @@ def get_geospatial_network_payload(payload: Dict[str, Any] = None):
         for h in net_data.get("hubs", []):
             nodes.append({
                 "id": h.get("id"),
+                "name": h.get("name"),
                 "latitude": h.get("lat"),
                 "longitude": h.get("lon"),
                 "city": h.get("city"),
@@ -534,6 +590,7 @@ def get_geospatial_network_payload(payload: Dict[str, Any] = None):
         for rc in net_data.get("repair_centers", []):
             nodes.append({
                 "id": rc.get("id"),
+                "name": rc.get("name"),
                 "latitude": rc.get("lat"),
                 "longitude": rc.get("lon"),
                 "city": rc.get("city"),
@@ -545,10 +602,21 @@ def get_geospatial_network_payload(payload: Dict[str, Any] = None):
         # Build routes list
         routes = []
         for f in net_data.get("flows", []):
+            orig = f.get("origin_id") or f.get("origin")
+            dest = f.get("destination_id") or f.get("destination")
+            corr = f.get("corridor") or (f"{orig} → {dest}" if orig and dest else None)
             routes.append({
-                "origin": f.get("origin"),
-                "destination": f.get("destination"),
-                "corridor": f.get("corridor")
+                "origin": orig,
+                "destination": dest,
+                "corridor": corr,
+                "origin_lat": f.get("origin_lat"),
+                "origin_lon": f.get("origin_lon"),
+                "dest_lat": f.get("dest_lat"),
+                "dest_lon": f.get("dest_lon"),
+                "shipment_count": f.get("shipment_count"),
+                "avg_transit_time": f.get("avg_transit_time"),
+                "avg_cost": f.get("avg_cost"),
+                "flow_type": f.get("flow_type")
             })
             
         return {
@@ -628,6 +696,29 @@ def get_sla_analytics_payload(payload: SLAAnalyticsRequest):
         return data.model_dump()
     except Exception as e:
         logger.error(f"SLA Analytics API Error: Failed retrieving SLA analytics payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/circular-supply-chain/payload")
+def get_circular_supply_chain_payload(payload: CircularSupplyChainRequest):
+    """Returns AI Circular Supply Chain Optimizer payload: lifecycle decisions, redeployments, harvesting, recycling, and carbon metrics."""
+    try:
+        data = CircularSupplyChainService.get_circular_supply_chain_payload(payload.filters)
+        return data
+    except Exception as e:
+        logger.error(f"Circular Supply Chain API Error: Failed retrieving payload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/circular-supply-chain/export-csv")
+def export_circular_supply_chain_csv(payload: CircularSupplyChainRequest):
+    """Generates CSV download for circular supply chain predictive redeployment intelligence."""
+    try:
+        data = CircularSupplyChainService.get_circular_supply_chain_payload(payload.filters)
+        redeployments = data.get("redeployments", [])
+        df = pd.DataFrame(redeployments)
+        csv_content = df.to_csv(index=False)
+        return Response(content=csv_content, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=Circular_Supply_Chain_Redeployments.csv"})
+    except Exception as e:
+        logger.error(f"Circular Supply Chain Export Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/graph-analytics/payload")
@@ -758,21 +849,143 @@ def get_corridor_intelligence_payload(payload: Dict[str, Any] = None):
         logger.error(f"Corridor Intelligence API Error: Failed retrieving corridor data: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/route-decision-engine/evaluate")
+def evaluate_route_decision_engine(payload: Dict[str, Any] = None):
+    """Evaluates all network corridors using the central AI Route Decision Engine."""
+    try:
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        tpr_sheet = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet)
+        
+        data = RouteDecisionEngine.evaluate_all_corridors(df_tx, df_hub, df_tpr)
+        return data
+    except Exception as e:
+        logger.error(f"Route Decision Engine API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/optimization-simulator/run")
+def run_optimization_simulator(payload: Dict[str, Any] = None):
+    """Runs real-time optimization simulation for a specific corridor."""
+    corridor_id = payload.get("corridor_id") if payload else "HUB-A → HUB-B"
+    try:
+        data = RouteDecisionEngine.simulate_corridor_optimization(corridor_id, payload)
+        return data
+    except Exception as e:
+        logger.error(f"Optimization Simulator API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/corridor-drilldown/details")
+def get_corridor_drilldown_details(payload: Dict[str, Any] = None):
+    """Returns interactive enterprise detail payload for a specific corridor."""
+    corridor_id = payload.get("corridor_id") if payload else "HUB-A → HUB-B"
+    try:
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        tpr_sheet = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet)
+        
+        res = RouteDecisionEngine.evaluate_all_corridors(df_tx, df_hub, df_tpr)
+        corridors = res.get("corridors", [])
+        
+        target = None
+        for c in corridors:
+            if c["corridor_id"] == corridor_id or c["corridor"] == corridor_id:
+                target = c
+                break
+        if not target and corridors:
+            target = corridors[0]
+            
+        return {
+            "corridor": target,
+            "decision_summary": res.get("executive_ai_insights", []),
+            "predictions": res.get("predictions", {})
+        }
+    except Exception as e:
+        logger.error(f"Corridor DrillDown API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.api_route("/api/intelligent-routing/recommend", methods=["GET", "POST"])
+@app.api_route("/api/intelligent-routing/recommend/", methods=["GET", "POST"])
+@app.api_route("/api/route-recommendation/recommend", methods=["GET", "POST"])
+def get_intelligent_route_recommendation(payload: Dict[str, Any] = None):
+    """Evaluates a shipment request using the Dell 4-Step Decision Tree and 10-dimension ranking engine."""
+    params = payload if payload else {}
+    try:
+        data = IntelligentRoutingEngine.evaluate_shipment_request(params)
+        return data
+    except Exception as e:
+        logger.error(f"Intelligent Routing API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.api_route("/api/intelligent-routing/simulate", methods=["GET", "POST"])
+@app.api_route("/api/intelligent-routing/simulate/", methods=["GET", "POST"])
+def simulate_intelligent_route_what_if(payload: Dict[str, Any] = None):
+    """Simulates What-If scenario parameter overrides for an intelligent shipment route."""
+    params = payload if payload else {}
+    base_params = params.get("base_params", {})
+    overrides = params.get("overrides", {})
+    try:
+        data = IntelligentRoutingEngine.simulate_what_if_scenario(base_params, overrides)
+        return data
+    except Exception as e:
+        logger.error(f"Intelligent Routing Simulator API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.api_route("/api/intelligent-routing/scenarios", methods=["GET", "POST"])
+@app.api_route("/api/intelligent-routing/scenarios/", methods=["GET", "POST"])
+def get_intelligent_route_scenarios(payload: Dict[str, Any] = None):
+    """Generates a 6-scenario side-by-side comparative analysis across optimization goals."""
+    base_params = payload if payload else {}
+    try:
+        data = IntelligentRoutingEngine.generate_scenario_comparison(base_params)
+        return data
+    except Exception as e:
+        logger.error(f"Intelligent Routing Scenarios API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/cost-optimization/payload")
+def get_cost_optimization_payload(payload: Dict[str, Any] = None):
+    """Returns enterprise cost optimization evaluation, suboptimal route analysis, and 13-dimension savings."""
+    filters = payload.get("filters", {}) if payload else {}
+    try:
+        data = CostOptimizationEngine.evaluate_network_cost_optimization(filters)
+        return data
+    except Exception as e:
+        logger.error(f"Cost Optimization Payload API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/cost-optimization/simulate")
 def run_cost_simulation(payload: Dict[str, Any] = None):
-    """Runs What-If operational simulations and returns baseline comparisons and recommendations."""
+    """Runs 10-lever What-If operational cost simulations and returns baseline comparisons and recommendations."""
     filters = payload.get("filters", {}) if payload else {}
     scenarios = payload.get("scenarios", {}) if payload else {}
     try:
-        data = SimulationService.get_simulation_payload(filters, scenarios)
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        df_hub = repository._processed_sheets.get("Hub_Location_Master")
+        tpr_sheet = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet)
+        
+        data = CostOptimizationEngine.run_what_if_simulation(df_tx, df_hub, df_tpr, scenarios)
         return data
     except Exception as e:
         logger.error(f"Cost Simulation API Error: Failed running simulation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/cost-optimization/export")
+def export_cost_report(payload: Dict[str, Any] = None):
+    """Generates PDF, Excel, or CSV executive cost optimization reports."""
+    format_str = payload.get("format", "pdf") if payload else "pdf"
+    try:
+        data = CostOptimizationEngine.export_cost_optimization_report(format_str)
+        return data
+    except Exception as e:
+        logger.error(f"Cost Optimization Export API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/reverse-logistics/payload")
 def get_reverse_logistics_payload(payload: Dict[str, Any] = None):
-    """Returns comprehensive reverse logistics analytics, returns list, and AI recovery tips."""
+    """Returns comprehensive reverse logistics intelligence payload."""
     filters = payload.get("filters", {}) if payload else {}
     try:
         data = ReverseLogisticsService.get_reverse_logistics(filters)
@@ -781,15 +994,95 @@ def get_reverse_logistics_payload(payload: Dict[str, Any] = None):
         logger.error(f"Reverse Logistics API Error: Failed retrieving returns payload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/reverse-logistics/recommend-tpr")
+def recommend_tpr_for_shipment(payload: Dict[str, Any] = None):
+    """Ranks top 5 candidate repair centers for a reverse shipment."""
+    shipment_data = payload if payload else {}
+    try:
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        tpr_sheet = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
+        df_tpr = repository._processed_sheets.get(tpr_sheet)
+        data = ReverseLogisticsEngine.recommend_best_tpr_for_shipment(shipment_data, df_tpr, df_tx)
+        return data
+    except Exception as e:
+        logger.error(f"Recommend TPR API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/reverse-logistics/consolidation")
+def get_reverse_consolidation_opportunities(payload: Dict[str, Any] = None):
+    """Identifies reverse shipment batching opportunities and freight savings."""
+    try:
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        data = ReverseLogisticsEngine.detect_shipment_consolidation(df_tx)
+        return data
+    except Exception as e:
+        logger.error(f"Reverse Consolidation API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/reverse-logistics/tpr-drilldown")
+def get_tpr_drilldown_data(payload: Dict[str, Any] = None):
+    """Returns detailed capacity, queue, and recommendation payload for a specific TPR."""
+    tpr_id = payload.get("tpr_id", "TPR-BLR-01") if payload else "TPR-BLR-01"
+    try:
+        data = ReverseLogisticsEngine.get_tpr_drilldown_details(tpr_id)
+        return data
+    except Exception as e:
+        logger.error(f"TPR Drilldown API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/reverse-logistics/export")
+def export_reverse_logistics_report(payload: Dict[str, Any] = None):
+    """Generates PDF, Excel, or CSV executive reverse logistics reports."""
+    format_str = payload.get("format", "pdf") if payload else "pdf"
+    try:
+        data = ReverseLogisticsEngine.export_reverse_logistics_report(format_str)
+        return data
+    except Exception as e:
+        logger.error(f"Reverse Logistics Export API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/sla-prediction/payload")
 def get_sla_prediction_payload(payload: Dict[str, Any] = None):
-    """Returns SLA breach predictions, risk scores, alerts, and AI recommendations."""
+    """Returns SLA breach predictions, ML model evaluation metrics, risk scores, and AI recommendations."""
     filters = payload.get("filters", {}) if payload else {}
     try:
         data = SLAPredictionService.get_prediction_payload(filters)
         return data
     except Exception as e:
         logger.error(f"SLA Prediction API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sla-prediction/predict")
+def predict_shipment_sla_breach(payload: Dict[str, Any] = None):
+    """Predicts SLA breach probability and Explainable AI feature attributions for a shipment."""
+    shipment_data = payload if payload else {}
+    try:
+        data = SLAPredictionEngine.predict_shipment_sla_breach(shipment_data)
+        return data
+    except Exception as e:
+        logger.error(f"SLA Predict API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sla-prediction/evaluate-models")
+def evaluate_ml_models(payload: Dict[str, Any] = None):
+    """Returns evaluation metrics across Decision Tree, Random Forest, Logistic Regression, and XGBoost."""
+    try:
+        df_tx = repository._processed_sheets.get("Logistics_Transactions")
+        data = SLAPredictionEngine.preprocess_and_train_models(df_tx)
+        return data
+    except Exception as e:
+        logger.error(f"SLA Model Evaluation API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/sla-prediction/export")
+def export_sla_report(payload: Dict[str, Any] = None):
+    """Generates PDF, Excel, or CSV executive SLA prediction and risk reports."""
+    format_str = payload.get("format", "pdf") if payload else "pdf"
+    try:
+        data = SLAPredictionEngine.export_sla_prediction_report(format_str)
+        return data
+    except Exception as e:
+        logger.error(f"SLA Report Export API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/sla-prediction/forecast")
@@ -800,8 +1093,216 @@ def get_risk_forecast_payload(payload: Dict[str, Any] = None):
         data = RiskForecastingService.get_forecast_payload(filters)
         return data
     except Exception as e:
-        logger.error(f"Risk Forecast API Error: {str(e)}")
+        logger.error(f"SLA Forecast API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/executive-reporting/payload")
+def get_executive_reporting_payload(payload: Dict[str, Any] = None):
+    """Returns unified executive reporting, AI narrative, decision support, and KPI payload."""
+    filters = payload.get("filters", {}) if payload else {}
+    try:
+        data = ExecutiveReportingEngine.evaluate_executive_reporting_platform(filters)
+        return data
+    except Exception as e:
+        logger.error(f"Executive Reporting Payload API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/executive-reporting/decision-support")
+def get_prioritized_decision_support(payload: Dict[str, Any] = None):
+    """Returns prioritized high-ROI operational recommendations with detailed evidence and payback metrics."""
+    try:
+        data = ExecutiveReportingEngine.generate_prioritized_decision_support()
+        return data
+    except Exception as e:
+        logger.error(f"Decision Support API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/executive-reporting/smart-alerts")
+def get_smart_alerts(payload: Dict[str, Any] = None):
+    """Returns smart alerts categorized by Critical, High, Medium, and Low severity."""
+    try:
+        data = ExecutiveReportingEngine.generate_smart_alerts()
+        return data
+    except Exception as e:
+        logger.error(f"Smart Alerts API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/executive-reporting/export")
+def export_executive_report(payload: Dict[str, Any] = None):
+    """Generates PDF, Excel, or CSV executive decision support reports."""
+    format_str = payload.get("format", "pdf") if payload else "pdf"
+    try:
+        data = ExecutiveReportingEngine.export_executive_report(format_str)
+        return data
+    except Exception as e:
+        logger.error(f"Executive Report Export API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/security/audit-trail")
+def search_audit_trail(payload: Dict[str, Any] = None):
+    """Returns searchable audit history logs."""
+    user_id = payload.get("user_id") if payload else None
+    module = payload.get("module") if payload else None
+    action = payload.get("action") if payload else None
+    try:
+        data = AuditTrailEngine.search_audit_trail(user_id=user_id, module=module, action=action)
+        return data
+    except Exception as e:
+        logger.error(f"Audit Trail API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/monitoring/health-status")
+def get_system_health():
+    """Returns real-time system health status across all components."""
+    try:
+        data = HealthMonitoringEngine.get_system_health_status()
+        return data
+    except Exception as e:
+        logger.error(f"Health Status API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/monitoring/diagnostics")
+def get_system_diagnostics():
+    """Returns full system environment diagnostics."""
+    try:
+        data = HealthMonitoringEngine.get_system_diagnostics()
+        return data
+    except Exception as e:
+        logger.error(f"System Diagnostics API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/notifications/center")
+def get_notification_center(payload: Dict[str, Any] = None):
+    """Returns system notification center alerts."""
+    try:
+        data = NotificationBackupManager.get_notification_center()
+        return data
+    except Exception as e:
+        logger.error(f"Notification Center API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/backups/manage")
+def manage_backups(payload: Dict[str, Any] = None):
+    """Creates or lists system backup snapshots."""
+    action = payload.get("action", "list") if payload else "list"
+    try:
+        if action == "create":
+            data = NotificationBackupManager.create_backup_snapshot()
+        else:
+            data = NotificationBackupManager.list_backups()
+        return data
+    except Exception as e:
+        logger.error(f"Backups API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/system/info")
+def get_system_info():
+    """Returns System Release Metadata and System Status."""
+    return SystemInfoService.get_system_info()
+
+@app.get("/api/v1/system/build")
+def get_system_build():
+    """Returns System Build Information."""
+    return SystemInfoService.get_system_info()
+
+@app.get("/api/v1/system/release-notes")
+def get_release_notes():
+    """Returns Release Notes for Version 1.0.0."""
+    return SystemInfoService.get_release_notes()
+
+@app.post("/api/v1/demo/reset")
+def reset_demo_environment():
+    """Resets the demo dataset environment for evaluation judges."""
+    return SystemInfoService.reset_demo_environment()
+
+@app.get("/api/v1/performance/metrics")
+def get_performance_metrics():
+    """Returns real-time performance, latency, memory, and cache metrics."""
+    return PerformanceOptimizationEngine.get_performance_metrics()
+
+@app.post("/api/v1/performance/cache-manage")
+def manage_performance_cache(payload: Dict[str, Any] = None):
+    """Manages cache invalidation, flushing, and statistics."""
+    action = payload.get("action", "stats") if payload else "stats"
+    key = payload.get("key") if payload else None
+    return PerformanceOptimizationEngine.manage_cache(action=action, key=key)
+
+@app.post("/api/v1/performance/benchmark")
+def generate_performance_benchmark():
+    """Generates an automated system performance benchmark report."""
+    return PerformanceOptimizationEngine.generate_performance_benchmark()
+
+@app.get("/api/v1/performance/background-jobs")
+def get_background_jobs():
+    """Lists active and completed background job tasks."""
+    return PerformanceOptimizationEngine.get_background_jobs()
+
+@app.get("/api/v1/ai/model-registry")
+def get_ai_model_registry():
+    """Returns active AI model registry catalog and deployment status."""
+    return AIModelLifecycleManager.get_model_registry()
+
+@app.post("/api/v1/ai/model-retrain")
+def trigger_ai_model_retraining(payload: Dict[str, Any] = None):
+    """Triggers automated retraining workflow on latest logistics dataset."""
+    domain = payload.get("domain", "SLA Prediction") if payload else "SLA Prediction"
+    return AIModelLifecycleManager.trigger_model_retraining(domain=domain)
+
+@app.get("/api/v1/ai/drift-detection")
+def detect_ai_drift():
+    """Returns continuous data and model drift detection report."""
+    return AIModelLifecycleManager.detect_data_and_model_drift()
+
+@app.post("/api/v1/ai/ab-test")
+def evaluate_ai_ab_test():
+    """Evaluates candidate model performance in shadow mode against production model."""
+    return AIModelLifecycleManager.evaluate_ab_shadow_deployment()
+
+@app.get("/api/v1/ai/feature-store")
+def get_ai_feature_store():
+    """Returns reusable feature store catalog across training and inference."""
+    return AIModelLifecycleManager.get_feature_store_catalog()
+
+@app.post("/api/v1/ai/governance/approve")
+def approve_ai_model(payload: Dict[str, Any] = None):
+    """Approves a model version for production deployment."""
+    model_id = payload.get("model_id", "MOD-SLA-RF-01") if payload else "MOD-SLA-RF-01"
+    approved_by = payload.get("approved_by", "Admin") if payload else "Admin"
+    return AIModelLifecycleManager.approve_model(model_id=model_id, approved_by=approved_by)
+
+@app.post("/api/v1/ai/governance/rollback")
+def rollback_ai_model(payload: Dict[str, Any] = None):
+    """Rolls back production model to previous stable version."""
+    domain = payload.get("domain", "SLA Prediction") if payload else "SLA Prediction"
+    return AIModelLifecycleManager.rollback_model_version(domain=domain)
+
+@app.post("/api/v1/validation/run")
+def run_enterprise_validation(payload: Dict[str, Any] = None):
+    """Runs full enterprise validation & certification suite."""
+    filters = payload.get("filters", {}) if payload else {}
+    return EnterpriseValidationEngine.evaluate_enterprise_validation_platform(filters)
+
+@app.get("/api/v1/validation/dell-dataset-certification")
+def get_dell_dataset_certification():
+    """Returns official Dell dataset certification audit details."""
+    res = EnterpriseValidationEngine.evaluate_enterprise_validation_platform()
+    return res["dataset_certification"]
+
+@app.get("/api/v1/validation/workflow-status")
+def get_workflow_validation_status():
+    """Returns 12-step end-to-end workflow execution status."""
+    return EnterpriseValidationEngine.validate_end_to_end_workflows()
+
+@app.get("/api/v1/validation/compliance-score")
+def get_compliance_score():
+    """Returns 100% enterprise compliance score & module acceptance matrix."""
+    return EnterpriseValidationEngine.calculate_compliance_score()
+
+@app.post("/api/v1/validation/export")
+def export_validation_report(payload: Dict[str, Any] = None):
+    """Generates PDF, Excel, or CSV enterprise certification report."""
+    format_str = payload.get("format", "pdf") if payload else "pdf"
+    return EnterpriseValidationEngine.export_validation_report(format_str)
 
 @app.get("/api/orchestrator/dashboard")
 def get_orchestrator_dashboard():
@@ -841,11 +1342,69 @@ def compile_report_payload(payload: Dict[str, Any] = None):
     report_type = params.get("report_type", "Executive Summary")
     template = params.get("template", "Executive Leadership")
     generated_by = params.get("generated_by", "analyst")
+    filters = params.get("filters", {})
     try:
-        data = ReportGenerator.compile_report(report_type, template, generated_by)
+        data = ReportGenerator.compile_report(report_type, template, generated_by, filters)
         return data
     except Exception as e:
         logger.error(f"Reports Generation API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+SYSTEM_CONFIG = {
+    "optimization_mode": "dijkstra",
+    "log_level": "info",
+    "security_level": "strict",
+    "cache_timeout": "5.0"
+}
+
+@app.get("/api/admin/config")
+def get_admin_config():
+    """Returns current active system configuration parameters."""
+    return SYSTEM_CONFIG
+
+@app.post("/api/admin/config")
+def update_admin_config(payload: Dict[str, Any] = None):
+    """Updates active system configuration parameters and clears service caches."""
+    global SYSTEM_CONFIG
+    params = payload if payload else {}
+    if "optimization_mode" in params:
+        SYSTEM_CONFIG["optimization_mode"] = str(params["optimization_mode"]).lower()
+    if "log_level" in params:
+        SYSTEM_CONFIG["log_level"] = str(params["log_level"]).lower()
+    if "security_level" in params:
+        SYSTEM_CONFIG["security_level"] = str(params["security_level"]).lower()
+    if "cache_timeout" in params:
+        SYSTEM_CONFIG["cache_timeout"] = str(params["cache_timeout"])
+
+    # Clear in-memory service caches so new algorithm applies immediately
+    try:
+        from backend.services.capacity_engine import CapacityEngine
+        CapacityEngine.clear_cache()
+    except Exception:
+        pass
+    try:
+        from backend.services.route_scoring_engine import RouteScoringEngine
+        RouteScoringEngine.clear_cache()
+    except Exception:
+        pass
+
+    logger.info(f"System Configuration updated: {SYSTEM_CONFIG}")
+    return {"status": "success", "config": SYSTEM_CONFIG}
+
+@app.post("/api/reports/increment-download")
+def increment_report_download(payload: Dict[str, Any] = None):
+    """Increments the download counter for a specified archive report entry."""
+    params = payload if payload else {}
+    report_id = params.get("id")
+    try:
+        history = ReportGenerator.get_history()
+        for rep in history:
+            if rep.get("id") == report_id:
+                rep["downloads"] = rep.get("downloads", 0) + 1
+                return {"status": "success", "id": report_id, "downloads": rep["downloads"]}
+        return {"status": "not_found", "id": report_id}
+    except Exception as e:
+        logger.error(f"Reports Increment Download API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/command-center/payload")
@@ -941,22 +1500,43 @@ def export_copilot_history():
     """Returns conversation history in raw JSON format for download/export."""
     return conversation_manager.get_history()
 
-# Serve Static Frontend Files
-# Path to frontend directory
+# ─── Serve Static Frontend Files ─────────────────────────────────────────────
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
+class NoCacheStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope) -> Response:
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
 if os.path.exists(FRONTEND_DIR):
-    # Mount css/js static files
-    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+    app.mount("/static", NoCacheStaticFiles(directory=FRONTEND_DIR), name="static")
+    for sub in ["css", "js", "components", "design-system", "utils", "pages"]:
+        sub_path = os.path.join(FRONTEND_DIR, sub)
+        if os.path.exists(sub_path):
+            app.mount(f"/{sub}", NoCacheStaticFiles(directory=sub_path), name=sub)
 
     # Serve index.html at root
-    @app.get("/")
-    def serve_frontend():
-        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+    @app.get("/", include_in_schema=False)
+    def serve_root():
+        headers = {"Cache-Control": "no-cache, no-store, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0"}
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"), headers=headers)
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("v1/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = os.path.join(FRONTEND_DIR, full_path)
+        headers = {"Cache-Control": "no-cache, no-store, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0"}
+        if os.path.isfile(candidate):
+            return FileResponse(candidate, headers=headers)
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"), headers=headers)
 else:
     logger.warning(f"Frontend directory not found at {FRONTEND_DIR}. API server running standalone.")
-    
-    @app.get("/")
+
+    @app.get("/", include_in_schema=False)
     def root():
         return {
             "status": "running",

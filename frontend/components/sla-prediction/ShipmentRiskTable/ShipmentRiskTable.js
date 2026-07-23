@@ -92,5 +92,38 @@
         filter(q) { this._redraw(_all.filter(s => (s.transaction_id+s.origin+s.destination).toLowerCase().includes(q.toLowerCase()))); },
         filterLevel(l) { this._redraw(l ? _all.filter(s => s.risk_level === l) : _all); }
     };
+
+    window.exportRiskCSV = function() {
+        let csv = "Shipment ID,Origin,Destination,Risk Score,Risk Level,Breach %,Delay (h),Confidence,Likely Causes,Impact\n";
+        const rows = document.querySelectorAll("#risk-table tbody tr");
+        rows.forEach(tr => {
+            const cols = Array.from(tr.querySelectorAll("td")).map(td => `"${td.textContent.trim().replace(/"/g, '""')}"`);
+            if (cols.length >= 10) csv += cols.join(",") + "\n";
+        });
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `dell_shipment_risks_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        if (window.Toast) window.Toast.success("Shipment Risks CSV report exported.");
+    };
+
+    window.exportRiskPDF = function() {
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) return alert("Please allow popups to export PDF.");
+        printWindow.document.write(`
+            <html><head><title>Dell SLA Risk Register Report</title>
+            <style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;font-size:12px;}</style>
+            </head><body>
+            <h2>Dell SLA Risk Register & Delay Predictions</h2>
+            <p>Generated: ${new Date().toLocaleString()}</p>
+            ${document.getElementById("risk-table") ? document.getElementById("risk-table").outerHTML : ""}
+            <script>window.onload = function() { window.print(); }</script>
+            </body></html>
+        `);
+        printWindow.document.close();
+    };
+
     window.ShipmentRiskTable = ShipmentRiskTable;
 })();
