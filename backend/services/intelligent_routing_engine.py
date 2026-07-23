@@ -726,23 +726,45 @@ class IntelligentRoutingEngine:
 
     @classmethod
     def generate_scenario_comparison(cls, base_params: Dict[str, Any]) -> Dict[str, Any]:
-        """Generates side-by-side comparative analysis across 6 optimization goals."""
-        goals = ["Cheapest", "Fastest", "Lowest Risk", "Lowest Carbon", "Highest SLA", "Balanced"]
-        scenarios = []
+        """Generates side-by-side comparative analysis across 6 optimization goals with distinct strategies."""
+        res = cls.evaluate_shipment_request(base_params)
+        candidates = res.get("all_ranked_candidates") or []
+        if not candidates:
+            candidates = cls._generate_candidate_routes(pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), base_params, {})
 
-        for goal in goals:
-            p = {**base_params, "priority": f"{goal} Optimization Goal"}
-            res = cls.evaluate_shipment_request(p)
-            prim = res["primary_recommendation"]
+        goals = [
+            ("Cheapest", lambda c: c.get("expected_cost", c.get("cost", 9999.0)), False),
+            ("Fastest", lambda c: c.get("estimated_transit_days", c.get("transit_time", 99.0)), False),
+            ("Lowest Risk", lambda c: c.get("risk_score", 99.0), False),
+            ("Lowest Carbon", lambda c: c.get("carbon_kg", 9999.0), False),
+            ("Highest SLA", lambda c: c.get("predicted_sla_pct", 0.0), True),
+            ("Balanced", lambda c: c.get("overall_score", 0.0), True)
+        ]
+
+        scenarios = []
+        for goal_name, sort_key, reverse_flag in goals:
+            sorted_cands = sorted(candidates, key=sort_key, reverse=reverse_flag)
+            best_cand = sorted_cands[0] if sorted_cands else candidates[0]
+            
+            days = best_cand.get("estimated_transit_days", best_cand.get("transit_time", 1.2))
+            hours = round(days * 24.0, 1)
+            
+            r_score = best_cand.get("risk_score", 15.0)
+            risk_lvl = "LOW" if r_score <= 15.0 else ("MEDIUM" if r_score <= 25.0 else "HIGH")
+            
+            cost_val = best_cand.get("expected_cost", best_cand.get("cost", 750.0))
+            cost_str = f"${cost_val:,.2f}"
+            conf_str = f"{best_cand.get('confidence_pct', 95.0)}%"
+
             scenarios.append({
-                "goal": goal,
-                "route_name": prim["route_name"],
-                "path_str": prim["path_str"],
-                "cost": prim["estimated_cost"],
-                "eta": prim["estimated_eta"],
-                "risk": prim["risk_level"],
-                "confidence": prim["confidence_score"],
-                "score": prim["health_score"]
+                "goal": goal_name,
+                "route_name": best_cand.get("name", best_cand.get("route_name", "Optimal Route")),
+                "path_str": best_cand.get("path_str", " → ".join(best_cand.get("path", ["HUB-ORIG", "HUB-DEST"]))),
+                "cost": cost_str,
+                "eta": f"{hours} hrs",
+                "risk": risk_lvl,
+                "confidence": conf_str,
+                "score": round(best_cand.get("overall_score", 90.0), 1)
             })
 
         return {
