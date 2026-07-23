@@ -27,8 +27,9 @@ jobs:
 
     - name: Run Production Verification Suite
       run: |
-        python scratch/verify_phase59_production_suite.py
-        python scratch/verify_phase58_executive_reporting.py
+        PYTHONPATH=. python tests/test_route_analysis.py
+        PYTHONPATH=. python tests/test_command_center_3d.py
+        PYTHONPATH=. python tests/test_circular_supply_chain.py
 
     - name: Build Docker Image
       run: |
