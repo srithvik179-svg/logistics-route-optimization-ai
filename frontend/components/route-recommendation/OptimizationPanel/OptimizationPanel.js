@@ -107,10 +107,9 @@
             });
 
             document.getElementById("btn-compare-scenarios").addEventListener("click", () => {
-                const source = document.getElementById("route-source-hub").value || "HUB-SIN";
-                const dest = document.getElementById("route-dest-hub").value || "Bangalore";
+                const inputs = OptimizationPanel.getFormInputs();
                 if (window.openScenarioComparisonModal) {
-                    window.openScenarioComparisonModal({ source, dest });
+                    window.openScenarioComparisonModal(inputs);
                 }
             });
         },

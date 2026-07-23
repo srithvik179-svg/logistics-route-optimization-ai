@@ -434,22 +434,35 @@ class IntelligentRoutingEngine:
 
     @classmethod
     def _score_and_rank_candidates(cls, candidates: List[Dict[str, Any]], params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Scores candidate routes across 10 weighted dimensions."""
+        """Scores candidate routes across 10 weighted dimensions, respecting optimization_objective."""
+        obj = str(params.get("optimization_objective") or "").upper()
         priority = params.get("priority") or "Medium Priority"
         
-        # Adjust weightings based on shipment priority
-        if priority.startswith("High") or priority.startswith("Critical") or "Express" in str(params.get("constraints")):
-            w_transit, w_cost, w_sla, w_risk = 0.30, 0.15, 0.25, 0.15
+        # Determine weightings based on explicit optimization objective or priority fallback
+        if obj == "CHEAPEST":
+            w_cost, w_transit, w_sla, w_risk, w_carbon = 0.65, 0.10, 0.10, 0.10, 0.05
+        elif obj == "FASTEST":
+            w_transit, w_cost, w_sla, w_risk, w_carbon = 0.65, 0.10, 0.10, 0.10, 0.05
+        elif obj == "LOWEST_RISK":
+            w_risk, w_sla, w_transit, w_cost, w_carbon = 0.60, 0.20, 0.05, 0.05, 0.10
+        elif obj == "LOWEST_CARBON":
+            w_carbon, w_cost, w_transit, w_sla, w_risk = 0.60, 0.15, 0.05, 0.10, 0.10
+        elif obj == "HIGHEST_SLA":
+            w_sla, w_risk, w_transit, w_cost, w_carbon = 0.65, 0.15, 0.05, 0.05, 0.10
+        elif obj == "BALANCED":
+            w_cost, w_transit, w_sla, w_carbon, w_risk = 0.25, 0.25, 0.20, 0.15, 0.15
+        elif priority.startswith("High") or priority.startswith("Critical") or "Express" in str(params.get("constraints")):
+            w_transit, w_cost, w_sla, w_risk, w_carbon = 0.30, 0.15, 0.25, 0.15, 0.05
         else:
-            w_transit, w_cost, w_sla, w_risk = 0.15, 0.35, 0.20, 0.15
+            w_transit, w_cost, w_sla, w_risk, w_carbon = 0.15, 0.35, 0.20, 0.15, 0.05
 
-        w_inv, w_hub, w_tpr, w_dist, w_carbon, w_delay = 0.05, 0.04, 0.04, 0.03, 0.02, 0.02
+        w_inv, w_hub, w_tpr, w_dist, w_delay = 0.04, 0.03, 0.03, 0.03, 0.02
 
         scored = []
         for c in candidates:
-            # Normalize individual sub-scores (0-100)
+            # Normalize sub-scores (0-100)
             score_transit = max(10.0, 100.0 - (c["estimated_transit_days"] * 20.0))
-            score_cost = max(10.0, 100.0 - (c["expected_cost"] / 12.0))
+            score_cost = max(10.0, 100.0 - (c["expected_cost"] / 20.0))
             score_sla = c["predicted_sla_pct"]
             score_risk = max(10.0, 100.0 - c["risk_score"] * 2.0)
             score_inv = min(100.0, c["inventory_available"] * 0.4)
@@ -468,6 +481,7 @@ class IntelligentRoutingEngine:
 
             c["overall_score"] = overall_score
             c["health_score"] = overall_score
+            c["composite_score"] = overall_score
             c["score_breakdown"] = {
                 "transit_score": round(score_transit, 1),
                 "cost_score": round(score_cost, 1),
@@ -726,95 +740,48 @@ class IntelligentRoutingEngine:
 
     @classmethod
     def generate_scenario_comparison(cls, base_params: Dict[str, Any]) -> Dict[str, Any]:
-        """Generates multi-objective 6-scenario comparative analysis calculated independently per objective."""
-        res = cls.evaluate_shipment_request(base_params)
-        candidates = res.get("all_ranked_candidates") or []
-        if not candidates:
-            candidates = cls._generate_candidate_routes(pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), base_params, {})
-
-        # Define 6 independent optimization objectives with custom scoring functions
-        goals = [
-            (
-                "Cheapest",
-                lambda c: c.get("expected_cost", c.get("cost", 9999.0)),
-                False,
-                lambda c: f"Optimized for minimum freight cost (${c.get('expected_cost', c.get('cost', 0)):,.2f}) with batching."
-            ),
-            (
-                "Fastest",
-                lambda c: c.get("estimated_transit_days", c.get("transit_time", 99.0)),
-                False,
-                lambda c: f"Optimized for minimum lead time ({round(c.get('estimated_transit_days', 1.0)*24, 1)} hrs) via express transport."
-            ),
-            (
-                "Lowest Risk",
-                lambda c: c.get("risk_score", 99.0),
-                False,
-                lambda c: f"Optimized for minimum risk ({c.get('risk_score', 15.0)} score) and high network stability."
-            ),
-            (
-                "Lowest Carbon",
-                lambda c: c.get("carbon_kg", 9999.0),
-                False,
-                lambda c: f"Optimized for minimal carbon footprint ({c.get('carbon_kg', 0.0)} kg CO2e) with green routing."
-            ),
-            (
-                "Highest SLA",
-                lambda c: c.get("predicted_sla_pct", 0.0),
-                True,
-                lambda c: f"Optimized for maximum SLA compliance ({c.get('predicted_sla_pct', 95.0)}%) via premium networks."
-            ),
-            (
-                "Balanced",
-                lambda c: c.get("overall_score", 0.0),
-                True,
-                lambda c: f"Pareto-optimal tradeoff balancing cost (${c.get('expected_cost', 0):,.2f}), lead time ({round(c.get('estimated_transit_days', 1.0)*24, 1)} hrs), and SLA."
-            )
+        """Runs 6 independent routing engine executions, one for each optimization objective."""
+        objectives = [
+            ("Cheapest", "CHEAPEST", "Optimized for minimum total transportation and handling expense."),
+            ("Fastest", "FASTEST", "Optimized for minimum transit lead time via express transport."),
+            ("Lowest Risk", "LOWEST_RISK", "Optimized for route safety, low congestion, and minimum failure risk."),
+            ("Lowest Carbon", "LOWEST_CARBON", "Optimized for minimum CO₂ emissions and green consolidated transport."),
+            ("Highest SLA", "HIGHEST_SLA", "Optimized for maximum predicted delivery SLA compliance."),
+            ("Balanced", "BALANCED", "Pareto-optimal weighted tradeoff across cost, lead time, carbon, risk, and SLA.")
         ]
 
         scenarios = []
-        for goal_name, sort_key, reverse_flag, rec_func in goals:
-            sorted_cands = sorted(candidates, key=sort_key, reverse=reverse_flag)
-            best_cand = sorted_cands[0] if sorted_cands else candidates[0]
+        for goal_name, obj_key, rec_text in objectives:
+            # Independent execution per objective
+            p = {**base_params, "optimization_objective": obj_key}
+            res = cls.evaluate_shipment_request(p)
             
-            days = best_cand.get("estimated_transit_days", best_cand.get("transit_time", 1.2))
-            hours = round(days * 24.0, 1)
-            
-            r_score = best_cand.get("risk_score", 15.0)
-            risk_lvl = "LOW" if r_score <= 15.0 else ("MEDIUM" if r_score <= 25.0 else "HIGH")
-            
-            cost_val = best_cand.get("expected_cost", best_cand.get("cost", 750.0))
-            cost_str = f"${cost_val:,.2f}"
-            conf_str = f"{best_cand.get('confidence_pct', 95.0)}%"
-            dist_miles = round(best_cand.get("distance", best_cand.get("distance_km", 450.0) * 0.621371), 1)
-            carbon_kg = round(best_cand.get("carbon_kg", 180.0), 1)
+            prim = res["primary_recommendation"]
+            cost_est = res.get("cost_estimation", {})
+            eta_pred = res.get("eta_prediction", {})
+            risk_ass = res.get("risk_assessment", {})
+            all_cands = res.get("all_ranked_candidates", [])
+            top_cand = all_cands[0] if all_cands else {}
 
-            # Compute goal-specific score (0-100)
-            if goal_name == "Cheapest":
-                goal_score = round(max(50.0, 100.0 - (cost_val / 40.0)), 1)
-            elif goal_name == "Fastest":
-                goal_score = round(max(50.0, 100.0 - (days * 18.0)), 1)
-            elif goal_name == "Lowest Risk":
-                goal_score = round(max(50.0, 100.0 - (r_score * 2.2)), 1)
-            elif goal_name == "Lowest Carbon":
-                goal_score = round(max(50.0, 100.0 - (carbon_kg / 4.5)), 1)
-            elif goal_name == "Highest SLA":
-                goal_score = round(best_cand.get("predicted_sla_pct", 96.0), 1)
-            else:
-                goal_score = round(best_cand.get("overall_score", 90.0), 1)
+            days = top_cand.get("estimated_transit_days", eta_pred.get("transit_days", 1.2))
+            hours = round(days * 24.0, 1)
+            cost_val = top_cand.get("expected_cost", cost_est.get("total_cost", 750.0))
+            dist_miles = round(top_cand.get("distance", top_cand.get("distance_km", 450.0) * 0.621371), 1)
+            carbon_kg = round(top_cand.get("carbon_kg", 180.0), 1)
+            confidence_str = f"{top_cand.get('predicted_sla_pct', 96.0)}%"
 
             scenarios.append({
                 "goal": goal_name,
-                "route_name": best_cand.get("name", best_cand.get("route_name", "Optimal Route")),
-                "path_str": best_cand.get("path_str", " → ".join(best_cand.get("path", ["HUB-ORIG", "HUB-DEST"]))),
-                "cost": cost_str,
+                "route_name": prim.get("route_name", top_cand.get("name", "Optimal Route")),
+                "path_str": prim.get("path_str", top_cand.get("path_str", "HUB-ORIG → HUB-DEST")),
+                "cost": f"${cost_val:,.2f}",
                 "eta": f"{hours} hrs",
-                "risk": risk_lvl,
-                "confidence": conf_str,
-                "score": goal_score,
+                "risk": prim.get("risk_level", risk_ass.get("overall_risk_level", "LOW")),
+                "confidence": confidence_str,
+                "score": round(top_cand.get("composite_score", prim.get("health_score", 90.0)), 1),
                 "distance": f"{dist_miles} mi",
                 "carbon": f"{carbon_kg} kg CO2e",
-                "recommendation": rec_func(best_cand)
+                "recommendation": rec_text
             })
 
         return {
