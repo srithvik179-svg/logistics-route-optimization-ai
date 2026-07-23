@@ -1437,6 +1437,7 @@ def run_command_center_search(payload: Dict[str, Any] = None):
 
 
 @app.post("/api/copilot/message")
+@app.post("/api/assistant/query")
 def post_copilot_message(payload: Dict[str, Any]):
     """Processes user chat message, compiles structured answer, and updates session history."""
     try:
@@ -1470,6 +1471,7 @@ def post_copilot_message(payload: Dict[str, Any]):
         raise HTTPException(status_code=500, detail=f"Failed to process message: {str(e)}")
 
 @app.get("/api/copilot/history")
+@app.get("/api/assistant/history")
 def get_copilot_history():
     """Returns full active chat log history."""
     return {
@@ -1478,6 +1480,7 @@ def get_copilot_history():
     }
 
 @app.post("/api/copilot/history/clear")
+@app.post("/api/assistant/clear")
 def clear_copilot_history():
     """Clears history logs."""
     conversation_manager.clear()

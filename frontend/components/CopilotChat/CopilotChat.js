@@ -13,19 +13,19 @@
             _onSendCallback = onSend;
 
             container.innerHTML = `
-                <div class="card glass-panel copilot-chat-card" style="padding:var(--space-3); border:1px solid rgba(63,63,70,0.4); display:flex; flex-direction:column; height:450px;">
-                    <div style="font-size:11px; font-weight:bold; color:#fff; text-transform:uppercase; border-bottom:1px solid rgba(63,63,70,0.4); padding-bottom:var(--space-2); margin-bottom:var(--space-2); display:flex; justify-content:space-between; align-items:center;">
-                        <span><i class="fa-solid fa-comments text-primary"></i> Copilot Active Conversation</span>
-                        <span style="font-size:9px; background:rgba(16,185,129,0.1); color:#10b981; padding:1px 5px; border-radius:3px; border:1px solid rgba(16,185,129,0.2);"><i class="fa-solid fa-circle"></i> Online</span>
+                <div class="card glass-panel copilot-chat-card" style="padding:var(--space-3); border:1px solid rgba(63,63,70,0.4); display:flex; flex-direction:column; height:480px;">
+                    <div style="font-size:11px; font-weight:bold; color:#fff; text-transform:uppercase; border-bottom:1px solid rgba(63,63,70,0.4); padding-bottom:var(--space-2); margin-bottom:var(--space-2); display:flex; justify-space-between; align-items:center;">
+                        <span><i class="fa-solid fa-comments text-primary" style="margin-right:6px;"></i> 💬 AI Business Assistant Active Session</span>
+                        <span style="font-size:9px; background:rgba(16,185,129,0.1); color:#10b981; padding:2px 6px; border-radius:3px; border:1px solid rgba(16,185,129,0.2);"><i class="fa-solid fa-circle" style="font-size:7px; margin-right:4px;"></i> Real-Time AI</span>
                     </div>
 
                     <!-- Chat bubbles container -->
                     <div id="copilot-bubbles-view" style="flex:1; overflow-y:auto; padding:var(--space-2); display:flex; flex-direction:column; gap:12px; margin-bottom:var(--space-3);">
                         <!-- Default greeting bubble -->
                         <div class="chat-bubble assistant-bubble">
-                            <div class="bubble-header">AI Logistics Copilot</div>
+                            <div class="bubble-header">💬 AI Business Assistant</div>
                             <div class="bubble-body">
-                                Hello operations manager! I am your conversational Logistics Copilot. I can query health KPIs, predicted breaches, reverse logistics, and orchestrator workflow runs. How can I assist you today?
+                                Hello Operations Executive! I am your conversational <strong>AI Business Assistant</strong>. Ask me any natural language question about SLA breaches, expensive corridors, TPR repair capacity, part delays, sustainability, or cost optimization.
                             </div>
                         </div>
 
@@ -34,7 +34,7 @@
 
                     <!-- Input row controls -->
                     <div style="display:flex; gap:var(--space-2); align-items:center; border-top:1px solid rgba(63,63,70,0.4); padding-top:var(--space-2);">
-                        <input type="text" id="copilot-chat-input" placeholder="Ask Copilot a question..." onkeydown="CopilotChat.handleKey(event)" style="flex:1; background:rgba(9,9,11,0.6); border:1px solid rgba(63,63,70,0.4); color:#fff; border-radius:6px; padding:10px 12px; font-size:11px; outline:none;">
+                        <input type="text" id="copilot-chat-input" placeholder="Ask a business question in plain English (e.g., 'Which hub has the most SLA breaches?')..." onkeydown="CopilotChat.handleKey(event)" style="flex:1; background:rgba(9,9,11,0.6); border:1px solid rgba(63,63,70,0.4); color:#fff; border-radius:6px; padding:10px 12px; font-size:11px; outline:none;">
                         <button class="btn btn-primary" onclick="CopilotChat.sendMessage()" style="padding:10px var(--space-4);">
                             <i class="fa-solid fa-paper-plane"></i> Send
                         </button>
@@ -50,7 +50,7 @@
                 style.id = "copilot-chat-bubble-styles";
                 style.textContent = `
                     .chat-bubble {
-                        max-width: 80%; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 8px; font-size: 11px; line-height: 1.4;
+                        max-width: 85%; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 8px; font-size: 11px; line-height: 1.4;
                     }
                     .user-bubble {
                         align-self: flex-end; background: var(--primary-color); color: #fff;
@@ -95,7 +95,7 @@
 
             return `
                 <div class="chat-bubble ${isUser ? 'user-bubble' : 'assistant-bubble'}">
-                    <div class="bubble-header">${isUser ? 'Operations Manager' : 'AI Logistics Copilot'}</div>
+                    <div class="bubble-header">${isUser ? 'Operations Executive' : '💬 AI Business Assistant'}</div>
                     <div class="bubble-body">${contentHtml}</div>
                 </div>
             `;
@@ -118,7 +118,7 @@
             const view = document.getElementById("copilot-bubbles-view");
             const bubble = document.createElement("div");
             bubble.className = "chat-bubble user-bubble";
-            bubble.innerHTML = `<div class="bubble-header">Operations Manager</div><div class="bubble-body">${text}</div>`;
+            bubble.innerHTML = `<div class="bubble-header">Operations Executive</div><div class="bubble-body">${text}</div>`;
             view.appendChild(bubble);
 
             // Add typing indicator
