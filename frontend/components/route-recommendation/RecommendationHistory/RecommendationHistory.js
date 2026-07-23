@@ -86,6 +86,16 @@
         },
 
         addEntry(sourceOrObj, dest, cost, transit_time, path_nodes) {
+            const parseNum = (v, defaultVal) => {
+                if (typeof v === 'number' && !isNaN(v)) return v;
+                if (typeof v === 'string') {
+                    const cleaned = v.replace(/[^0-9.]/g, '');
+                    const parsed = parseFloat(cleaned);
+                    if (!isNaN(parsed)) return parsed;
+                }
+                return defaultVal;
+            };
+
             let entry;
             if (typeof sourceOrObj === 'object' && sourceOrObj !== null) {
                 const obj = sourceOrObj;
@@ -94,8 +104,8 @@
                 entry = {
                     source: src,
                     dest: dst,
-                    cost: typeof obj.cost === 'number' ? obj.cost : parseFloat(obj.cost) || 798.45,
-                    transit_time: typeof obj.transit_time === 'number' ? obj.transit_time : parseFloat(obj.transit_time) || 1.2,
+                    cost: parseNum(obj.cost, 798.45),
+                    transit_time: parseNum(obj.transit_time, 1.2),
                     path_nodes: Array.isArray(obj.path_nodes) ? obj.path_nodes : [src, dst],
                     timestamp: obj.timestamp || obj.date || new Date().toLocaleTimeString()
                 };
@@ -105,8 +115,8 @@
                 entry = {
                     source: src,
                     dest: dst,
-                    cost: typeof cost === 'number' ? cost : parseFloat(cost) || 798.45,
-                    transit_time: typeof transit_time === 'number' ? transit_time : parseFloat(transit_time) || 1.2,
+                    cost: parseNum(cost, 798.45),
+                    transit_time: parseNum(transit_time, 1.2),
                     path_nodes: Array.isArray(path_nodes) ? path_nodes : [src, dst],
                     timestamp: new Date().toLocaleTimeString()
                 };

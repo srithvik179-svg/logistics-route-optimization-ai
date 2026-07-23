@@ -399,20 +399,43 @@
             }
         });
 
+        const parseNumeric = (val) => {
+            if (typeof val === 'number' && !isNaN(val)) return val;
+            if (typeof val === 'string') {
+                const cleaned = parseFloat(val.replace(/[^0-9.]/g, ''));
+                if (!isNaN(cleaned)) return cleaned;
+            }
+            return null;
+        };
+
+        const resolvedCost = parseNumeric(payload.cost_estimation?.total_cost) 
+            || parseNumeric(primaryRec.cost) 
+            || parseNumeric(primaryRec.expected_cost) 
+            || parseNumeric(primaryRec.estimated_cost) 
+            || parseNumeric(candidates[0]?.cost) 
+            || parseNumeric(candidates[0]?.expected_cost) 
+            || 798.45;
+
+        const resolvedTime = parseNumeric(payload.eta_prediction?.transit_days) 
+            || parseNumeric(primaryRec.transit_time) 
+            || parseNumeric(primaryRec.estimated_transit_days) 
+            || parseNumeric(candidates[0]?.transit_time) 
+            || parseNumeric(candidates[0]?.estimated_transit_days) 
+            || 1.2;
+
+        primaryRec.cost = resolvedCost;
+        primaryRec.transit_time = resolvedTime;
+
         if (!primaryRec.candidate_id) {
             primaryRec.candidate_id = primaryRec.id || primaryRec.route_id || (candidates[0] ? candidates[0].candidate_id : "cand-1");
         }
         if (!primaryRec.path_nodes || primaryRec.path_nodes.length === 0) {
             primaryRec.path_nodes = candidates[0] ? candidates[0].path_nodes : [inputs.source, inputs.dest];
         }
-        if (!primaryRec.cost || isNaN(primaryRec.cost) || primaryRec.cost === 0) {
-            primaryRec.cost = primaryRec.expected_cost !== undefined ? primaryRec.expected_cost : (primaryRec.total_cost !== undefined ? primaryRec.total_cost : (primaryRec.estimated_cost !== undefined ? primaryRec.estimated_cost : 850.0));
-        }
-        if (!primaryRec.transit_time || isNaN(primaryRec.transit_time) || primaryRec.transit_time === 0) {
-            primaryRec.transit_time = primaryRec.estimated_transit_days !== undefined ? primaryRec.estimated_transit_days : 1.2;
-        }
 
         activeRoute = { ...primaryRec, ...explainableAi };
+        activeRoute.cost = resolvedCost;
+        activeRoute.transit_time = resolvedTime;
         candidatesList = candidates;
 
         // Update Scorecard, Explanation, Comparison, and Map Polylines
@@ -438,8 +461,8 @@
             window.RecommendationHistory.addEntry({
                 source: inputs.source,
                 dest: inputs.dest,
-                cost: activeRoute.cost || 798.45,
-                transit_time: activeRoute.transit_time || 1.2,
+                cost: resolvedCost,
+                transit_time: resolvedTime,
                 path_nodes: activeRoute.path_nodes,
                 date: new Date().toLocaleTimeString()
             });
