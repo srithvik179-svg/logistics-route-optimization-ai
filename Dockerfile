@@ -25,7 +25,7 @@ COPY --from=builder /install /usr/local
 COPY backend /app/backend
 COPY data /app/data
 COPY frontend /app/frontend
-COPY logs /app/logs
+RUN mkdir -p /app/logs
 
 # Environment Variables
 ENV PYTHONUNBUFFERED=1 \
