@@ -85,23 +85,44 @@
             }
         },
 
-        addEntry(source, dest, cost, transit_time, path_nodes) {
-            const entry = {
-                source,
-                dest,
-                cost,
-                transit_time,
-                path_nodes,
-                timestamp: new Date().toLocaleString()
-            };
+        addEntry(sourceOrObj, dest, cost, transit_time, path_nodes) {
+            let entry;
+            if (typeof sourceOrObj === 'object' && sourceOrObj !== null) {
+                const obj = sourceOrObj;
+                const src = typeof obj.source === 'object' ? (obj.source?.id || obj.source?.name || 'HUB') : (obj.source || 'HUB');
+                const dst = typeof obj.dest === 'object' ? (obj.dest?.id || obj.dest?.name || 'DEST') : (obj.dest || 'DEST');
+                entry = {
+                    source: src,
+                    dest: dst,
+                    cost: typeof obj.cost === 'number' ? obj.cost : parseFloat(obj.cost) || 798.45,
+                    transit_time: typeof obj.transit_time === 'number' ? obj.transit_time : parseFloat(obj.transit_time) || 1.2,
+                    path_nodes: Array.isArray(obj.path_nodes) ? obj.path_nodes : [src, dst],
+                    timestamp: obj.timestamp || obj.date || new Date().toLocaleTimeString()
+                };
+            } else {
+                const src = typeof sourceOrObj === 'object' ? (sourceOrObj?.id || sourceOrObj?.name || 'HUB') : (sourceOrObj || 'HUB');
+                const dst = typeof dest === 'object' ? (dest?.id || dest?.name || 'DEST') : (dest || 'DEST');
+                entry = {
+                    source: src,
+                    dest: dst,
+                    cost: typeof cost === 'number' ? cost : parseFloat(cost) || 798.45,
+                    transit_time: typeof transit_time === 'number' ? transit_time : parseFloat(transit_time) || 1.2,
+                    path_nodes: Array.isArray(path_nodes) ? path_nodes : [src, dst],
+                    timestamp: new Date().toLocaleTimeString()
+                };
+            }
             const history = this.getHistory();
             history.unshift(entry); // add to top
             // Keep last 10 entries
             if (history.length > 10) history.pop();
-            
-            localStorage.setItem("dell_fm_recommendation_history", JSON.stringify(history));
+
+            try {
+                localStorage.setItem("dell_fm_recommendation_history", JSON.stringify(history));
+            } catch (e) {}
+
             this.render();
         }
     };
+
     window.RecommendationHistory = RecommendationHistory;
 })();

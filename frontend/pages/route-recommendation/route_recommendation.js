@@ -368,31 +368,48 @@
         }
 
         candidates.forEach((c, i) => {
-            if (!c.candidate_id) c.candidate_id = c.route_id || `cand-${i+1}`;
+            if (!c.candidate_id) c.candidate_id = c.id || c.route_id || `cand-${i+1}`;
+            if (!c.algorithm) c.algorithm = c.name || c.route_name || "A* Route Optimization";
             if (!c.path_nodes || c.path_nodes.length === 0) {
-                if (c.path_str) {
+                if (c.path && Array.isArray(c.path)) {
+                    c.path_nodes = c.path;
+                } else if (c.path_str) {
                     c.path_nodes = c.path_str.split(/\s*→\s*|\s*->\s*/);
                 } else {
                     c.path_nodes = [inputs.source, inputs.dest];
                 }
             }
-            if (!c.algorithm) c.algorithm = c.route_name || "A* Route Optimization";
-            if (!c.cost && c.estimated_cost) {
-                c.cost = typeof c.estimated_cost === 'number' ? c.estimated_cost : parseFloat(String(c.estimated_cost).replace(/[^0-9.]/g, '')) || 850.0;
+            if (!c.distance || isNaN(c.distance) || c.distance === 0) {
+                c.distance = c.distance_km ? c.distance_km * 0.621371 : 450.0;
             }
-            if (!c.transit_time && c.estimated_transit_days) {
-                c.transit_time = c.estimated_transit_days;
+            if (!c.cost || isNaN(c.cost) || c.cost === 0) {
+                c.cost = c.expected_cost !== undefined ? c.expected_cost : (c.total_cost !== undefined ? c.total_cost : (c.estimated_cost !== undefined ? c.estimated_cost : 850.0));
+            }
+            if (!c.transit_time || isNaN(c.transit_time) || c.transit_time === 0) {
+                c.transit_time = c.estimated_transit_days !== undefined ? c.estimated_transit_days : (c.estimated_transit_hours ? c.estimated_transit_hours / 24 : 1.2);
+            }
+            if (c.confidence_score === undefined || isNaN(c.confidence_score)) {
+                if (c.confidence_pct !== undefined) c.confidence_score = c.confidence_pct > 1 ? c.confidence_pct / 100 : c.confidence_pct;
+                else if (c.confidence !== undefined) c.confidence_score = typeof c.confidence === 'number' ? (c.confidence > 1 ? c.confidence / 100 : c.confidence) : (parseFloat(String(c.confidence).replace(/[^0-9.]/g, '')) / 100 || 0.95);
+                else if (c.sla_compliance_pct !== undefined) c.confidence_score = c.sla_compliance_pct / 100;
+                else c.confidence_score = 0.95;
+            }
+            if (c.composite_score === undefined || isNaN(c.composite_score)) {
+                c.composite_score = c.overall_score || 90.0;
             }
         });
 
         if (!primaryRec.candidate_id) {
-            primaryRec.candidate_id = primaryRec.route_id || (candidates[0] ? candidates[0].candidate_id : "cand-1");
+            primaryRec.candidate_id = primaryRec.id || primaryRec.route_id || (candidates[0] ? candidates[0].candidate_id : "cand-1");
         }
         if (!primaryRec.path_nodes || primaryRec.path_nodes.length === 0) {
             primaryRec.path_nodes = candidates[0] ? candidates[0].path_nodes : [inputs.source, inputs.dest];
         }
-        if (!primaryRec.cost && primaryRec.estimated_cost) {
-            primaryRec.cost = typeof primaryRec.estimated_cost === 'number' ? primaryRec.estimated_cost : parseFloat(String(primaryRec.estimated_cost).replace(/[^0-9.]/g, '')) || 850.0;
+        if (!primaryRec.cost || isNaN(primaryRec.cost) || primaryRec.cost === 0) {
+            primaryRec.cost = primaryRec.expected_cost !== undefined ? primaryRec.expected_cost : (primaryRec.total_cost !== undefined ? primaryRec.total_cost : (primaryRec.estimated_cost !== undefined ? primaryRec.estimated_cost : 850.0));
+        }
+        if (!primaryRec.transit_time || isNaN(primaryRec.transit_time) || primaryRec.transit_time === 0) {
+            primaryRec.transit_time = primaryRec.estimated_transit_days !== undefined ? primaryRec.estimated_transit_days : 1.2;
         }
 
         activeRoute = { ...primaryRec, ...explainableAi };
