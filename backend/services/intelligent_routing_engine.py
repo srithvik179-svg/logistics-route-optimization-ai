@@ -726,23 +726,54 @@ class IntelligentRoutingEngine:
 
     @classmethod
     def generate_scenario_comparison(cls, base_params: Dict[str, Any]) -> Dict[str, Any]:
-        """Generates side-by-side comparative analysis across 6 optimization goals with distinct strategies."""
+        """Generates multi-objective 6-scenario comparative analysis calculated independently per objective."""
         res = cls.evaluate_shipment_request(base_params)
         candidates = res.get("all_ranked_candidates") or []
         if not candidates:
             candidates = cls._generate_candidate_routes(pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), base_params, {})
 
+        # Define 6 independent optimization objectives with custom scoring functions
         goals = [
-            ("Cheapest", lambda c: c.get("expected_cost", c.get("cost", 9999.0)), False),
-            ("Fastest", lambda c: c.get("estimated_transit_days", c.get("transit_time", 99.0)), False),
-            ("Lowest Risk", lambda c: c.get("risk_score", 99.0), False),
-            ("Lowest Carbon", lambda c: c.get("carbon_kg", 9999.0), False),
-            ("Highest SLA", lambda c: c.get("predicted_sla_pct", 0.0), True),
-            ("Balanced", lambda c: c.get("overall_score", 0.0), True)
+            (
+                "Cheapest",
+                lambda c: c.get("expected_cost", c.get("cost", 9999.0)),
+                False,
+                lambda c: f"Optimized for minimum freight cost (${c.get('expected_cost', c.get('cost', 0)):,.2f}) with batching."
+            ),
+            (
+                "Fastest",
+                lambda c: c.get("estimated_transit_days", c.get("transit_time", 99.0)),
+                False,
+                lambda c: f"Optimized for minimum lead time ({round(c.get('estimated_transit_days', 1.0)*24, 1)} hrs) via express transport."
+            ),
+            (
+                "Lowest Risk",
+                lambda c: c.get("risk_score", 99.0),
+                False,
+                lambda c: f"Optimized for minimum risk ({c.get('risk_score', 15.0)} score) and high network stability."
+            ),
+            (
+                "Lowest Carbon",
+                lambda c: c.get("carbon_kg", 9999.0),
+                False,
+                lambda c: f"Optimized for minimal carbon footprint ({c.get('carbon_kg', 0.0)} kg CO2e) with green routing."
+            ),
+            (
+                "Highest SLA",
+                lambda c: c.get("predicted_sla_pct", 0.0),
+                True,
+                lambda c: f"Optimized for maximum SLA compliance ({c.get('predicted_sla_pct', 95.0)}%) via premium networks."
+            ),
+            (
+                "Balanced",
+                lambda c: c.get("overall_score", 0.0),
+                True,
+                lambda c: f"Pareto-optimal tradeoff balancing cost (${c.get('expected_cost', 0):,.2f}), lead time ({round(c.get('estimated_transit_days', 1.0)*24, 1)} hrs), and SLA."
+            )
         ]
 
         scenarios = []
-        for goal_name, sort_key, reverse_flag in goals:
+        for goal_name, sort_key, reverse_flag, rec_func in goals:
             sorted_cands = sorted(candidates, key=sort_key, reverse=reverse_flag)
             best_cand = sorted_cands[0] if sorted_cands else candidates[0]
             
@@ -755,6 +786,22 @@ class IntelligentRoutingEngine:
             cost_val = best_cand.get("expected_cost", best_cand.get("cost", 750.0))
             cost_str = f"${cost_val:,.2f}"
             conf_str = f"{best_cand.get('confidence_pct', 95.0)}%"
+            dist_miles = round(best_cand.get("distance", best_cand.get("distance_km", 450.0) * 0.621371), 1)
+            carbon_kg = round(best_cand.get("carbon_kg", 180.0), 1)
+
+            # Compute goal-specific score (0-100)
+            if goal_name == "Cheapest":
+                goal_score = round(max(50.0, 100.0 - (cost_val / 40.0)), 1)
+            elif goal_name == "Fastest":
+                goal_score = round(max(50.0, 100.0 - (days * 18.0)), 1)
+            elif goal_name == "Lowest Risk":
+                goal_score = round(max(50.0, 100.0 - (r_score * 2.2)), 1)
+            elif goal_name == "Lowest Carbon":
+                goal_score = round(max(50.0, 100.0 - (carbon_kg / 4.5)), 1)
+            elif goal_name == "Highest SLA":
+                goal_score = round(best_cand.get("predicted_sla_pct", 96.0), 1)
+            else:
+                goal_score = round(best_cand.get("overall_score", 90.0), 1)
 
             scenarios.append({
                 "goal": goal_name,
@@ -764,11 +811,16 @@ class IntelligentRoutingEngine:
                 "eta": f"{hours} hrs",
                 "risk": risk_lvl,
                 "confidence": conf_str,
-                "score": round(best_cand.get("overall_score", 90.0), 1)
+                "score": goal_score,
+                "distance": f"{dist_miles} mi",
+                "carbon": f"{carbon_kg} kg CO2e",
+                "recommendation": rec_func(best_cand)
             })
 
         return {
             "status": "success",
+            "source": base_params.get("source") or base_params.get("origin") or "HUB-SIN",
+            "destination": base_params.get("destination") or base_params.get("dest") or "Bangalore",
             "scenarios": scenarios
         }
 

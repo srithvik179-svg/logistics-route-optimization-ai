@@ -74,7 +74,21 @@
             let cardsHtml = "";
             scenarios.forEach(sc => {
                 const scoreNum   = typeof sc.score === "number" ? sc.score : parseFloat(sc.score) || 90;
-                const scoreColor = scoreNum >= 95 ? "#34d399" : scoreNum >= 88 ? "#facc15" : "#f87171";
+                const scoreColor = scoreNum >= 95 ? "#34d399" : scoreNum >= 80 ? "#facc15" : "#f87171";
+                
+                const extraDetails = (sc.distance || sc.carbon) ? `
+                    <div style="display:flex; justify-content:space-between; font-size:10px; color:#a1a1aa; margin-top:2px;">
+                        <span><i class="fa-solid fa-route" style="color:#60a5fa;"></i> ${sc.distance || '—'}</span>
+                        <span><i class="fa-solid fa-leaf" style="color:#34d399;"></i> ${sc.carbon || '—'}</span>
+                    </div>
+                ` : '';
+
+                const recNote = sc.recommendation ? `
+                    <div style="font-size:10px; color:#c084fc; font-style:italic; margin-top:4px; line-height:1.3;">
+                        <i class="fa-solid fa-circle-info"></i> ${sc.recommendation}
+                    </div>
+                ` : '';
+
                 cardsHtml += `
                     <div style="background:#18181b; border:1px solid #27272a; border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:8px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -87,12 +101,14 @@
                         </div>
                         <div style="font-size:11px; font-weight:bold; color:#fff;">${sc.route_name}</div>
                         <div style="font-size:10px; color:#a1a1aa;">Path: ${sc.path_str}</div>
+                        ${extraDetails}
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; font-size:10px; margin-top:4px;">
                             <span>Cost: <strong style="color:#facc15;">${sc.cost}</strong></span>
                             <span>ETA: <strong style="color:#34d399;">${sc.eta}</strong></span>
                             <span>Risk: <strong style="color:#60a5fa;">${sc.risk}</strong></span>
                             <span>Confidence: <strong style="color:#e4e4e7;">${sc.confidence}</strong></span>
                         </div>
+                        ${recNote}
                     </div>
                 `;
             });
