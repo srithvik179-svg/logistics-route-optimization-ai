@@ -1,43 +1,54 @@
-name: RoutePilot AI CI/CD Pipeline
+name: RoutePilot AI – CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
-  test-and-build:
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest httpx python-multipart
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest httpx python-multipart
 
-    - name: Run Production Verification Suite
-      run: |
-        PYTHONPATH=. python tests/test_route_analysis.py
-        PYTHONPATH=. python tests/test_command_center_3d.py
-        PYTHONPATH=. python tests/test_circular_supply_chain.py
+      - name: Run test suite
+        run: |
+          PYTHONPATH=. python tests/test_route_analysis.py
+          PYTHONPATH=. python tests/test_command_center_3d.py
+          PYTHONPATH=. python tests/test_circular_supply_chain.py
 
-    - name: Build Docker Image
-      run: |
-        docker build -t routepilot-ai:latest .
+  build:
+    name: Docker Build & Health Check
+    runs-on: ubuntu-latest
+    needs: test
 
-    - name: Validate Container Health
-      run: |
-        docker run -d --name test-app -p 8000:8000 routepilot-ai:latest
-        sleep 5
-        curl -f http://localhost:8000/api/v1/monitoring/health-status || exit 1
-        docker stop test-app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t routepilot-ai:latest .
+
+      - name: Validate container health
+        run: |
+          docker run -d --name routepilot-test -p 8000:8000 routepilot-ai:latest
+          sleep 8
+          curl --retry 3 --retry-delay 2 -f http://localhost:8000/api/v1/monitoring/health-status
+          docker stop routepilot-test
+          docker rm routepilot-test
