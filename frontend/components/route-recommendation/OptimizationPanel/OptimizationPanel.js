@@ -1,5 +1,22 @@
 (function() {
     const OptimizationPanel = {
+        getFormInputs() {
+            const source = document.getElementById("route-source-hub")?.value || "HUB-SIN";
+            const dest = document.getElementById("route-dest-hub")?.value || "Bangalore";
+            const part_number = document.getElementById("route-part-num")?.value || "PART-SERVER-BLADE";
+            const quantity = parseInt(document.getElementById("route-quantity")?.value) || 5;
+            const shipment_type = document.getElementById("route-shipment-type")?.value || "Forward Logistics";
+            const priority = document.getElementById("route-priority")?.value || "High Priority";
+
+            const constraints = [];
+            if (document.getElementById("chk-fragile")?.checked) constraints.push("Fragile");
+            if (document.getElementById("chk-hazardous")?.checked) constraints.push("Hazardous");
+            if (document.getElementById("chk-express")?.checked) constraints.push("Express");
+            if (document.getElementById("chk-temp")?.checked) constraints.push("Temperature Sensitive");
+
+            return { source, dest, part_number, quantity, shipment_type, priority, constraints };
+        },
+
         init(containerId, onGenerateCallback) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -79,30 +96,18 @@
             `;
 
             document.getElementById("btn-generate-recommendations").addEventListener("click", () => {
-                const source = document.getElementById("route-source-hub").value;
-                const dest = document.getElementById("route-dest-hub").value;
-                const part_number = document.getElementById("route-part-num").value;
-                const quantity = parseInt(document.getElementById("route-quantity").value) || 1;
-                const shipment_type = document.getElementById("route-shipment-type").value;
-                const priority = document.getElementById("route-priority").value;
-
-                const constraints = [];
-                if (document.getElementById("chk-fragile").checked) constraints.push("Fragile");
-                if (document.getElementById("chk-hazardous").checked) constraints.push("Hazardous");
-                if (document.getElementById("chk-express").checked) constraints.push("Express");
-                if (document.getElementById("chk-temp").checked) constraints.push("Temperature Sensitive");
-
-                if (!source || !dest) {
+                const inputs = OptimizationPanel.getFormInputs();
+                if (!inputs.source || !inputs.dest) {
                     alert("Please select both origin and destination.");
                     return;
                 }
-                if (source === dest) {
+                if (inputs.source === inputs.dest) {
                     alert("Origin and destination must be different.");
                     return;
                 }
 
                 if (onGenerateCallback) {
-                    onGenerateCallback({ source, dest, part_number, quantity, shipment_type, priority, constraints });
+                    onGenerateCallback(inputs);
                 }
             });
 
