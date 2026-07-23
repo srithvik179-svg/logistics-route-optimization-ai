@@ -208,6 +208,11 @@ function initNavigation() {
                 if (typeof window.loadGeospatialWorkspace === "function") {
                     window.loadGeospatialWorkspace();
                 }
+            } else if (targetId === "innovation-section") {
+                headerTitle.textContent = "🏆 Innovation Showcase & Competitive Differentiation";
+                if (typeof window.InnovationShowcase !== "undefined" && typeof window.InnovationShowcase.render === "function") {
+                    window.InnovationShowcase.render("innovation-showcase-container");
+                }
             } else if (targetId === "copilot-section") {
                 headerTitle.textContent = "AI Logistics Copilot Assistant";
                 if (typeof window.loadCopilotWorkspace === "function") {

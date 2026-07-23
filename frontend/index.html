@@ -133,6 +133,8 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <!-- 🎯 Demo Mode (Phase 66) -->
     <link rel="stylesheet" href="/static/css/demo_mode.css">
+    <!-- 🏆 Innovation Showcase (Phase 71) -->
+    <link rel="stylesheet" href="/static/css/innovation_showcase.css">
 </head>
 <body>
     <div class="app-container">
@@ -283,6 +285,13 @@
                         <a href="#" class="nav-link" data-target="admin-section" id="nav-admin">
                             <i class="fa-solid fa-screwdriver-wrench"></i>
                             <span>Admin Center</span>
+                        </a>
+                    </li>
+                    <!-- 🏆 Innovation Showcase – Phase 71 -->
+                    <li>
+                        <a href="#" class="nav-link" data-target="innovation-section" id="nav-innovation">
+                            <i class="fa-solid fa-trophy text-warning"></i>
+                            <span>Innovation Showcase</span>
                         </a>
                     </li>
                     <!-- 🎯 Demo Mode – Phase 66 -->
@@ -3726,6 +3735,11 @@
                     </div>
                 </section>
 
+                <!-- 🏆 INNOVATION SHOWCASE -->
+                <section class="viewport-section" id="innovation-section">
+                    <div id="innovation-showcase-container"></div>
+                </section>
+
                 <!-- ENTERPRISE AI LOGISTICS COPILOT -->
                 <section class="viewport-section" id="copilot-section">
                     <div class="copilot-workspace-layout fade-in-slide-up">
@@ -4169,6 +4183,7 @@
     <script src="/static/js/ui_enhancements.js"></script>
     <script src="/static/js/command_center_3d.js"></script>
     <script src="/static/js/circular_supply_chain.js"></script>
+    <script src="/static/js/innovation_showcase.js"></script>
     <script src="/static/js/app.js"></script>
     <!-- 🎯 Demo Mode Engine – Phase 66 (must load after app.js) -->
     <script src="/static/js/demo_mode.js"></script>

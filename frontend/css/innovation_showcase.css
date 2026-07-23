@@ -1,0 +1,119 @@
+/* innovation_showcase.css – Phase 71 Innovation Showcase Styling */
+
+.innovation-hero-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 12px;
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.innovation-timeline-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin: var(--space-4) 0;
+    padding: var(--space-3) var(--space-2);
+}
+
+.innovation-timeline-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #3f3f46 0%, #3b82f6 50%, #10b981 100%);
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.timeline-step {
+    position: relative;
+    z-index: 2;
+    background: #18181b;
+    border: 2px solid #3f3f46;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.timeline-step.active {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    transform: scale(1.15);
+}
+
+.timeline-step.completed {
+    border-color: #10b981;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.timeline-step-label {
+    position: absolute;
+    top: 56px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.comparison-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.comparison-matrix-table th {
+    background: rgba(24, 24, 27, 0.8);
+    color: var(--text-muted);
+    padding: 10px 14px;
+    text-transform: uppercase;
+    font-size: 10px;
+    border-bottom: 2px solid rgba(63, 63, 70, 0.6);
+}
+
+.comparison-matrix-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(63, 63, 70, 0.3);
+    vertical-align: top;
+}
+
+.comparison-matrix-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.highlight-card {
+    background: rgba(24, 24, 27, 0.6);
+    border: 1px solid rgba(63, 63, 70, 0.4);
+    border-radius: 8px;
+    padding: 14px;
+    transition: all 0.25s ease;
+}
+
+.highlight-card:hover {
+    border-color: rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.alignment-card {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+}
