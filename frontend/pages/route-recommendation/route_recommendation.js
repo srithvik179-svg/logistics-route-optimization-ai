@@ -263,10 +263,17 @@
 
         let rawRes;
         try {
+            const reqBody = {
+                ...inputs,
+                source: inputs.source || inputs.origin,
+                origin: inputs.source || inputs.origin,
+                dest: inputs.dest || inputs.destination,
+                destination: inputs.dest || inputs.destination
+            };
             rawRes = await apiFetch("/api/intelligent-routing/recommend", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(inputs)
+                body: JSON.stringify(reqBody)
             });
         } catch (err) {
             console.warn("[RouteRecommendation] Primary API error, using resilient fallback recommendation:", err);

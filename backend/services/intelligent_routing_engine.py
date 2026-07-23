@@ -21,8 +21,8 @@ class IntelligentRoutingEngine:
         part_number = params.get("part_number") or "PART-SERVER-BLADE"
         quantity = int(params.get("quantity") or 5)
         priority = params.get("priority") or "High Priority"
-        dest_city = params.get("destination") or "Bangalore"
-        origin_city = params.get("source") or "HUB-SIN"
+        dest_city = params.get("destination") or params.get("dest") or "Bangalore"
+        origin_city = params.get("source") or params.get("origin") or "HUB-SIN"
         shipment_type = params.get("shipment_type") or "Forward Logistics"
         delivery_date = params.get("delivery_date") or (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d")
         partner = params.get("partner") or "Any Logistics Partner"
@@ -168,8 +168,8 @@ class IntelligentRoutingEngine:
                                     df_tpr: pd.DataFrame, params: Dict[str, Any], 
                                     decision_tree: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generates dynamic, input-sensitive candidate route paths based on user inputs."""
-        orig = str(params.get("source") or "HUB-SIN").strip()
-        dest = str(params.get("destination") or "Bangalore").strip()
+        orig = str(params.get("source") or params.get("origin") or "HUB-SIN").strip()
+        dest = str(params.get("destination") or params.get("dest") or "Bangalore").strip()
         quantity = int(params.get("quantity") or 5)
         priority = str(params.get("priority") or "High Priority")
         shipment_type = str(params.get("shipment_type") or "Forward Logistics")
