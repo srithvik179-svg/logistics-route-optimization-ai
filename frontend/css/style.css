@@ -88,6 +88,27 @@ body {
 
 .sidebar-nav {
     flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 1;
+    min-height: 0;        /* critical for flex scroll to work */
+    scroll-behavior: smooth;
+    padding-bottom: 0.5rem;
+}
+
+/* Thin custom scrollbar for sidebar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(245, 158, 11, 0.3);
+    border-radius: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 158, 11, 0.6);
 }
 
 .sidebar-nav ul {
