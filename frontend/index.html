@@ -131,6 +131,8 @@
     <!-- Three.js 3D WebGL Engine CDNs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- 🎯 Demo Mode (Phase 66) -->
+    <link rel="stylesheet" href="/static/css/demo_mode.css">
 </head>
 <body>
     <div class="app-container">
@@ -281,6 +283,14 @@
                         <a href="#" class="nav-link" data-target="admin-section" id="nav-admin">
                             <i class="fa-solid fa-screwdriver-wrench"></i>
                             <span>Admin Center</span>
+                        </a>
+                    </li>
+                    <!-- 🎯 Demo Mode – Phase 66 -->
+                    <li style="margin-top: 0.5rem; border-top: 1px solid rgba(245,158,11,0.15); padding-top: 0.5rem;">
+                        <a href="#" class="nav-link" data-target="demo-section" id="nav-demo">
+                            <i class="fa-solid fa-bullseye"></i>
+                            <span>Demo Mode</span>
+                            <span class="demo-nav-badge">LIVE</span>
                         </a>
                     </li>
                 </ul>
@@ -3111,6 +3121,125 @@
                     </div>
                 </section>
                 
+                <!-- 🎯 DEMO MODE SECTION – Phase 66 (Completely independent enterprise module) -->
+                <section class="viewport-section" id="demo-section">
+
+                    <!-- Hero Banner -->
+                    <div class="demo-hero">
+                        <div class="demo-hero-badge">
+                            <i class="fa-solid fa-bullseye"></i>
+                            Judge Presentation Mode
+                        </div>
+                        <h1>🎯 RoutePilot AI – Demo Mode</h1>
+                        <p class="demo-hero-subtitle">
+                            Auto-guided enterprise presentation. Walks judges through every major AI capability in a logical business story.
+                        </p>
+
+                        <!-- Start Button -->
+                        <button id="demo-start-btn">
+                            <i class="fa-solid fa-play"></i> ▶️ Start Full Demo
+                        </button>
+
+                        <!-- Runtime Controls (hidden until demo starts) -->
+                        <div class="demo-controls-row">
+                            <button id="demo-pause-btn" class="demo-ctrl-btn demo-ctrl-pause" style="display:none;">
+                                <i class="fa-solid fa-pause"></i> Pause
+                            </button>
+                            <button id="demo-prev-btn" class="demo-ctrl-btn demo-ctrl-prev" style="display:none;">
+                                <i class="fa-solid fa-chevron-left"></i> Previous
+                            </button>
+                            <button id="demo-next-btn" class="demo-ctrl-btn demo-ctrl-next" style="display:none;">
+                                Next <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button id="demo-restart-btn" class="demo-ctrl-btn demo-ctrl-restart" style="display:none;">
+                                <i class="fa-solid fa-rotate-right"></i> Restart
+                            </button>
+                            <button id="demo-exit-btn" class="demo-ctrl-btn demo-ctrl-exit" style="display:none;">
+                                <i class="fa-solid fa-xmark"></i> Exit Demo
+                            </button>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="demo-status-row">
+                            <span class="demo-status-dot demo-status-idle" id="demo-status-dot"></span>
+                            <span id="demo-status-text">Ready</span>
+                        </div>
+
+                        <!-- Data mode toggle -->
+                        <div class="demo-data-toggle-row">
+                            <label for="demo-data-mode-toggle" style="cursor:pointer;">📡 Live Data</label>
+                            <input type="checkbox" id="demo-data-mode-toggle" />
+                            <span id="demo-data-mode-label">📡 Live Data</span>
+                            <span style="color:#334155; margin: 0 0.2rem;">·</span>
+                            <button id="demo-fullscreen-btn">
+                                <i class="fa-solid fa-expand"></i> Enter Fullscreen
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Live Demo Progress Strip -->
+                    <div class="demo-live-progress-strip">
+                        <div class="demo-progress-meta">
+                            <span id="demo-live-step-label">🎯 Demo Mode – Ready</span>
+                            <span id="demo-step-counter">1 / 8</span>
+                        </div>
+                        <div class="demo-progress-track">
+                            <div id="demo-live-progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Demo Flow Step Chips (quick-jump) -->
+                    <div class="demo-steps-section">
+                        <h3>🗺️ Demo Flow — Click to Preview Any Module</h3>
+                        <div class="demo-step-chips">
+                            <span class="demo-step-chip" data-step="0">📊 Executive Dashboard</span>
+                            <span class="demo-step-chip" data-step="1">🛣️ Route Intelligence</span>
+                            <span class="demo-step-chip" data-step="2">💰 Cost Optimization</span>
+                            <span class="demo-step-chip" data-step="3">↩️ Reverse Logistics</span>
+                            <span class="demo-step-chip" data-step="4">♻️ AI Circular Supply Chain</span>
+                            <span class="demo-step-chip" data-step="5">🤖 AI Recommendation Engine</span>
+                            <span class="demo-step-chip" data-step="6">🌐 3D AI Command Center</span>
+                            <span class="demo-step-chip" data-step="7">🏆 Business Impact Summary</span>
+                        </div>
+                    </div>
+
+                    <!-- Keyboard Shortcuts Panel -->
+                    <div class="demo-shortcuts-panel">
+                        <h3>⌨️ Keyboard Shortcuts</h3>
+                        <div class="demo-shortcuts-grid">
+                            <div class="demo-shortcut-item">
+                                <span class="demo-shortcut-key">Space</span>
+                                <span>Pause / Resume</span>
+                            </div>
+                            <div class="demo-shortcut-item">
+                                <span class="demo-shortcut-key">→</span>
+                                <span>Next Module</span>
+                            </div>
+                            <div class="demo-shortcut-item">
+                                <span class="demo-shortcut-key">←</span>
+                                <span>Previous Module</span>
+                            </div>
+                            <div class="demo-shortcut-item">
+                                <span class="demo-shortcut-key">R</span>
+                                <span>Restart Demo</span>
+                            </div>
+                            <div class="demo-shortcut-item">
+                                <span class="demo-shortcut-key">Esc</span>
+                                <span>Exit Demo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Executive Summary Screen -->
+                    <div class="demo-summary-section">
+                        <div class="demo-summary-section-title">🏆 Executive Business Impact Summary</div>
+                        <div id="demo-summary-screen">
+                            <!-- Rendered by demo_mode.js -->
+                        </div>
+                    </div>
+
+                </section>
+
                 <!-- AI ROUTE RECOMMENDATION SECTION -->
                 <section class="viewport-section" id="recommendation-section">
                     
@@ -4041,5 +4170,7 @@
     <script src="/static/js/command_center_3d.js"></script>
     <script src="/static/js/circular_supply_chain.js"></script>
     <script src="/static/js/app.js"></script>
+    <!-- 🎯 Demo Mode Engine – Phase 66 (must load after app.js) -->
+    <script src="/static/js/demo_mode.js"></script>
 </body>
 </html>
