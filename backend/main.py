@@ -967,7 +967,7 @@ def run_cost_simulation(payload: Dict[str, Any] = None):
         tpr_sheet = "TPR_Master" if repository.sheet_exists("TPR_Master") else "Repair_Center_Master"
         df_tpr = repository._processed_sheets.get(tpr_sheet)
         
-        data = CostOptimizationEngine.run_what_if_simulation(df_tx, df_hub, df_tpr, scenarios)
+        data = CostOptimizationEngine.run_what_if_simulation(df_tx, df_hub, df_tpr, scenarios, filters)
         return data
     except Exception as e:
         logger.error(f"Cost Simulation API Error: Failed running simulation: {str(e)}")

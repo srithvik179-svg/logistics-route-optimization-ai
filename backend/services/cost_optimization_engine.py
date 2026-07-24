@@ -223,25 +223,52 @@ class CostOptimizationEngine:
 
     @classmethod
     def run_what_if_simulation(cls, df_tx: pd.DataFrame, df_hub: pd.DataFrame, 
-                               df_tpr: pd.DataFrame, scenarios: Dict[str, Any]) -> Dict[str, Any]:
-        """Simulates 10 operational What-If levers and returns impact comparison."""
+                               df_tpr: pd.DataFrame, scenarios: Dict[str, Any],
+                               filters: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Simulates 10 operational What-If levers and returns impact comparison with dataset filters applied."""
         logger.info("Scenario Simulated: Running 10-lever What-If cost simulation.")
+        from backend.services.bi_service import BIService
+
+        # Convert list to DataFrame if needed
+        if df_tx is not None and isinstance(df_tx, list):
+            df_tx = pd.DataFrame(df_tx)
+
+        # Apply global workspace filters if provided
+        if filters and isinstance(filters, dict) and isinstance(df_tx, pd.DataFrame) and not df_tx.empty:
+            df_filtered = BIService.apply_filters(df_tx, filters)
+            if isinstance(df_filtered, pd.DataFrame) and not df_filtered.empty:
+                df_tx = df_filtered
 
         # Volume growth multiplier
         vol_factor = float(scenarios.get("volume_multiplier") or scenarios.get("volume_factor") or scenarios.get("vol_factor") or 1.0)
 
-        # Baseline values
-        raw_base_cost = float(df_tx["Shipment_Cost"].sum()) if len(df_tx) > 0 and "Shipment_Cost" in df_tx.columns else 2828333.75
+        # Baseline values from filtered dataset
+        if len(df_tx) > 0 and "Shipment_Cost" in df_tx.columns:
+            raw_base_cost = float(df_tx["Shipment_Cost"].sum())
+        else:
+            raw_base_cost = 2828333.75
+
         base_cost = round(raw_base_cost * vol_factor, 2)
-        base_transit = 2.4
-        base_sla = 92.5
-        base_risk = 18.0
+
+        if len(df_tx) > 0 and "Actual_Transit_Days" in df_tx.columns:
+            base_transit = round(float(df_tx["Actual_Transit_Days"].mean()), 1)
+        else:
+            base_transit = 2.4
+
+        if len(df_tx) > 0 and "SLA_Status" in df_tx.columns:
+            met_count = (df_tx["SLA_Status"].astype(str).str.upper() == "MET").sum()
+            base_sla = round((met_count / len(df_tx)) * 100.0, 1)
+        else:
+            base_sla = 92.5
+
+        base_risk = round(max(5.0, min(50.0, 100.0 - base_sla)), 1)
 
         # Calculate impact multiplier based on active scenario levers
         cost_mult = 1.0
         transit_mult = 1.0
         sla_gain = 0.0
 
+        # Cost Savings Levers
         if scenarios.get("add_inventory"):
             cost_mult -= 0.05
             sla_gain += 3.5
@@ -260,19 +287,29 @@ class CostOptimizationEngine:
             cost_mult -= 0.08
             sla_gain += 1.5
 
-        sim_cost = round(base_cost * max(0.50, cost_mult), 2)
-        sim_transit = round(max(1.0, base_transit * transit_mult), 1)
-        sim_sla = round(min(99.5, base_sla + sla_gain), 1)
-        savings = round(base_cost - sim_cost, 2)
-        roi = round((savings / (base_cost * 0.08 + 1.0)) * 100.0, 1)
+        # Cost Increase / Surge Levers (turns metrics RED / Cost Overrun)
+        if scenarios.get("fuel_surcharge") or scenarios.get("fuel_spike"):
+            cost_mult += 0.18
+            sla_gain -= 1.5
+        if scenarios.get("port_congestion"):
+            cost_mult += 0.12
+            transit_mult += 0.25
+            sla_gain -= 4.0
+        if scenarios.get("expedited_air"):
+            cost_mult += 0.25
+            transit_mult -= 0.30
+            sla_gain += 3.0
 
-        logger.info(f"ROI Calculated: Simulated ROI={roi}% with annual savings=${savings:,.2f}")
-
+        sim_cost = round(base_cost * max(0.40, cost_mult), 2)
+        sim_transit = round(max(0.8, base_transit * max(0.3, transit_mult)), 1)
+        sim_sla = round(max(10.0, min(99.5, base_sla + sla_gain)), 1)
+        
         cost_diff = round(sim_cost - base_cost, 2)
-        cost_change_pct = round(((sim_cost - base_cost) / base_cost) * 100.0, 1)
+        cost_change_pct = round(((sim_cost - base_cost) / base_cost) * 100.0, 1) if base_cost > 0 else 0.0
         annual_savings = round(max(0.0, base_cost - sim_cost), 2)
         monthly_savings = round(annual_savings / 12.0, 2)
         impl_cost = round(base_cost * 0.08, 2)
+        roi = round((annual_savings / (impl_cost + 1.0)) * 100.0, 1) if annual_savings > 0 else 0.0
 
         return {
             "status": "success",

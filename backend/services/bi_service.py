@@ -70,7 +70,7 @@ class BIService:
             if not sub.empty: df = sub
 
         # 2. Hub (Origin or Destination) -> maps to Hub_Location_Master.Hub_Name or Hub_ID
-        hub = active_filters.get("hub")
+        hub = active_filters.get("hub") or active_filters.get("hub_location") or active_filters.get("origin_hub")
         if hub:
             df_hub = repository._processed_sheets.get("Hub_Location_Master")
             hub_ids = [hub]

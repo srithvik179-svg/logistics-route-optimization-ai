@@ -24,12 +24,14 @@
                         <div class="form-group">
                             <label class="form-label" style="font-size:11px;">10 Operational Levers</label>
                             <div style="display:grid; grid-template-columns:1fr; gap:6px; font-size:10px; color:#d4d4d8; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px;">
-                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sim-add-inv" checked> Additional Inventory Stocking (+15%)</label>
-                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sim-new-sat"> Open Pune Satellite Hub</label>
-                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sim-tpr-reroute" checked> Reroute Repair Flow to TPR-HYD</label>
-                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sim-partner-shift"> Shift Freight to GroundLink Partner</label>
-                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sim-cap-expand" checked> Expand Hub Capacity (+25%)</label>
-                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sim-intl-restrict"> Restrict Cross-Border Air Sourcing</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" class="sim-cb-lever" id="sim-add-inv" checked> Additional Inventory Stocking (+15%)</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" class="sim-cb-lever" id="sim-new-sat"> Open Pune Satellite Hub</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" class="sim-cb-lever" id="sim-tpr-reroute" checked> Reroute Repair Flow to TPR-HYD</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" class="sim-cb-lever" id="sim-partner-shift"> Shift Freight to GroundLink Partner</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" class="sim-cb-lever" id="sim-cap-expand" checked> Expand Hub Capacity (+25%)</label>
+                                <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" class="sim-cb-lever" id="sim-intl-restrict"> Restrict Cross-Border Air Sourcing</label>
+                                <label style="display:flex; align-items:center; gap:6px; color:#f87171;"><input type="checkbox" class="sim-cb-lever" id="sim-fuel-surcharge"> Fuel Price Surcharge (+18% Cost)</label>
+                                <label style="display:flex; align-items:center; gap:6px; color:#fbbf24;"><input type="checkbox" class="sim-cb-lever" id="sim-port-congestion"> Regional Port Congestion (+25% Transit)</label>
                             </div>
                         </div>
 
@@ -45,20 +47,16 @@
                 </div>
             `;
 
-            const input = document.getElementById("sim-vol-factor");
-            const label = document.getElementById("lbl-vol-factor");
-            if (input && label) {
-                input.addEventListener("input", (e) => { label.textContent = e.target.value; });
-            }
-
-            document.getElementById("btn-run-simulation").addEventListener("click", () => {
-                const vol = parseFloat(document.getElementById("sim-vol-factor").value);
-                const addInv = document.getElementById("sim-add-inv").checked;
-                const newSat = document.getElementById("sim-new-sat").checked;
-                const tprReroute = document.getElementById("sim-tpr-reroute").checked;
-                const partnerShift = document.getElementById("sim-partner-shift").checked;
-                const capExpand = document.getElementById("sim-cap-expand").checked;
-                const intlRestrict = document.getElementById("sim-intl-restrict").checked;
+            const triggerSim = () => {
+                const vol = parseFloat(document.getElementById("sim-vol-factor")?.value || 1.0);
+                const addInv = document.getElementById("sim-add-inv")?.checked || false;
+                const newSat = document.getElementById("sim-new-sat")?.checked || false;
+                const tprReroute = document.getElementById("sim-tpr-reroute")?.checked || false;
+                const partnerShift = document.getElementById("sim-partner-shift")?.checked || false;
+                const capExpand = document.getElementById("sim-cap-expand")?.checked || false;
+                const intlRestrict = document.getElementById("sim-intl-restrict")?.checked || false;
+                const fuelSurcharge = document.getElementById("sim-fuel-surcharge")?.checked || false;
+                const portCongestion = document.getElementById("sim-port-congestion")?.checked || false;
 
                 if (onSimulateCallback) {
                     onSimulateCallback({
@@ -68,10 +66,27 @@
                         tpr_rerouting: tprReroute,
                         partner_shift: partnerShift,
                         capacity_expansion: capExpand,
-                        intl_restricted: intlRestrict
+                        intl_restricted: intlRestrict,
+                        fuel_surcharge: fuelSurcharge,
+                        port_congestion: portCongestion
                     });
                 }
+            };
+
+            const input = document.getElementById("sim-vol-factor");
+            const label = document.getElementById("lbl-vol-factor");
+            if (input && label) {
+                input.addEventListener("input", (e) => {
+                    label.textContent = e.target.value;
+                    triggerSim();
+                });
+            }
+
+            container.querySelectorAll(".sim-cb-lever").forEach(cb => {
+                cb.addEventListener("change", triggerSim);
             });
+
+            document.getElementById("btn-run-simulation").addEventListener("click", triggerSim);
 
             document.getElementById("btn-export-pdf").addEventListener("click", () => {
                 if (typeof window.exportSimulationPDF === "function") {

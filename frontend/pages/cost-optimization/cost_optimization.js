@@ -19,6 +19,12 @@
         // 2. Initialize SimulationHistory
         window.SimulationHistory.init("sim-history-panel", (scenarios) => runSimulation(scenarios));
 
+        // 3. Listen for Global Workspace Filter changes
+        window.addEventListener("globalFiltersChanged", () => {
+            console.log("[CostOptimization] Global filters updated. Re-running simulation...");
+            runSimulation(activeScenarios);
+        });
+
         // 3. Populate Closed Lanes selector choices from network graph
         try {
             const statusData = await apiFetch("/api/dataset/status");
