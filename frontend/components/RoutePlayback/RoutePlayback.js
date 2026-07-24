@@ -53,28 +53,29 @@
         setupRoute(latlngs, routeLabel = "Shipment") {
             this.reset();
             _segments = latlngs;
-            document.getElementById("playback-status-text").textContent = `Ready: ${routeLabel}`;
+            const statusText = document.getElementById("playback-status-text") || document.getElementById("pb-step-info");
+            if (statusText) statusText.textContent = `Ready: ${routeLabel}`;
         },
 
         togglePlay() {
-            if (_segments.length === 0) {
+            if (!_segments || _segments.length === 0) {
                 const statusText = document.getElementById("playback-status-text") || document.getElementById("pb-step-info");
                 if (statusText) statusText.textContent = "Select a route flow or corridor on the map";
                 return;
             }
 
-            const playIcon = document.getElementById("btn-playback-play-icon");
+            const playIcon = document.getElementById("btn-playback-play-icon") || document.getElementById("pb-play-icon");
             if (_isPlaying) {
                 // Pause
                 _isPlaying = false;
-                playIcon.className = "fa-solid fa-play";
+                if (playIcon) playIcon.className = "fa-solid fa-play";
                 clearInterval(_playbackInterval);
             } else {
                 // Play
                 _isPlaying = true;
-                playIcon.className = "fa-solid fa-pause";
+                if (playIcon) playIcon.className = "fa-solid fa-pause";
                 
-                const stepDuration = 1000 / _speedMultiplier;
+                const stepDuration = Math.max(25, Math.round(1000 / _speedMultiplier));
                 _playbackInterval = setInterval(() => {
                     this.stepForward();
                 }, stepDuration);
@@ -114,23 +115,27 @@
 
             // Update Progress bar
             const pct = Math.round((_currentSegmentIndex / (_segments.length - 1)) * 100);
-            document.getElementById("playback-progress").value = pct;
-            document.getElementById("playback-time-text").textContent = `${pct}%`;
+            const progress = document.getElementById("playback-progress");
+            if (progress) progress.value = pct;
+            const timeText = document.getElementById("playback-time-text");
+            if (timeText) timeText.textContent = `${pct}%`;
         },
 
         seek(val) {
-            if (_segments.length === 0) return;
+            if (!_segments || _segments.length === 0) return;
             const pct = parseInt(val);
             _currentSegmentIndex = Math.round((pct / 100) * (_segments.length - 1));
             this.updateMarkerPosition();
         },
 
         setSpeed(val) {
-            _speedMultiplier = parseInt(val);
+            _speedMultiplier = parseInt(val) || 1;
             if (_isPlaying) {
-                // Restart timer with new speed duration
-                this.togglePlay(); // Pause
-                this.togglePlay(); // Play
+                clearInterval(_playbackInterval);
+                const stepDuration = Math.max(25, Math.round(1000 / _speedMultiplier));
+                _playbackInterval = setInterval(() => {
+                    this.stepForward();
+                }, stepDuration);
             }
         },
 

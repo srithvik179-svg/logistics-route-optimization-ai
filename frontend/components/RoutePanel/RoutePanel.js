@@ -76,22 +76,23 @@
         startPlayback() {
             if (!_activeFlow) return;
             
-            // Build temporary segment coordinates along path
-            const startLatLng = [_activeFlow.start_lat || 20.0, _activeFlow.start_lon || 78.0];
-            const endLatLng = [_activeFlow.end_lat || 20.0, _activeFlow.end_lon || 78.0];
+            const startLat = _activeFlow.start_lat || _activeFlow.origin_lat || 20.0;
+            const startLon = _activeFlow.start_lon || _activeFlow.origin_lon || 78.0;
+            const endLat = _activeFlow.end_lat || _activeFlow.dest_lat || 20.0;
+            const endLon = _activeFlow.end_lon || _activeFlow.dest_lon || 78.0;
 
-            // Generate intermediate points for smooth animation
             const latlngs = [];
-            const steps = 15;
+            const steps = 40;
             for (let i = 0; i <= steps; i++) {
                 const ratio = i / steps;
-                const lat = startLatLng[0] + (_activeFlow.end_lat - _activeFlow.start_lat) * ratio;
-                const lon = startLatLng[1] + (_activeFlow.end_lon - _activeFlow.start_lon) * ratio;
+                const lat = startLat + (endLat - startLat) * ratio;
+                const lon = startLon + (endLon - startLon) * ratio;
                 latlngs.push([lat, lon]);
             }
 
             if (window.RoutePlayback) {
-                window.RoutePlayback.setupRoute(latlngs, _activeFlow.corridor || "Custom Corridor");
+                const corridorName = _activeFlow.corridor || `${_activeFlow.origin || 'Origin'} → ${_activeFlow.destination || 'Destination'}`;
+                window.RoutePlayback.setupRoute(latlngs, corridorName);
                 window.RoutePlayback.togglePlay();
             }
         },

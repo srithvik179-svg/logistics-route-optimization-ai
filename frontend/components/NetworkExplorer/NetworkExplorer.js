@@ -201,14 +201,33 @@
                 `);
 
                 polyline.on("click", () => {
+                    const corridorName = flow.corridor || `${originId} → ${destId}`;
                     const normalizedFlow = {
                         origin: originId,
                         destination: destId,
+                        corridor: corridorName,
                         shipment_count: flow.shipment_count,
                         avg_cost: flow.avg_cost,
-                        avg_transit_days: avgTransit
+                        avg_transit_days: avgTransit,
+                        start_lat: startLat,
+                        start_lon: startLon,
+                        end_lat: endLat,
+                        end_lon: endLon
                     };
                     if (window.RoutePanel) window.RoutePanel.show(normalizedFlow);
+
+                    if (window.RoutePlayback) {
+                        const waypoints = [];
+                        const steps = 40;
+                        for (let i = 0; i <= steps; i++) {
+                            const r = i / steps;
+                            waypoints.push([
+                                startLat + (endLat - startLat) * r,
+                                startLon + (endLon - startLon) * r
+                            ]);
+                        }
+                        window.RoutePlayback.setupRoute(waypoints, corridorName);
+                    }
                 });
             });
 
