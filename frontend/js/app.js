@@ -2942,14 +2942,20 @@ function populateMapDropdowns(data) {
     fillSelect("map-filter-hub", data.hubs, "id", "name");
     fillSelect("map-filter-rc", data.repair_centers, "id", "name");
     
-    // Fetch unique categories & partners from active dashboard distributions
+    // Fetch unique categories & partners matching Dell dataset
     const categoriesList = [
-        { name: "Electronics" }, { name: "Mechanical" }, { name: "Cooling" }
+        { name: "Chassis" }, { name: "Compute" }, { name: "Cooling" },
+        { name: "Display" }, { name: "Networking" }, { name: "Peripheral" },
+        { name: "Power" }, { name: "Storage" }
     ];
     fillSelect("map-filter-category", categoriesList, "name");
 
     const partnersList = [
-        { name: "Swift LogiCo" }, { name: "Apex Freight" }, { name: "LoneStar Delivery" }
+        { name: "AirFreight Partners" },
+        { name: "FastTrack Logistics" },
+        { name: "GlobalShip Express" },
+        { name: "GroundLink Network" },
+        { name: "SwiftCargo India" }
     ];
     fillSelect("map-filter-partner", partnersList, "name");
 
