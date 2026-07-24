@@ -95,6 +95,18 @@
                 </div>
             `;
 
+            const triggerAutoEval = () => {
+                const inputs = OptimizationPanel.getFormInputs();
+                if (inputs.source && inputs.dest && inputs.source !== inputs.dest) {
+                    if (onGenerateCallback) onGenerateCallback(inputs);
+                }
+            };
+
+            ["route-source-hub", "route-dest-hub", "route-shipment-type", "route-priority"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener("change", triggerAutoEval);
+            });
+
             document.getElementById("btn-generate-recommendations").addEventListener("click", () => {
                 const inputs = OptimizationPanel.getFormInputs();
                 if (!inputs.source || !inputs.dest) {

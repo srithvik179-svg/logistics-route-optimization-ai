@@ -177,41 +177,75 @@ class IntelligentRoutingEngine:
         if isinstance(constraints, str):
             constraints = [constraints]
 
-        city_to_hub = {
+        # Dynamic hub lookup from Hub_Location_Master dataset
+        if not repository._is_loaded:
+            try:
+                repository.initialize()
+            except Exception:
+                pass
+
+        hub_lookup = {}
+        hub_coords = {}
+        try:
+            hubs_master = repository.get_processed_sheet("Hub_Location_Master")
+            for h in hubs_master:
+                hid = str(h.get("Hub_ID") or "").strip().upper()
+                hname = str(h.get("Hub_Name") or "").strip()
+                city = str(h.get("City") or "").strip()
+                lat = float(h.get("Latitude") or 0.0)
+                lon = float(h.get("Longitude") or 0.0)
+
+                if hid:
+                    hub_lookup[hid.lower()] = hid
+                    hub_coords[hid] = (lat, lon)
+                if hname:
+                    hub_lookup[hname.lower()] = hid
+                if city:
+                    hub_lookup[city.lower()] = hid
+        except Exception:
+            pass
+
+        # Fallback mappings for aliases
+        static_mappings = {
             "singapore": "HUB-SIN", "singapore hub": "HUB-SIN", "hub-sin": "HUB-SIN",
-            "bangalore": "HUB-BLR", "bangalore tech hub": "HUB-BLR", "hub-blr": "HUB-BLR",
-            "mumbai": "HUB-MUM", "mumbai logistics center": "HUB-MUM", "hub-mum": "HUB-MUM",
-            "delhi": "HUB-DEL", "delhi ncr hub": "HUB-DEL", "hub-del": "HUB-DEL",
-            "hyderabad": "HUB-HYD", "hyderabad gateway": "HUB-HYD", "hub-hyd": "HUB-HYD",
-            "chennai": "HUB-CHE", "chennai port terminal": "HUB-CHE", "hub-che": "HUB-CHE",
-            "kolkata": "HUB-KOL", "kolkata eastern hub": "HUB-KOL", "hub-kol": "HUB-KOL",
-            "pune": "HUB-PUN", "pune industrial hub": "HUB-PUN", "hub-pun": "HUB-PUN",
+            "bangalore": "HUB-BLR", "bangalore hub": "HUB-BLR", "bengaluru": "HUB-BLR", "hub-blr": "HUB-BLR",
+            "mumbai": "HUB-MUM", "mumbai hub": "HUB-MUM", "hub-mum": "HUB-MUM",
+            "delhi": "HUB-DEL", "delhi hub": "HUB-DEL", "hub-del": "HUB-DEL",
+            "hyderabad": "HUB-HYD", "hyderabad hub": "HUB-HYD", "hub-hyd": "HUB-HYD",
+            "chennai": "HUB-CHE", "chennai hub": "HUB-CHE", "hub-che": "HUB-CHE",
+            "kolkata": "HUB-KOL", "kolkata satellite": "HUB-KOL", "hub-kol": "HUB-KOL",
+            "pune": "HUB-PUN", "pune satellite": "HUB-PUN", "hub-pun": "HUB-PUN",
             "ahmedabad": "HUB-AHM", "ahmedabad satellite": "HUB-AHM", "hub-ahm": "HUB-AHM",
-            "amsterdam": "HUB-AMS", "amsterdam euro hub": "HUB-AMS", "hub-ams": "HUB-AMS",
-            "dubai": "HUB-DXB", "dubai middle east hub": "HUB-DXB", "hub-dxb": "HUB-DXB",
+            "amsterdam": "HUB-AMS", "amsterdam hub": "HUB-AMS", "hub-ams": "HUB-AMS",
+            "dubai": "HUB-DXB", "dubai hub": "HUB-DXB", "hub-dxb": "HUB-DXB",
             "kuala lumpur": "HUB-KUL", "kuala lumpur hub": "HUB-KUL", "hub-kul": "HUB-KUL"
         }
+        for k, v in static_mappings.items():
+            if k not in hub_lookup:
+                hub_lookup[k] = v
 
-        orig = city_to_hub.get(orig_raw.lower(), orig_raw)
-        dest = city_to_hub.get(dest_raw.lower(), dest_raw)
-
-        # 1. Compute Base Distance (in km) using Hub Coordinates or Haversine
-        hub_coords = {
-            "HUB-DEL": (28.6139, 77.2090), "HUB-BLR": (12.9716, 77.5946),
+        fallback_coords = {
+            "HUB-DEL": (28.7041, 77.1025), "HUB-BLR": (12.9716, 77.5946),
             "HUB-MUM": (19.0760, 72.8777), "HUB-HYD": (17.3850, 78.4867),
             "HUB-CHE": (13.0827, 80.2707), "HUB-KOL": (22.5726, 88.3639),
             "HUB-PUN": (18.5204, 73.8567), "HUB-AHM": (23.0225, 72.5714),
             "HUB-SIN": (1.3521, 103.8198), "HUB-AMS": (52.3676, 4.9041),
             "HUB-DXB": (25.2048, 55.2708), "HUB-KUL": (3.1390, 101.6869)
         }
+        for k, v in fallback_coords.items():
+            if k not in hub_coords:
+                hub_coords[k] = v
 
-        coord_orig = hub_coords.get(orig) or hub_coords.get(city_to_hub.get(orig.lower(), ""))
-        coord_dest = hub_coords.get(dest) or hub_coords.get(city_to_hub.get(dest.lower(), ""))
+        orig = hub_lookup.get(orig_raw.lower(), orig_raw.upper())
+        dest = hub_lookup.get(dest_raw.lower(), dest_raw.upper())
+
+        coord_orig = hub_coords.get(orig)
+        coord_dest = hub_coords.get(dest)
 
         if coord_orig and coord_dest:
             lat1, lon1 = coord_orig
             lat2, lon2 = coord_dest
-            R = 6371.0  # Earth radius in km
+            R = 6371.0
             dlat = math.radians(lat2 - lat1)
             dlon = math.radians(lon2 - lon1)
             a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
