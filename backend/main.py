@@ -2,7 +2,7 @@ import os
 import uvicorn
 import pandas as pd
 import numpy as np
-from fastapi import FastAPI, HTTPException, File, UploadFile, Response
+from fastapi import FastAPI, HTTPException, File, UploadFile, Response, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -908,7 +908,7 @@ def get_corridor_drilldown_details(payload: Dict[str, Any] = None):
 @app.api_route("/api/intelligent-routing/recommend", methods=["GET", "POST"])
 @app.api_route("/api/intelligent-routing/recommend/", methods=["GET", "POST"])
 @app.api_route("/api/route-recommendation/recommend", methods=["GET", "POST"])
-def get_intelligent_route_recommendation(payload: Dict[str, Any] = None):
+def get_intelligent_route_recommendation(payload: Dict[str, Any] = Body(default={})):
     """Evaluates a shipment request using the Dell 4-Step Decision Tree and 10-dimension ranking engine."""
     params = payload if payload else {}
     try:
@@ -920,7 +920,7 @@ def get_intelligent_route_recommendation(payload: Dict[str, Any] = None):
 
 @app.api_route("/api/intelligent-routing/simulate", methods=["GET", "POST"])
 @app.api_route("/api/intelligent-routing/simulate/", methods=["GET", "POST"])
-def simulate_intelligent_route_what_if(payload: Dict[str, Any] = None):
+def simulate_intelligent_route_what_if(payload: Dict[str, Any] = Body(default={})):
     """Simulates What-If scenario parameter overrides for an intelligent shipment route."""
     params = payload if payload else {}
     base_params = params.get("base_params", {})
@@ -934,7 +934,7 @@ def simulate_intelligent_route_what_if(payload: Dict[str, Any] = None):
 
 @app.api_route("/api/intelligent-routing/scenarios", methods=["GET", "POST"])
 @app.api_route("/api/intelligent-routing/scenarios/", methods=["GET", "POST"])
-def get_intelligent_route_scenarios(payload: Dict[str, Any] = None):
+def get_intelligent_route_scenarios(payload: Dict[str, Any] = Body(default={})):
     """Generates a 6-scenario side-by-side comparative analysis across optimization goals."""
     base_params = payload if payload else {}
     try:

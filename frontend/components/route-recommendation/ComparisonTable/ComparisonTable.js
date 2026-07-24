@@ -17,29 +17,31 @@
                 return;
             }
 
+            function toNum(val, fallback = 0) {
+                if (val === undefined || val === null) return fallback;
+                if (typeof val === 'number') return isNaN(val) ? fallback : val;
+                const cleaned = String(val).replace(/[^0-9.]/g, '');
+                const num = parseFloat(cleaned);
+                return isNaN(num) ? fallback : num;
+            }
+
             // Normalize candidates with fallbacks
             candidates.forEach((c, idx) => {
                 if (!c.candidate_id) c.candidate_id = c.id || c.route_id || `cand-${idx + 1}`;
                 if (!c.algorithm) c.algorithm = c.name || c.route_name || "A* Route Optimization";
                 
-                if (c.distance === undefined || c.distance === null || isNaN(c.distance) || c.distance === 0) {
-                    c.distance = c.distance_km ? c.distance_km * 0.621371 : 450.0;
-                }
-                if (c.cost === undefined || c.cost === null || isNaN(c.cost) || c.cost === 0) {
-                    c.cost = c.expected_cost !== undefined ? c.expected_cost : (c.total_cost !== undefined ? c.total_cost : (c.estimated_cost !== undefined ? c.estimated_cost : 850.0));
-                }
-                if (c.transit_time === undefined || c.transit_time === null || isNaN(c.transit_time) || c.transit_time === 0) {
-                    c.transit_time = c.estimated_transit_days !== undefined ? c.estimated_transit_days : (c.estimated_transit_hours ? c.estimated_transit_hours / 24 : 1.2);
-                }
+                c.cost = toNum(c.cost || c.expected_cost || c.total_cost || c.estimated_cost, 850.0);
+                c.distance = toNum(c.distance || (c.distance_km ? c.distance_km * 0.621371 : 0), 450.0);
+                c.transit_time = toNum(c.transit_time || c.estimated_transit_days || (c.estimated_transit_hours ? c.estimated_transit_hours / 24.0 : 0), 1.2);
+                c.risk_score = toNum(c.risk_score, 15.0);
+                c.carbon_kg = toNum(c.carbon_kg, 200.0);
+
                 if (c.confidence_score === undefined || c.confidence_score === null || isNaN(c.confidence_score)) {
-                    if (c.confidence_pct !== undefined) c.confidence_score = c.confidence_pct > 1 ? c.confidence_pct / 100 : c.confidence_pct;
-                    else if (c.confidence !== undefined) c.confidence_score = typeof c.confidence === 'number' ? (c.confidence > 1 ? c.confidence / 100 : c.confidence) : (parseFloat(String(c.confidence).replace(/[^0-9.]/g, '')) / 100 || 0.95);
-                    else if (c.sla_compliance_pct !== undefined) c.confidence_score = c.sla_compliance_pct / 100;
-                    else c.confidence_score = 0.95;
+                    const rawConf = c.confidence_pct || c.confidence || c.sla_compliance_pct || c.predicted_sla_pct;
+                    c.confidence_score = toNum(rawConf, 95.0);
+                    if (c.confidence_score > 1.0) c.confidence_score /= 100.0;
                 }
-                if (c.composite_score === undefined || isNaN(c.composite_score)) {
-                    c.composite_score = c.overall_score || 90.0;
-                }
+                c.composite_score = toNum(c.composite_score || c.overall_score, 90.0);
                 if (!c.path_nodes || !Array.isArray(c.path_nodes)) {
                     c.path_nodes = c.path || (c.path_str ? c.path_str.split(/\s*→\s*|\s*->\s*/) : ["HUB-ORIG", "HUB-DEST"]);
                 }

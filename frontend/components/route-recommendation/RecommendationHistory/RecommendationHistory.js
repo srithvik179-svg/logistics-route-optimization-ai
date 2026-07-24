@@ -79,7 +79,8 @@
 
         getHistory() {
             try {
-                return JSON.parse(localStorage.getItem("dell_fm_recommendation_history") || "[]");
+                const raw = JSON.parse(localStorage.getItem("dell_fm_recommendation_history") || "[]");
+                return raw.filter(item => item && item.cost !== 798.45);
             } catch (e) {
                 return [];
             }
@@ -101,12 +102,15 @@
                 const obj = sourceOrObj;
                 const src = typeof obj.source === 'object' ? (obj.source?.id || obj.source?.name || 'HUB') : (obj.source || 'HUB');
                 const dst = typeof obj.dest === 'object' ? (obj.dest?.id || obj.dest?.name || 'DEST') : (obj.dest || 'DEST');
+                const rawCost = obj.cost || obj.expected_cost || obj.total_cost || obj.estimated_cost;
+                const rawTime = obj.transit_time || obj.estimated_transit_days || (obj.estimated_transit_hours ? obj.estimated_transit_hours / 24.0 : null);
+                
                 entry = {
                     source: src,
                     dest: dst,
-                    cost: parseNum(obj.cost, 798.45),
-                    transit_time: parseNum(obj.transit_time, 1.2),
-                    path_nodes: Array.isArray(obj.path_nodes) ? obj.path_nodes : [src, dst],
+                    cost: parseNum(rawCost, 1250.00),
+                    transit_time: parseNum(rawTime, 1.5),
+                    path_nodes: Array.isArray(obj.path_nodes) ? obj.path_nodes : (obj.path_str ? obj.path_str.split(/\s*→\s*/) : [src, dst]),
                     timestamp: obj.timestamp || obj.date || new Date().toLocaleTimeString()
                 };
             } else {
@@ -115,8 +119,8 @@
                 entry = {
                     source: src,
                     dest: dst,
-                    cost: parseNum(cost, 798.45),
-                    transit_time: parseNum(transit_time, 1.2),
+                    cost: parseNum(cost, 1250.00),
+                    transit_time: parseNum(transit_time, 1.5),
                     path_nodes: Array.isArray(path_nodes) ? path_nodes : [src, dst],
                     timestamp: new Date().toLocaleTimeString()
                 };
