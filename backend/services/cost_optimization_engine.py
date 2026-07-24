@@ -279,6 +279,7 @@ class CostOptimizationEngine:
             "baseline": {
                 "total_cost": base_cost,
                 "transportation_cost": round(base_cost * 0.70, 2),
+                "fuel_cost": round(base_cost * 0.30, 2),
                 "handling_cost": round(base_cost * 0.20, 2),
                 "holding_cost": round(base_cost * 0.10, 2),
                 "avg_transit_days": base_transit,
@@ -289,6 +290,7 @@ class CostOptimizationEngine:
             "simulated": {
                 "total_cost": sim_cost,
                 "transportation_cost": round(sim_cost * 0.70, 2),
+                "fuel_cost": round(sim_cost * 0.30, 2),
                 "handling_cost": round(sim_cost * 0.20, 2),
                 "holding_cost": round(sim_cost * 0.10, 2),
                 "avg_transit_days": sim_transit,

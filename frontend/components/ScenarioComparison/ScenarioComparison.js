@@ -59,9 +59,9 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Fuel Cost</strong></td>
-                                        <td class="text-right">${window.Formatters.safeCurrency(baseline.fuel_cost)}</td>
-                                        <td class="text-right">${window.Formatters.safeCurrency(simulated.fuel_cost)}</td>
-                                        <td class="text-right">${formatDiff(simulated.fuel_cost - baseline.fuel_cost, window.Formatters.safeCurrency, true)}</td>
+                                        <td class="text-right">${window.Formatters.safeCurrency(baseline.fuel_cost ?? (baseline.total_cost ? baseline.total_cost * 0.30 : 0))}</td>
+                                        <td class="text-right">${window.Formatters.safeCurrency(simulated.fuel_cost ?? (simulated.total_cost ? simulated.total_cost * 0.30 : 0))}</td>
+                                        <td class="text-right">${formatDiff((simulated.fuel_cost ?? (simulated.total_cost ? simulated.total_cost * 0.30 : 0)) - (baseline.fuel_cost ?? (baseline.total_cost ? baseline.total_cost * 0.30 : 0)), window.Formatters.safeCurrency, true)}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Average Transit Time</strong></td>
