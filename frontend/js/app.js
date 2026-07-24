@@ -2915,7 +2915,7 @@ window.selectRouteOnMap = function(origin, dest) {
 };
 
 window.navigateToRouteIntelligence = function(origin, dest) {
-    const navItem = document.querySelector('.nav-link[data-target="route-intelligence"]');
+    const navItem = document.querySelector('.nav-link[data-target="routes-section"]') || document.getElementById("nav-routes");
     if (navItem) {
         navItem.click();
     }
