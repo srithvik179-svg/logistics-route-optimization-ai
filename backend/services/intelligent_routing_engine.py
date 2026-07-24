@@ -410,7 +410,7 @@ class IntelligentRoutingEngine:
             "carrier": "EcoTrans Consolidated"
         })
 
-        # Strategy 5: Ant Colony Optimization Multimodal
+        # Strategy 5: Ant Colony Optimization Multimodal (Lowest Carbon)
         trans5 = "HUB-CHE" if orig != "HUB-CHE" and dest != "HUB-CHE" else "HUB-KOL"
         d5 = base_dist_km * 1.16
         c5 = (base_dist_km * 1.16 * 0.48 * weight_factor * priority_multiplier * constraint_multiplier) + 100.0
@@ -442,13 +442,54 @@ class IntelligentRoutingEngine:
             "historical_sla_pct": 93.0,
             "predicted_sla_pct": 95.0,
             "risk_score": 16.5,
-            "carbon_kg": round(d5 * 0.11, 1),
+            "carbon_kg": round(d5 * 0.065, 1),
             "expected_delay_hours": 3.0,
             "confidence_pct": conf5,
             "confidence_score": round(conf5 / 100.0, 3),
             "overall_score": 88.5,
             "composite_score": 88.5,
-            "carrier": "ACO Logistics Network"
+            "carrier": "ACO Green Logistics"
+        })
+
+        # Strategy 6: Premium SLA Guaranteed Lane (Highest SLA & Lowest Risk)
+        trans6 = "HUB-AMS" if orig != "HUB-AMS" and dest != "HUB-AMS" else "HUB-SIN"
+        d6 = base_dist_km * 1.05
+        c6 = (base_dist_km * 1.05 * 0.98 * weight_factor * priority_multiplier * constraint_multiplier) + 250.0
+        t6 = round(max(0.45, base_days * 0.60), 2)
+        conf6 = 99.6
+        candidates.append({
+            "id": "cand-6",
+            "candidate_id": "cand-6",
+            "algorithm": "Premium SLA Priority Lane",
+            "name": f"Premium SLA ({orig} → {trans6} → {dest})",
+            "path": [orig, trans6, dest],
+            "path_nodes": [orig, trans6, dest],
+            "path_str": f"{orig} → {trans6} → {dest}",
+            "origin": orig,
+            "destination": dest,
+            "intermediate_hub": trans6,
+            "repair_center": "TPR-AMS-01" if shipment_type == "Reverse Logistics" else "N/A",
+            "distance_km": round(d6, 1),
+            "distance": round(d6 * 0.621371, 1),
+            "expected_cost": round(c6, 2),
+            "cost": round(c6, 2),
+            "total_cost": round(c6, 2),
+            "estimated_transit_days": round(t6, 2),
+            "transit_time": round(t6, 2),
+            "estimated_transit_hours": round(t6 * 24.0, 1),
+            "inventory_available": max(120, quantity * 10),
+            "hub_utilization_pct": 58.0,
+            "tpr_utilization_pct": 50.0,
+            "historical_sla_pct": 99.2,
+            "predicted_sla_pct": 99.6,
+            "risk_score": 8.5,
+            "carbon_kg": round(d6 * 0.19, 1),
+            "expected_delay_hours": 0.5,
+            "confidence_pct": conf6,
+            "confidence_score": round(conf6 / 100.0, 3),
+            "overall_score": 96.0,
+            "composite_score": 96.0,
+            "carrier": "Global Sovereign Express"
         })
 
         return candidates
@@ -479,18 +520,31 @@ class IntelligentRoutingEngine:
 
         w_inv, w_hub, w_tpr, w_dist, w_delay = 0.04, 0.03, 0.03, 0.03, 0.02
 
+        costs = [c["expected_cost"] for c in candidates]
+        transits = [c["estimated_transit_days"] for c in candidates]
+        slas = [c["predicted_sla_pct"] for c in candidates]
+        risks = [c["risk_score"] for c in candidates]
+        carbons = [c["carbon_kg"] for c in candidates]
+
+        min_c, max_c = min(costs), max(costs)
+        min_t, max_t = min(transits), max(transits)
+        min_s, max_s = min(slas), max(slas)
+        min_r, max_r = min(risks), max(risks)
+        min_cb, max_cb = min(carbons), max(carbons)
+
         scored = []
         for c in candidates:
-            # Normalize sub-scores (0-100)
-            score_transit = max(10.0, 100.0 - (c["estimated_transit_days"] * 20.0))
-            score_cost = max(10.0, 100.0 - (c["expected_cost"] / 20.0))
-            score_sla = c["predicted_sla_pct"]
-            score_risk = max(10.0, 100.0 - c["risk_score"] * 2.0)
+            # Relative score normalization (20.0 to 100.0)
+            score_cost = 100.0 - ((c["expected_cost"] - min_c) / (max_c - min_c + 1e-5)) * 80.0
+            score_transit = 100.0 - ((c["estimated_transit_days"] - min_t) / (max_t - min_t + 1e-5)) * 80.0
+            score_sla = 20.0 + ((c["predicted_sla_pct"] - min_s) / (max_s - min_s + 1e-5)) * 80.0
+            score_risk = 100.0 - ((c["risk_score"] - min_r) / (max_r - min_r + 1e-5)) * 80.0
+            score_carbon = 100.0 - ((c["carbon_kg"] - min_cb) / (max_cb - min_cb + 1e-5)) * 80.0
+            
             score_inv = min(100.0, c["inventory_available"] * 0.4)
             score_hub = max(10.0, 100.0 - c["hub_utilization_pct"] * 0.8)
             score_tpr = max(10.0, 100.0 - c["tpr_utilization_pct"] * 0.8)
             score_dist = max(10.0, 100.0 - (c["distance_km"] / 20.0))
-            score_carbon = max(10.0, 100.0 - (c["carbon_kg"] / 4.0))
             score_delay = max(10.0, 100.0 - (c["expected_delay_hours"] * 10.0))
 
             overall_score = float(round(

@@ -45,12 +45,12 @@
                 }
             });
 
-            // Find highlights
+            // Find highlights across candidates
             const cheapest = minVal(candidates, "cost");
             const fastest = minVal(candidates, "transit_time");
-            const safest = minVal(candidates, "hops"); // fewer hops = safer
-            const reliable = maxVal(candidates, "composite_score");
-            const sustainable = minVal(candidates, "distance"); // shorter distance = lower carbon footprint
+            const safest = minVal(candidates, "risk_score");
+            const reliable = maxVal(candidates, "confidence_score");
+            const sustainable = minVal(candidates, "carbon_kg");
 
             let rowsHtml = "";
             candidates.forEach((c) => {
