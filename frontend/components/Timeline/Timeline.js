@@ -29,16 +29,29 @@
             const index = parseInt(val);
             const label = document.getElementById("timeline-day-label");
 
+            // Build active filters object combining global map filters
+            const activeFilters = Object.assign({}, window.GlobalFilters || {});
+
             if (index === -1) {
-                label.textContent = "All Days";
-                // Trigger reload without daily filters
-                NetworkExplorer.loadNetwork({});
+                if (label) label.textContent = "All Days";
+                delete activeFilters.day_of_week;
             } else {
                 const day = DAYS[index];
-                label.textContent = day;
-                
-                // Trigger reload with day filter
-                NetworkExplorer.loadNetwork({ day_of_week: day });
+                if (label) label.textContent = day;
+                activeFilters.day_of_week = day;
+            }
+
+            // Sync with global filter state if available
+            if (window.GlobalFilters) {
+                if (index === -1) {
+                    delete window.GlobalFilters.day_of_week;
+                } else {
+                    window.GlobalFilters.day_of_week = DAYS[index];
+                }
+            }
+
+            if (window.NetworkExplorer && typeof window.NetworkExplorer.loadNetwork === "function") {
+                window.NetworkExplorer.loadNetwork(activeFilters);
             }
         }
     };

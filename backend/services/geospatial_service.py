@@ -103,8 +103,9 @@ class GeospatialService:
         # Enrich dynamic partners, priorities, and flow types just like BI service
         df = df_tx_raw.copy()
         if len(df) > 0:
-            tpr_names = list(df_tpr["TPR_Name"]) if len(df_tpr) > 0 else ["Swift LogiCo", "Apex Freight", "LoneStar Delivery"]
-            df["Logistics_Partner"] = [tpr_names[i % len(tpr_names)] for i in range(len(df))]
+            if "Logistics_Partner" not in df.columns or df["Logistics_Partner"].isnull().all():
+                tpr_names = list(df_tpr["TPR_Name"]) if len(df_tpr) > 0 else ["AirFreight Partners", "FastTrack Logistics", "GlobalShip Express"]
+                df["Logistics_Partner"] = [tpr_names[i % len(tpr_names)] for i in range(len(df))]
             
             # Map partner names to TPR IDs dynamically
             partner_to_tpr = {}
@@ -117,7 +118,8 @@ class GeospatialService:
                     partner_to_tpr[v.get("city") + " Repair Center"] = k
 
             default_tpr_id = list(partner_to_tpr.values())[0] if partner_to_tpr else "TPR-001"
-            df["TPR_ID"] = df["Logistics_Partner"].map(partner_to_tpr).fillna(default_tpr_id)
+            if "TPR_ID" not in df.columns or df["TPR_ID"].isnull().all():
+                df["TPR_ID"] = df["Logistics_Partner"].map(partner_to_tpr).fillna(default_tpr_id)
 
             priorities = []
             flow_types = []
@@ -136,13 +138,15 @@ class GeospatialService:
                     flow_types.append("Outbound to TPR")
                 
                 if dist > 300.0 or cost > 300.0:
-                    priorities.append("High Priority")
+                    priorities.append("P1-Critical")
                 elif dist > 100.0 or cost > 100.0:
-                    priorities.append("Medium Priority")
+                    priorities.append("P2-High")
                 else:
-                    priorities.append("Low Priority")
-            df["Priority"] = priorities
-            df["Flow_Type"] = flow_types
+                    priorities.append("P3-Medium")
+            if "Priority" not in df.columns or df["Priority"].isnull().all():
+                df["Priority"] = priorities
+            if "Flow_Type" not in df.columns or df["Flow_Type"].isnull().all():
+                df["Flow_Type"] = flow_types
 
         # Apply Filters to transactions
         df_filtered = cls._apply_geospatial_filters(df, df_parts, filters)
@@ -568,6 +572,19 @@ class GeospatialService:
                     df_filtered["Logistics_Partner"].astype(str).str.lower().str.contains(q)
                 ]
             query_ops.append(f"Global search: {q}")
+
+        # 13. Day of Week filter (e.g. 'Monday', 'Tuesday', etc.)
+        day_of_week = active_filters.get("day_of_week") or active_filters.get("day")
+        if day_of_week:
+            target_day = str(day_of_week).strip().lower()
+            day_col = None
+            for candidate in ["Dispatch_Date_Day_Name", "Order_Date_Day_Name", "Delivery_Date_Day_Name"]:
+                if candidate in df_filtered.columns:
+                    day_col = candidate
+                    break
+            if day_col:
+                df_filtered = df_filtered[df_filtered[day_col].astype(str).str.lower() == target_day]
+                query_ops.append(f"{day_col} == {day_of_week}")
 
         elapsed = (time.time() - start_time) * 1000
         query_executed = " & ".join(query_ops) if query_ops else "NO_ACTIVE_FILTERS"
