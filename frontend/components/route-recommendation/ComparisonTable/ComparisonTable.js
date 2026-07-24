@@ -72,7 +72,7 @@
                         <td>
                             <div style="display:flex; align-items:center; gap:0.5rem;">
                                 <input type="radio" name="comp-route-select" ${isSelected ? 'checked' : ''}>
-                                <strong>${c.algorithm}</strong>
+                                <strong>${c.name || c.route_name || c.algorithm}</strong>
                             </div>
                         </td>
                         <td class="text-right">${window.Formatters.safeDistance(c.distance)}</td>

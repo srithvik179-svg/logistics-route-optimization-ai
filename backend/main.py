@@ -908,6 +908,7 @@ def get_corridor_drilldown_details(payload: Dict[str, Any] = None):
 @app.api_route("/api/intelligent-routing/recommend", methods=["GET", "POST"])
 @app.api_route("/api/intelligent-routing/recommend/", methods=["GET", "POST"])
 @app.api_route("/api/route-recommendation/recommend", methods=["GET", "POST"])
+@app.api_route("/api/route-recommendation/recommend/", methods=["GET", "POST"])
 def get_intelligent_route_recommendation(payload: Dict[str, Any] = Body(default={})):
     """Evaluates a shipment request using the Dell 4-Step Decision Tree and 10-dimension ranking engine."""
     params = payload if payload else {}
