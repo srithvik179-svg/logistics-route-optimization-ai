@@ -106,10 +106,25 @@ function initWorkspaceGlobalUX() {
  */
 async function loadWorkspace() {
     wsTabsLoaded.clear();
+    wsCache.clear();
     logActivity('navigate', 'Opened AI Insights Workspace', 'fa-brain');
-    await loadInsightOverview();
-    wsTabsLoaded.add('ws-insights');
-    console.log('[Observability] Insights Updated');
+    
+    // Find active tab pane ID inside #workspace-section
+    const activePane = document.querySelector('#workspace-section .ws-tab-pane.active');
+    const activeTabId = activePane ? activePane.id : 'ws-insights';
+    
+    switch (activeTabId) {
+        case 'ws-decision':    await loadDecisionSupport(); break;
+        case 'ws-alerts':      await loadOperationalAlerts(); break;
+        case 'ws-analytics':   await loadAnalyticsWorkspace(); break;
+        case 'ws-productivity':loadProductivityHub(); break;
+        case 'ws-insights':
+        default:
+            await loadInsightOverview();
+            break;
+    }
+    wsTabsLoaded.add(activeTabId);
+    console.log(`[Observability] Insights Updated for tab: ${activeTabId}`);
 }
 
 // ============================================================
@@ -280,11 +295,12 @@ async function loadInsightOverview() {
         let success = false;
 
         // --- Executive Highlights ---
-        if (dashRes.status === 'fulfilled' && dashRes.value) {
-            renderExecutiveHighlights(dashRes.value);
+        const activeHighlightData = (biRes.status === 'fulfilled' && biRes.value) ? biRes.value : ((dashRes.status === 'fulfilled' && dashRes.value) ? dashRes.value : null);
+        if (activeHighlightData) {
+            renderExecutiveHighlights(activeHighlightData);
             success = true;
         } else {
-            showErrorState(['ws-highlight-strip'], 'loadInsightOverview', dashRes.reason);
+            showErrorState(['ws-highlight-strip'], 'loadInsightOverview', biRes.reason || dashRes.reason);
         }
 
         // --- Opportunities (from route scoring: high-score routes) ---
@@ -1085,22 +1101,24 @@ async function loadAnalyticsWorkspace() {
     }
 
     try {
-        const [dashRes, costRes, transitRes, inventoryRes, capacityRes] = await Promise.allSettled([
+        const [dashRes, costRes, transitRes, inventoryRes, capacityRes, biRes] = await Promise.allSettled([
             wsGet('/api/analytics/dashboard'),
             wsPost('/api/cost-analytics/payload', { filters: window.GlobalFilters || {} }),
             wsPost('/api/transit-analytics/payload', { filters: window.GlobalFilters || {} }),
             wsPost('/api/inventory-analytics/payload', { filters: window.GlobalFilters || {} }),
             wsPost('/api/capacity-analytics/payload', { filters: window.GlobalFilters || {} }),
+            wsPost('/api/bi/dashboard', { filters: window.GlobalFilters || {} }),
         ]);
 
         let success = false;
 
         // KPI strip
-        if (dashRes.status === 'fulfilled' && dashRes.value) {
-            renderWsKpiStrip(dashRes.value);
+        const activeKpiData = (biRes.status === 'fulfilled' && biRes.value) ? biRes.value : ((dashRes.status === 'fulfilled' && dashRes.value) ? dashRes.value : null);
+        if (activeKpiData) {
+            renderWsKpiStrip(activeKpiData);
             success = true;
         } else {
-            showErrorState(['ws-kpi-strip'], 'loadAnalyticsWorkspace', dashRes.reason);
+            showErrorState(['ws-kpi-strip'], 'loadAnalyticsWorkspace', biRes.reason || dashRes.reason);
         }
 
         if (costRes.status === 'fulfilled' && costRes.value) {
