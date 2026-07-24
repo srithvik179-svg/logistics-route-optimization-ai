@@ -223,26 +223,37 @@ class BIService:
                         df = sub
                         query_ops.append(f"Hub Region ({region_col}) == {region}")
 
-        # 10. Route -> matches Origin (Origin_Hub) and Destination (Destination_Location)
-        route = active_filters.get("route")
+        # 10. Route -> matches Origin (Origin_Hub) and Destination (Destination_Location or Destination_Hub)
+        route = active_filters.get("route") or active_filters.get("route_od")
         if route:
-            norm_route = route.replace("->", "|").replace("-", "|").replace("/", "|").replace(" to ", "|")
-            parts = [p.strip() for p in norm_route.split("|") if p.strip()]
-            if len(parts) >= 2:
-                origin_q = parts[0].lower()
-                dest_q = parts[1].lower()
-                df = df[
-                    df["Origin_Hub"].astype(str).str.lower().str.contains(origin_q) &
-                    df["Destination_Location"].astype(str).str.lower().str.contains(dest_q)
-                ]
-                query_ops.append(f"Route split: Origin_Hub contains {origin_q} & Destination_Location contains {dest_q}")
-            else:
-                q = route.lower()
-                df = df[
+            route_str = str(route).strip()
+            split_found = False
+            for delim in ["→", "->", "=>", " to ", " TO ", "|"]:
+                if delim in route_str:
+                    parts = [p.strip() for p in route_str.split(delim) if p.strip()]
+                    if len(parts) >= 2:
+                        orig_q = parts[0].lower()
+                        dest_q = parts[1].lower()
+                        sub = df[
+                            df["Origin_Hub"].astype(str).str.lower().str.contains(orig_q) &
+                            (df["Destination_Location"].astype(str).str.lower().str.contains(dest_q) |
+                             df["Destination_Hub"].astype(str).str.lower().str.contains(dest_q))
+                        ]
+                        if not sub.empty:
+                            df = sub
+                            query_ops.append(f"Route split: Origin_Hub contains {orig_q} & Destination contains {dest_q}")
+                        split_found = True
+                        break
+            if not split_found:
+                q = route_str.lower()
+                sub = df[
                     df["Origin_Hub"].astype(str).str.lower().str.contains(q) |
+                    df["Destination_Hub"].astype(str).str.lower().str.contains(q) |
                     df["Destination_Location"].astype(str).str.lower().str.contains(q)
                 ]
-                query_ops.append(f"Route contains {q} in Origin_Hub or Destination_Location")
+                if not sub.empty:
+                    df = sub
+                    query_ops.append(f"Route contains {q} in Origin or Destination")
 
         # 11. Transport Mode — handled by section 8b above (direct Logistics_Partner matching)
 

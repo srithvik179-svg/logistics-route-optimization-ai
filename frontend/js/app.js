@@ -3651,11 +3651,11 @@ function renderPerfCharts(payload) {
     }], getBaseLayout("Average Daily Shipment Cost Timeline"), { responsive: true, displayModeBar: false });
 
     // 3. Cost & Delay Analysis Breakdowns
-    const da = payload.delay_analysis;
-    const ca = payload.cost_analysis;
+    const da = payload.delay_analysis || {};
+    const ca = payload.cost_analysis || {};
 
     // Delay by Priority Bar
-    const prioX = Object.keys(da.by_priority);
+    const prioX = Object.keys(da.by_priority || {});
     const prioY = prioX.map(x => da.by_priority[x]);
     Plotly.newPlot("chart-perf-delay-priority", [{
         x: prioX,
@@ -3671,7 +3671,7 @@ function renderPerfCharts(payload) {
     }, { responsive: true, displayModeBar: false });
 
     // Delay by Partner Pie Chart
-    const partnerKeys = Object.keys(da.by_partner);
+    const partnerKeys = Object.keys(da.by_partner || {});
     const partnerVals = partnerKeys.map(k => da.by_partner[k]);
     Plotly.newPlot("chart-perf-delay-partner", [{
         labels: partnerKeys,
@@ -3687,7 +3687,7 @@ function renderPerfCharts(payload) {
     }, { responsive: true, displayModeBar: false });
 
     // Cost by Category Horizontal Bar
-    const catKeys = Object.keys(ca.by_category);
+    const catKeys = Object.keys(ca.by_category || {});
     const catVals = catKeys.map(k => ca.by_category[k]);
     Plotly.newPlot("chart-perf-cost-category", [{
         y: catKeys,
