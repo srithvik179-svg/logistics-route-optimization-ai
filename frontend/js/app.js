@@ -2862,9 +2862,6 @@ function renderMapLayers(data) {
                     <div><span style="color: var(--text-muted);">Optimization Engine:</span> <strong style="color: #10b981;">Dijkstra / A* Active</strong></div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <button class="btn btn-primary btn-sm" style="width: 100%; font-size: 11px; padding: 5px; cursor: pointer;" onclick="window.selectRouteOnMap('${fl.origin_id}', '${fl.destination_id}')">
-                        <i class="fa-solid fa-bolt"></i> Filter Platform by This Route
-                    </button>
                     <button class="btn btn-secondary btn-sm" style="width: 100%; font-size: 11px; padding: 5px; cursor: pointer;" onclick="window.navigateToRouteIntelligence('${fl.origin_id}', '${fl.destination_id}')">
                         <i class="fa-solid fa-chart-line"></i> Open Route Intelligence
                     </button>
@@ -2914,19 +2911,10 @@ function updateMapSummaryPanel(sum) {
 }
 
 window.selectRouteOnMap = function(origin, dest) {
-    const routeText = `${origin} → ${dest}`;
-    if (window.GlobalFilters) {
-        window.GlobalFilters.route = routeText;
-    }
-    const routeInput = document.getElementById("filter-route-text");
-    if (routeInput) {
-        routeInput.value = routeText;
-    }
-    alert(`Corridor Selected!\n\nActive Route set to: ${routeText}\n\nAll platform views and analytics engines are now filtered for this specific corridor.`);
+    console.log("[Map] Route selection filter disabled.");
 };
 
 window.navigateToRouteIntelligence = function(origin, dest) {
-    window.selectRouteOnMap(origin, dest);
     const navItem = document.querySelector('.nav-link[data-target="route-intelligence"]');
     if (navItem) {
         navItem.click();
